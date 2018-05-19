@@ -1,0 +1,37 @@
+Configuration:
+  status: warn
+
+  Appenders:
+    Console:
+      name: Console
+      target: SYSTEM_OUT
+      PatternLayout:
+        Pattern: "%d [%-6p] %m (%c)%n"
+    Routing:
+      name: FileRoute
+      Routes:
+        pattern: "true"
+        Route:
+        - key: "${sys:log.file.enabled}"
+          RollingRandomAccessFile:
+            name: File
+            fileName: "log/wemosnarfer.log"
+            filePattern: "log/wemosnarfer.log.%i"
+            PatternLayout:
+              Pattern: "%d [%-6p] %m (%c)%n"
+            Policies:
+              SizeBasedTriggeringPolicy:
+                size: "10 MB"
+            DefaultRolloverStrategy:
+              max: 20
+
+  Loggers:
+    Root:
+      level: info
+      AppenderRef:
+      - ref: Console
+      - ref: FileRoute
+
+    Logger:
+    - name: net.forlevity
+      level: info
