@@ -1,5 +1,6 @@
 package net.forlevity.homeglue.device;
 
+import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.apache.http.client.fluent.Request;
@@ -18,28 +19,40 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 @Log4j2
-@ToString(of = {"friendlyName","model","serialNumber","macAddress","firmwareVersion"})
-public class WemoInsightConnector implements PowerMeterConnector {
+@ToString(of = {"hostAddress"}, callSuper = true)
+public class WemoInsightConnector extends AbstractDeviceConnector implements PowerMeterConnector {
 
     private final String hostAddress;
+    private final int port;
+
+    @Getter
+    private boolean connected = false;
     private final DocumentBuilderFactory xmlDocumentBuilderFactory;
     private final XPathFactory xPathFactory;
-    private int port = -1;
-    private String friendlyName;
-    private String model;
-    private String serialNumber;
-    private String macAddress;
-    private String firmwareVersion;
 
-    public WemoInsightConnector(String hostAddress) {
+    public WemoInsightConnector(String hostAddress, int port) {
         this.hostAddress = hostAddress;
+        this.port = port;
         xmlDocumentBuilderFactory = DocumentBuilderFactory.newInstance();
         xPathFactory = XPathFactory.newInstance();
     }
 
     @Override
     public boolean connect() {
-        log.info("trying to connect to wemo at address: {} ...", hostAddress);
+        // TODO: just use location from discovery
+        String location = String.format("http://%s:%d/setup.xml", hostAddress, port);
+        log.debug("trying to connect to wemo at {} ...", hostAddress, port);
+        try {
+            String result = Request.Get(location).execute().returnContent().asString();
+            parseWemoSetup(result);
+            connected = true;
+        } catch (IOException e) {
+            log.warn("failed to get {} : {} {}", location, e.getClass().getSimpleName(), e.getMessage());
+        } catch (SAXException | ParserConfigurationException e) {
+            log.warn("failed to parse service description", e);
+        }
+        return connected;
+        /*
         for (int tryPort = 49153; tryPort <= 49155; tryPort++ ) {
             String baseUrl = String.format("http://%s:%d/", hostAddress, tryPort);
             String result = null;
@@ -57,23 +70,18 @@ public class WemoInsightConnector implements PowerMeterConnector {
             }
         }
         port = -1;
-        return false;
-    }
-
-    @Override
-    public boolean isConnected() {
-        return port > 0;
+        return false;*/
     }
 
     private void parseWemoSetup(String setupXml) throws IOException, SAXException, ParserConfigurationException {
         DocumentBuilder db = xmlDocumentBuilderFactory.newDocumentBuilder();
         Document doc = db.parse(new ByteArrayInputStream(setupXml.getBytes("utf-8")));
         try {
-            this.friendlyName = nodeText(doc, "/root/device/friendlyName");
-            this.model = nodeText(doc, "/root/device/modelDescription");
-            this.serialNumber = nodeText(doc, "/root/device/serialNumber");
-            this.macAddress = nodeText(doc, "/root/device/macAddress");
-            this.firmwareVersion = nodeText(doc, "/root/device/firmwareVersion");
+            this.setDeviceId(nodeText(doc, "/root/device/macAddress")); // use MAC address as device ID
+            this.setDeviceDetail("model", nodeText(doc, "/root/device/modelDescription"));
+            this.setDeviceDetail("serialNumber", nodeText(doc, "/root/device/serialNumber"));
+            this.setDeviceDetail("name", nodeText(doc, "/root/device/friendlyName"));
+            this.setDeviceDetail("firmwareVersion", nodeText(doc, "/root/device/firmwareVersion"));
         } catch (XPathExpressionException e) {
             log.error(e);
         }
