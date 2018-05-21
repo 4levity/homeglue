@@ -4,6 +4,8 @@ import java.util.Map;
 
 public interface DeviceConnector {
 
+    String DEVICE_ID_UNKNOWN = "unknown";
+
     boolean connect();
 
     boolean isConnected();

@@ -1,6 +1,5 @@
 # Homeglue version 0 #
 
-Directly connect to a WeMo Insight plug power meter and retrieve data from it. Just proof of concept right now.
-Connects to a device named "wemo" on LAN.
+Discover and connect to WeMo WeMo Insight plug power meters and retrieve data from them. 
 
-Future: SSDP auto discovery, multiple devices, actually store the data, handle periodic read errors, reconnect etc.
+Future: actually store the data, handle read errors, reconnect, support other devices etc.

@@ -1,6 +1,7 @@
 package net.forlevity.homeglue.device;
 
 import com.google.common.collect.ImmutableMap;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -12,8 +13,8 @@ import java.util.Map;
 public abstract class AbstractDeviceConnector implements DeviceConnector {
 
     @Getter
-    @Setter
-    private String deviceId = "unknown";
+    @Setter(AccessLevel.PROTECTED)
+    private String deviceId = DEVICE_ID_UNKNOWN;
 
     private Map<String, String> deviceDetails = new HashMap<>();
 

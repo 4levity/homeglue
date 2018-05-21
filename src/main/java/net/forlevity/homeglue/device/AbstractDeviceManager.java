@@ -25,7 +25,7 @@ public abstract class AbstractDeviceManager extends AbstractIdleService implemen
      *
      * @param device the device
      */
-    final void register(DeviceConnector device) {
+    protected final void register(DeviceConnector device) {
         updateDeviceMap(device);
         deviceStatusSink.accept(device);
     }

@@ -35,3 +35,5 @@ Configuration:
     Logger:
     - name: net.forlevity
       level: info
+    - name: org.reflections.Reflections
+      level: warn # don't care about Reflections startup message
