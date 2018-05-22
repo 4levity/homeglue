@@ -67,17 +67,17 @@ public class WemoInsightConnector extends AbstractSoapDeviceConnector implements
      * @return true if successfully parsed setup.xml
      */
     private boolean parseWemoSetup(String setupXml) {
-        Document doc = parse(setupXml);
+        Document doc = xml.parse(setupXml);
         boolean success = false;
-        String macAddress = nodeText(doc, "/root/device/macAddress");
+        String macAddress = xml.nodeText(doc, "/root/device/macAddress");
         if (macAddress == null) {
             log.warn("xml did not contain device macAddress");
         } else {
             this.setDeviceId(macAddress); // use MAC address as device ID
-            this.setDeviceDetail("model", nodeText(doc, "/root/device/modelDescription"));
-            this.setDeviceDetail("serialNumber", nodeText(doc, "/root/device/serialNumber"));
-            this.setDeviceDetail("name", nodeText(doc, "/root/device/friendlyName"));
-            this.setDeviceDetail("firmwareVersion", nodeText(doc, "/root/device/firmwareVersion"));
+            this.setDeviceDetail("model", xml.nodeText(doc, "/root/device/modelDescription"));
+            this.setDeviceDetail("serialNumber", xml.nodeText(doc, "/root/device/serialNumber"));
+            this.setDeviceDetail("name", xml.nodeText(doc, "/root/device/friendlyName"));
+            this.setDeviceDetail("firmwareVersion", xml.nodeText(doc, "/root/device/firmwareVersion"));
             success = true;
         }
         return success;
@@ -88,7 +88,7 @@ public class WemoInsightConnector extends AbstractSoapDeviceConnector implements
         PowerMeterData result = null;
         Document doc = execInsightSoapRequest("GetInsightParams");
         if (doc != null) {
-            String insightParams = nodeText(doc, "//InsightParams");
+            String insightParams = xml.nodeText(doc, "//InsightParams");
             if (insightParams != null) {
                 String[] params = insightParams.split("\\|");
                 double milliwatts = Double.valueOf(params[7]);

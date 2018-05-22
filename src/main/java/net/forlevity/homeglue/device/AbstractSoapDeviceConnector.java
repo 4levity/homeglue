@@ -11,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.http.SimpleHttpClient;
+import net.forlevity.homeglue.upnp.Xml;
 import org.apache.http.entity.ContentType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -35,39 +36,16 @@ public abstract class AbstractSoapDeviceConnector extends AbstractDeviceConnecto
 
     @Getter(AccessLevel.PROTECTED)
     private final SimpleHttpClient httpClient;
-    private final DocumentBuilderFactory xmlDocumentBuilderFactory = DocumentBuilderFactory.newInstance();
-    private final XPathFactory xPathFactory = XPathFactory.newInstance();
+
+    protected final Xml xml = new Xml();
 
     protected AbstractSoapDeviceConnector(SimpleHttpClient httpClient) {
         this.httpClient = httpClient;
     }
 
     /**
-     * Convenience method to parse XML.
-     * @param xml some XML text
-     * @return DOM, or null if parsing failed
-     */
-    protected Document parse(String xml) {
-        DocumentBuilder documentBuilder;
-        byte[] bytes;
-        try {
-            bytes = xml.getBytes("utf-8");
-            documentBuilder = xmlDocumentBuilderFactory.newDocumentBuilder();
-        } catch (ParserConfigurationException | UnsupportedEncodingException e) {
-            throw new UnsupportedOperationException(e);
-        }
-        ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-        Document result = null;
-        try {
-            result = documentBuilder.parse(stream);
-        } catch (SAXException | IOException e) {
-            log.warn("failed to parse XML");
-        }
-        return result == null ? documentBuilder.newDocument() : result;
-    }
-
-    /**
-     * Convenience method to execute a SOAP-ish request to a device.
+     * Execute a SOAP-ish request to a device.
+     *
      * @param url http endpoint URL
      * @param urn SOAP URN
      * @param action SOAP action
@@ -85,30 +63,10 @@ public abstract class AbstractSoapDeviceConnector extends AbstractDeviceConnecto
         try {
             Map<String, String> extraHeaders = ImmutableMap.of("SOAPAction", String.format("\"%s#%s\"",urn,action));
             String result = httpClient.post(url, extraHeaders, payload, ContentType.TEXT_XML);
-            DocumentBuilder db = xmlDocumentBuilderFactory.newDocumentBuilder();
-            document = db.parse(new ByteArrayInputStream(result.getBytes("utf-8")));
+            document = xml.parse(result);
         } catch (IOException e) {
             log.warn("failed to execute SOAP request: {} {}", e.getClass().getSimpleName(), e.getMessage());
-        } catch (ParserConfigurationException | SAXException e) {
-            log.warn("failed to parse XML from device", e);
         }
         return document;
     }
-
-    /**
-     * Convenience method to run an XPath query to find a specific node and return the text content.
-     * @param doc DOM
-     * @param query XPath query expression
-     * @return text content of node, or null if query did not find one node
-     */
-    protected String nodeText(Document doc, String query) {
-        Node node = null;
-        try {
-            node = (Node) xPathFactory.newXPath().evaluate(query, doc, XPathConstants.NODE);
-        } catch (XPathExpressionException e) {
-            log.warn("failed to get text from node", e);
-        }
-        return node == null ? null : node.getTextContent();
-    }
-
 }

@@ -8,6 +8,7 @@ package net.forlevity.homeglue.device;
 
 import net.forlevity.homeglue.HomeglueTests;
 import net.forlevity.homeglue.http.SimpleHttpClient;
+import net.forlevity.homeglue.upnp.Xml;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.w3c.dom.Document;
@@ -22,14 +23,16 @@ import static org.mockito.Mockito.*;
 
 public class AbstractSoapDeviceConnectorTest extends HomeglueTests {
 
+    final Xml xml = new Xml();
+
     @Test
     public void testXmlParsing() {
         TestSoapDeviceConnector connector = new TestSoapDeviceConnector();
-        String xml = resourceAsString("insight1_setup.xml");
-        Document document = connector.doParse(xml);
+        String xmlText = resourceAsString("insight1_setup.xml");
+        Document document = xml.parse(xmlText);
         assertNotNull(document);
         assertEquals(1, document.getElementsByTagName("manufacturer").getLength());
-        assertEquals("urn:Belkin:device:insight:1", connector.getNodeText(document,"//deviceType"));
+        assertEquals("urn:Belkin:device:insight:1", xml.nodeText(document,"//deviceType"));
     }
 
     @Test
@@ -47,10 +50,10 @@ public class AbstractSoapDeviceConnectorTest extends HomeglueTests {
         ArgumentCaptor<String> xmlRequest = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Map<String,String>> requestHeaders = ArgumentCaptor.forClass(Map.class);
         verify(mockHttp).post(any(), requestHeaders.capture(), xmlRequest.capture(), any());
-        Document requestDoc = connector.parse(xmlRequest.getValue());
+        Document requestDoc = xml.parse(xmlRequest.getValue());
         assertEquals(1, requestDoc.getElementsByTagName("u:DoNothing").getLength());
         assertEquals(String.format("\"%s#%s\"", urn, action), requestHeaders.getValue().get("SOAPAction"));
-        assertEquals(11, connector.getNodeText(document, "//InsightParams").split("\\|").length);
+        assertEquals(11, xml.nodeText(document, "//InsightParams").split("\\|").length);
     }
 
     private static class TestSoapDeviceConnector extends AbstractSoapDeviceConnector {
@@ -73,16 +76,8 @@ public class AbstractSoapDeviceConnectorTest extends HomeglueTests {
             return getHttpClient();
         }
 
-        public Document doParse(String xml) {
-            return parse(xml);
-        }
-
         public Document doExecSoapRequest(String url, String urn, String action) {
             return execSoapRequest(url, urn, action);
-        }
-
-        public String getNodeText(Document doc, String query) {
-            return nodeText(doc, query);
         }
     }
 }
