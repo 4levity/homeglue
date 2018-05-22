@@ -6,51 +6,50 @@
 
 package net.forlevity.homeglue.upnp;
 
-import io.resourcepool.ssdp.model.DiscoveryRequest;
-import io.resourcepool.ssdp.model.SsdpService;
+import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.HomeglueTests;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import org.apache.http.entity.ContentType;
 import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+@Log4j2
+@Getter
 public class SimulatedWemo implements SsdpSearcher, SimpleHttpClient {
 
     private static final String ERROR_RESPONSE = "error";
 
+    private final Xml xml = new Xml();
     private final InetAddress inetAddress;
-    private final String setupXml;
-    private final Document setupDocument;
+    private final int port;
     private final String location;
+    private final String setupXml;
+    private final String deviceSerialNumber;
 
     public SimulatedWemo(InetAddress inetAddress, int port, String setupXmlName) {
         this.inetAddress = inetAddress;
-        this.setupXml = HomeglueTests.resourceAsString(setupXmlName);
-        this.setupDocument = null;//parse(setupXml);
+        this.port = port;
         this.location = String.format("http://%s:%d/setup.xml", inetAddress.getHostAddress(), port);
+        this.setupXml = HomeglueTests.resourceAsString(setupXmlName);
+        Document setupDocument = xml.parse(setupXml);
+        this.deviceSerialNumber = xml.nodeText(setupDocument, "//serialNumber");
     }
 
     @Override
-    public String get(String url) throws IOException {
+    public String get(String url) {
         if (url.endsWith("setup.xml")) {
+            log.info("providing setup.xml for {}", deviceSerialNumber);
             return setupXml;
         }
         return ERROR_RESPONSE;
     }
 
     @Override
-    public String post(String url, Map<String, String> headers, String payload, ContentType contentType) throws IOException {
+    public String post(String url, Map<String, String> headers, String payload, ContentType contentType) {
         if (url.endsWith("/upnp/control/insight1")
                 && payload.equals(HomeglueTests.resourceAsString("insightparams_request.xml"))
                 && headers.get("SOAPAction").equals("urn:Belkin:service:insight:1#GetInsightParams")
@@ -61,14 +60,16 @@ public class SimulatedWemo implements SsdpSearcher, SimpleHttpClient {
     }
 
     @Override
-    public BackgroundProcessHandle startDiscovery(DiscoveryRequest discoveryRequest, Consumer<SsdpService> serviceConsumer) {
-        if (discoveryRequest.getServiceTypes().contains("upnp:rootdevice")) {
-            // non-compliant WeMo only answers to this request
-            SsdpService ssdpService = mock(SsdpService.class);
-            when(ssdpService.getRemoteIp()).thenReturn(inetAddress);
-            when(ssdpService.getLocation()).thenReturn(location);
-            when(ssdpService.getServiceType()).thenReturn("");
-            serviceConsumer.accept(ssdpService);
+    public BackgroundProcessHandle startDiscovery(String serviceType,
+                                                  Consumer<SsdpServiceDefinition> serviceConsumer) {
+        // non-compliant WeMo only answers to specific service type request:
+        if (serviceType.equals(ROOT_DEVICE_SERVICE_TYPE)) {
+            // create mock service and send to consumer
+            String serviceSerialNumber = String.format("uuid:Insight-1_0-%s::%s",
+                    deviceSerialNumber, ROOT_DEVICE_SERVICE_TYPE);
+            SsdpServiceDefinition service =
+                    new SsdpServiceDefinition(serviceSerialNumber, ROOT_DEVICE_SERVICE_TYPE, location, inetAddress);
+            serviceConsumer.accept(service);
         }
         return () -> {};
     }

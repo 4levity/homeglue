@@ -8,7 +8,6 @@ package net.forlevity.homeglue.upnp;
 
 import com.google.common.util.concurrent.Service;
 import com.google.inject.ImplementedBy;
-import io.resourcepool.ssdp.model.SsdpService;
 
 import java.util.Queue;
 import java.util.function.Predicate;
@@ -29,5 +28,7 @@ public interface SsdpDiscoveryService extends Service {
      * @param newServices queue where matching services will be offered
      * @param priority what order to process this registration, compared to other registrations
      */
-    void registerSsdp(Predicate<SsdpService> serviceMatch, Queue<SsdpService> newServices, int priority);
+    void registerSsdp(Predicate<SsdpServiceDefinition> serviceMatch,
+                      Queue<SsdpServiceDefinition> newServices,
+                      int priority);
 }

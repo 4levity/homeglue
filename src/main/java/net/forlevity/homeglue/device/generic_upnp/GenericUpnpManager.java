@@ -8,12 +8,12 @@ package net.forlevity.homeglue.device.generic_upnp;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.resourcepool.ssdp.model.SsdpService;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractDeviceManager;
 import net.forlevity.homeglue.device.DeviceConnector;
 import net.forlevity.homeglue.storage.DeviceStatusSink;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
+import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 
 import java.net.InetAddress;
 import java.util.Arrays;
@@ -32,7 +32,7 @@ public class GenericUpnpManager extends AbstractDeviceManager {
     private static final long STARTUP_DELAY_MILLIS = 5000;
     private final GenericUpnpConnectorFactory genericUpnpConnectorFactory;
     private final SsdpDiscoveryService ssdpDiscoveryService;
-    private final LinkedBlockingQueue<SsdpService> discoveredServices = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<SsdpServiceDefinition> discoveredServices = new LinkedBlockingQueue<>();
     private final Map<InetAddress, GenericUpnpConnector> devicesByAddress = new HashMap<>();
 
     @Inject
@@ -55,7 +55,7 @@ public class GenericUpnpManager extends AbstractDeviceManager {
         // TODO: periodically update status of devices that have not connected recently
 
         while (true) {
-            SsdpService service = discoveredServices.take();
+            SsdpServiceDefinition service = discoveredServices.take();
             try {
                 processServiceInfo(service);
             } catch (RuntimeException e) {
@@ -64,7 +64,7 @@ public class GenericUpnpManager extends AbstractDeviceManager {
         }
     }
 
-    private void processServiceInfo(SsdpService service) {
+    private void processServiceInfo(SsdpServiceDefinition service) {
         InetAddress address = service.getRemoteIp();
         GenericUpnpConnector genericUpnpDevice = devicesByAddress.get(address);
         if (genericUpnpDevice == null) {

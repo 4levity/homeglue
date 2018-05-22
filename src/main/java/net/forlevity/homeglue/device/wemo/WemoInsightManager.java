@@ -8,7 +8,6 @@ package net.forlevity.homeglue.device.wemo;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.resourcepool.ssdp.model.SsdpService;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractDeviceManager;
 import net.forlevity.homeglue.device.PowerMeterConnector;
@@ -16,6 +15,7 @@ import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.storage.DeviceStatusSink;
 import net.forlevity.homeglue.storage.TelemetrySink;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
+import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
@@ -38,7 +38,7 @@ public class WemoInsightManager extends AbstractDeviceManager {
     private final TelemetrySink telemetrySink;
     private final ConcurrentHashMap<String, WemoInsightConnector> insights = new ConcurrentHashMap<>();
     private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
-    private final LinkedBlockingQueue<SsdpService> discoveredWemo = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<SsdpServiceDefinition> discoveredWemo = new LinkedBlockingQueue<>();
 
     @Inject
     public WemoInsightManager(SsdpDiscoveryService ssdpDiscoveryService,
@@ -59,23 +59,23 @@ public class WemoInsightManager extends AbstractDeviceManager {
 
         while (true) {
             // whenever a new wemo is discovered, add it to our list and try to connect
-            SsdpService wemo = discoveredWemo.take(); // on interrupted, service will quit
+            SsdpServiceDefinition ssdpWemo = discoveredWemo.take(); // on interrupted, service will quit
             try {
-                handleWemoDiscovery(wemo);
+                handleWemoDiscovery(ssdpWemo);
             } catch (RuntimeException e) {
                 log.error("unexpected exception handling WeMo discovery (continuing)", e);
             }
         }
     }
 
-    private void handleWemoDiscovery(SsdpService wemo) {
-        Matcher location = SSDP_LOCATION.matcher(wemo.getLocation());
+    private void handleWemoDiscovery(SsdpServiceDefinition ssdpWemo) {
+        Matcher location = SSDP_LOCATION.matcher(ssdpWemo.getLocation());
         if (location.matches()) {
             String ipAddress = location.group("ipAddress");
             int port = Integer.valueOf(location.group("port"));
             handleWemoDiscovery(ipAddress, port);
         } else {
-            log.warn("thought we found Insight meter but has unexpected location: {}", wemo.getLocation());
+            log.warn("thought we found Insight meter but has unexpected location: {}", ssdpWemo.getLocation());
         }
     }
 

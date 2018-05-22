@@ -8,9 +8,9 @@ package net.forlevity.homeglue.device.generic_upnp;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import io.resourcepool.ssdp.model.SsdpService;
 import net.forlevity.homeglue.device.AbstractSoapDeviceConnector;
 import net.forlevity.homeglue.http.SimpleHttpClient;
+import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 
 import java.net.InetAddress;
 import java.util.HashSet;
@@ -22,7 +22,7 @@ import java.util.Set;
 public class GenericUpnpConnector extends AbstractSoapDeviceConnector {
 
     private final InetAddress hostAddress;
-    private final Set<SsdpService> ssdpServices = new HashSet<>();
+    private final Set<SsdpServiceDefinition> ssdpServices = new HashSet<>();
 
     @Inject
     protected GenericUpnpConnector(SimpleHttpClient httpClient,
@@ -46,7 +46,7 @@ public class GenericUpnpConnector extends AbstractSoapDeviceConnector {
      * @param service service info
      * @return true if this service was NOT already in the list
      */
-    public boolean add(SsdpService service) {
+    public boolean add(SsdpServiceDefinition service) {
         synchronized (ssdpServices) {
             return ssdpServices.add(service);
         }

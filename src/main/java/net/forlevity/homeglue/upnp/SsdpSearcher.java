@@ -7,8 +7,6 @@
 package net.forlevity.homeglue.upnp;
 
 import com.google.inject.ImplementedBy;
-import io.resourcepool.ssdp.model.DiscoveryRequest;
-import io.resourcepool.ssdp.model.SsdpService;
 
 import java.util.function.Consumer;
 
@@ -18,13 +16,15 @@ import java.util.function.Consumer;
 @ImplementedBy(SsdpSearcherImpl.class)
 public interface SsdpSearcher {
 
+    String ROOT_DEVICE_SERVICE_TYPE = "upnp:rootdevice";
+
     /**
      * Start an SSDP broadcast discovery. As services are discovered, they will be passed to a consumer. The consumer
      * should be fast. Caller must retain the BackgroundProcessHandle and call handle.stop() after a few seconds.
      *
-     * @param discoveryRequest the request e.g. DiscoveryRequest.discoverAll()
+     * @param serviceType specific service type e.g. "upnp:rootdevice", or null for 'all'
      * @param serviceConsumer sink for service information
      * @return handle to stop discovery
      */
-    BackgroundProcessHandle startDiscovery(DiscoveryRequest discoveryRequest, Consumer<SsdpService> serviceConsumer);
+    BackgroundProcessHandle startDiscovery(String serviceType, Consumer<SsdpServiceDefinition> serviceConsumer);
 }

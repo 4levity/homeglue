@@ -23,14 +23,19 @@ import java.util.function.Consumer;
 @Singleton
 public class SsdpSearcherImpl implements SsdpSearcher {
 
-    public BackgroundProcessHandle startDiscovery(DiscoveryRequest discoveryRequest, Consumer<SsdpService> serviceConsumer) {
+    @Override
+    public BackgroundProcessHandle startDiscovery(String serviceType, Consumer<SsdpServiceDefinition> serviceConsumer) {
         SsdpClient client = SsdpClient.create();
-        client.discoverServices(discoveryRequest, new DiscoveryListener() {
+        DiscoveryRequest.Builder discoveryRequest = DiscoveryRequest.builder();
+        if (serviceType != null) {
+            discoveryRequest.serviceType(serviceType);
+        }
+        client.discoverServices(discoveryRequest.build(), new DiscoveryListener() {
 
             @Override
             public void onServiceDiscovered(SsdpService service) {
                 log.trace("onServiceDiscovered: {}", service);
-                serviceConsumer.accept(service);
+                serviceConsumer.accept(new SsdpServiceDefinition(service));
             }
 
             @Override

@@ -10,8 +10,6 @@ import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import io.resourcepool.ssdp.model.DiscoveryRequest;
-import io.resourcepool.ssdp.model.SsdpService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -53,7 +51,9 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
     }
 
     @Override
-    public void registerSsdp(Predicate<SsdpService> predicate, Queue<SsdpService> serviceQueue, int priority) {
+    public void registerSsdp(Predicate<SsdpServiceDefinition> predicate,
+                             Queue<SsdpServiceDefinition> serviceQueue,
+                             int priority) {
         synchronized (registrations) {
             registrations.add(new Registration(priority, predicate, serviceQueue));
             // registration list is sorted in priority order, highest priority (lowest number) first
@@ -89,8 +89,8 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
                 log.warn("an SSDP search did not complete on time, ended at {}", lastSearchEndTime);
             } else {
                 // search for root device since Belkin Wemo Insight does not respond to 'all'
-                search(DiscoveryRequest.discoverRootDevice());
-                search(DiscoveryRequest.discoverAll());
+                search(SsdpSearcher.ROOT_DEVICE_SERVICE_TYPE);
+                search(null);
                 lastSearchEndTime = Instant.now();
             }
         }
@@ -98,13 +98,13 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
 
     /**
      * Execute a single SSDP discovery request, handling services as they come in.
-     * @param discoveryRequest the discovery request
+     * @param serviceType the service type or null
      * @throws InterruptedException if interrupted
      */
-    private void search(DiscoveryRequest discoveryRequest) throws InterruptedException {
+    private void search(String serviceType) throws InterruptedException {
         BackgroundProcessHandle discovery = null;
         try {
-            discovery = ssdpSearcher.startDiscovery(discoveryRequest, service -> dispatch(service));
+            discovery = ssdpSearcher.startDiscovery(serviceType, service -> dispatch(service));
             Thread.sleep(ssdpScanLengthMillis);
         } finally {
             if (discovery != null) {
@@ -117,7 +117,7 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
      * For a discovered service, look through existing registrations and send matching service descriptions.
      * @param service discovered service
      */
-    private void dispatch(SsdpService service) {
+    private void dispatch(SsdpServiceDefinition service) {
         synchronized (registrations) {
             log.debug("found service {} / {} at {}",
                     service.getServiceType(), service.getSerialNumber(), service.getLocation());
@@ -134,7 +134,7 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
     @AllArgsConstructor
     private static class Registration {
         public int priority;
-        public Predicate<SsdpService> predicate;
-        public Queue<SsdpService> serviceQueue;
+        public Predicate<SsdpServiceDefinition> predicate;
+        public Queue<SsdpServiceDefinition> serviceQueue;
     }
 }
