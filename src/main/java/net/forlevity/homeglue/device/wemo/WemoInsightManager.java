@@ -63,7 +63,8 @@ public class WemoInsightManager extends AbstractDeviceManager {
     }
 
     private void handleWemoDiscovery(String ipAddress, int port) {
-        if (!insights.containsKey(ipAddress)) {
+        WemoInsightConnector foundConnector = insights.get(ipAddress);
+        if (foundConnector == null) {
             WemoInsightConnector newConnector = connectorFactory.create(ipAddress, port);
             if (newConnector.connect()) {
                 log.info("connected to Insight meter at {}:{}", ipAddress, port);
@@ -77,7 +78,11 @@ public class WemoInsightManager extends AbstractDeviceManager {
             } else {
                 log.warn("detected but failed to connect to Insight meter at {}:{}", ipAddress, port);
             }
-        } // else ignore duplicates
+        } else if (foundConnector.getPort() != port) {
+            log.info("Wemo Insight port at {} changed from {} to {}",
+                    ipAddress, foundConnector.getPort(), port);
+            foundConnector.setPort(port);
+        }
     }
 
     private void startTimer() {

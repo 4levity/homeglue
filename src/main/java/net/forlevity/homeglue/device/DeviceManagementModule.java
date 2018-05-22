@@ -11,21 +11,21 @@ import org.reflections.util.ConfigurationBuilder;
 import java.lang.reflect.Modifier;
 
 public class DeviceManagementModule extends AbstractModule {
+
+    private final Reflections reflections = new Reflections(new ConfigurationBuilder()
+            .forPackages(this.getClass().getPackage().getName())); // i.e. net.4levity.homeglue.device
+
     @Override
     protected void configure() {
 
         // add all device managers
         Multibinder<DeviceManager> deviceManagerBinder = Multibinder.newSetBinder(binder(), DeviceManager.class);
-        Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .forPackages(this.getClass().getPackage().getName())); // i.e. net.4levity.homeglue
         reflections.getSubTypesOf(DeviceManager.class).stream()
                 .filter(clazz -> !clazz.isInterface() && !Modifier.isAbstract( clazz.getModifiers()))
                 .forEach(clazz -> deviceManagerBinder.addBinding().to(clazz));
 
-        // wemo insight
+        // assisted injection for connectors
         install(new FactoryModuleBuilder().build(WemoInsightConnectorFactory.class));
-
-        // generic UPNP
         install(new FactoryModuleBuilder().build(GenericUpnpConnectorFactory.class));
     }
 }

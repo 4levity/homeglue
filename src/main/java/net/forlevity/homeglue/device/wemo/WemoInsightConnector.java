@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractSoapDeviceConnector;
@@ -21,7 +22,10 @@ public class WemoInsightConnector extends AbstractSoapDeviceConnector implements
 
     private static final String INSIGHT_SERVICE_URN = "urn:Belkin:service:insight:1";
     private final String hostAddress;
-    private final int port;
+
+    @Getter
+    @Setter // port can change, device manager may update
+    private int port;
 
     @Getter
     private boolean connected = false;
