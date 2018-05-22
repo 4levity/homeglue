@@ -73,7 +73,7 @@ public class GenericUpnpManager extends AbstractDeviceManager {
             genericUpnpDevice.add(service);
             if (genericUpnpDevice.connect()) {
                 devicesByAddress.put(address, genericUpnpDevice);
-                log.info ("there are UPnP devices at: {}", Arrays.toString(devicesByAddress.keySet().toArray()));
+                log.info ("other UPnP devices at: {}", Arrays.toString(devicesByAddress.keySet().toArray()));
                 if (!genericUpnpDevice.getDeviceId().equals(DeviceConnector.DEVICE_ID_UNKNOWN)) {
                     register(genericUpnpDevice); // register if identifiable
                 }

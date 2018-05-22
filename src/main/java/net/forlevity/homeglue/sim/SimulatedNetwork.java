@@ -4,9 +4,14 @@
  * of the Apache License Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-package net.forlevity.homeglue.upnp;
+package net.forlevity.homeglue.sim;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import net.forlevity.homeglue.http.SimpleHttpClient;
+import net.forlevity.homeglue.upnp.BackgroundProcessHandle;
+import net.forlevity.homeglue.upnp.SsdpSearcher;
+import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 import org.apache.http.entity.ContentType;
 
 import java.io.IOException;
@@ -18,16 +23,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+@Singleton
 public class SimulatedNetwork implements SimpleHttpClient, SsdpSearcher {
 
     private final List<SimulatedWemo> simulatedWemos = new ArrayList<>();
 
+    @Inject
     public SimulatedNetwork() {
         try {
             simulatedWemos.add(
-                    new SimulatedWemo(InetAddress.getByName("192.168.6.231"), 49153, "insight1_setup.xml"));
+                    new SimulatedWemo(InetAddress.getByName("192.168.6.231"), 49153, "sim/insight1_setup.xml"));
             simulatedWemos.add(
-                    new SimulatedWemo(InetAddress.getByName("192.168.6.209"), 49154, "insight2_setup.xml"));
+                    new SimulatedWemo(InetAddress.getByName("192.168.6.209"), 49154, "sim/insight2_setup.xml"));
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
@@ -44,7 +51,7 @@ public class SimulatedNetwork implements SimpleHttpClient, SsdpSearcher {
     }
 
     private SimulatedWemo target(String url) throws UnknownHostException {
-        for (Iterator<SimulatedWemo> iterator = simulatedWemos.iterator(); ((Iterator) iterator).hasNext();) {
+        for (Iterator<SimulatedWemo> iterator = simulatedWemos.iterator(); iterator.hasNext();) {
             SimulatedWemo candidate = iterator.next();
             if (url.startsWith(String.format("http://%s:%d/", candidate.getInetAddress().getHostAddress(), candidate.getPort()))) {
                 return candidate;

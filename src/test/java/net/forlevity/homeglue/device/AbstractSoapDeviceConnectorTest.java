@@ -8,7 +8,8 @@ package net.forlevity.homeglue.device;
 
 import net.forlevity.homeglue.HomeglueTests;
 import net.forlevity.homeglue.http.SimpleHttpClient;
-import net.forlevity.homeglue.upnp.Xml;
+import net.forlevity.homeglue.util.ResourceHelper;
+import net.forlevity.homeglue.util.Xml;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.w3c.dom.Document;
@@ -28,7 +29,7 @@ public class AbstractSoapDeviceConnectorTest extends HomeglueTests {
     @Test
     public void testXmlParsing() {
         TestSoapDeviceConnector connector = new TestSoapDeviceConnector();
-        String xmlText = resourceAsString("insight1_setup.xml");
+        String xmlText = ResourceHelper.resourceAsString("sim/insight1_setup.xml");
         Document document = xml.parse(xmlText);
         assertNotNull(document);
         assertEquals(1, document.getElementsByTagName("manufacturer").getLength());
@@ -44,7 +45,7 @@ public class AbstractSoapDeviceConnectorTest extends HomeglueTests {
         String urn = "urn:something";
         String action = "DoNothing";
         when(mockHttp.post(any(),any(),any(),any()))
-                .thenReturn(resourceAsString("insightparams_response.xml"));
+                .thenReturn(ResourceHelper.resourceAsString("sim/insightparams_response.xml"));
         Document document = connector.doExecSoapRequest(url, urn, action);
 
         ArgumentCaptor<String> xmlRequest = ArgumentCaptor.forClass(String.class);

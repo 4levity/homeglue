@@ -11,6 +11,7 @@ import com.google.inject.name.Names;
 import net.forlevity.homeglue.device.DeviceManagementDependencyInjection;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.http.SimpleHttpClientImpl;
+import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.storage.DeviceStatusSink;
 import net.forlevity.homeglue.storage.NoStorage;
 import net.forlevity.homeglue.storage.TelemetrySink;
@@ -39,9 +40,14 @@ public class ApplicationDependencyInjection extends AbstractModule {
         }
         Names.bindProperties(binder(), properties);
 
-        // network interface
-        bind(SsdpSearcher.class).to(SsdpSearcherImpl.class);
-        bind(SimpleHttpClient.class).to(SimpleHttpClientImpl.class);
+        // use simulation instead of real devices?
+        if (Boolean.valueOf(properties.get("network.simulated").toString())) {
+            bind(SsdpSearcher.class).to(SimulatedNetwork.class);
+            bind(SimpleHttpClient.class).to(SimulatedNetwork.class);
+        } else {
+            bind(SsdpSearcher.class).to(SsdpSearcherImpl.class);
+            bind(SimpleHttpClient.class).to(SimpleHttpClientImpl.class);
+        }
 
         // device manager child module
         install(new DeviceManagementDependencyInjection());

@@ -11,7 +11,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.http.SimpleHttpClient;
-import net.forlevity.homeglue.upnp.Xml;
+import net.forlevity.homeglue.util.Xml;
 import org.apache.http.entity.ContentType;
 import org.w3c.dom.Document;
 

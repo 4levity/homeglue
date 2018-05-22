@@ -4,7 +4,7 @@
  * of the Apache License Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-package net.forlevity.homeglue.upnp;
+package net.forlevity.homeglue.util;
 
 import lombok.extern.log4j.Log4j2;
 import org.w3c.dom.Document;

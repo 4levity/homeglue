@@ -20,11 +20,4 @@ public abstract class HomeglueTests {
         log.info("***** STARTING TEST {} *****", name.getMethodName());
     }
 
-    public static String resourceAsString(String resourceName) {
-        try {
-            return Resources.toString(Resources.getResource(resourceName), Charsets.UTF_8);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

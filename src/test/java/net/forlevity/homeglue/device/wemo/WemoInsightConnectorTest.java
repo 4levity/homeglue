@@ -9,6 +9,7 @@ package net.forlevity.homeglue.device.wemo;
 import net.forlevity.homeglue.HomeglueTests;
 import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.http.SimpleHttpClient;
+import net.forlevity.homeglue.util.ResourceHelper;
 import org.apache.http.entity.ContentType;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -43,7 +44,7 @@ public class WemoInsightConnectorTest extends HomeglueTests {
     public void testRead() throws IOException {
         WemoInsightConnector connector = connectedConnector();
         when(httpClient.post(any(),any(),any(),any()))
-                .thenReturn(resourceAsString("insightparams_response.xml"));
+                .thenReturn(ResourceHelper.resourceAsString("sim/insightparams_response.xml"));
         ArgumentCaptor<String> url = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Map<String,String>> headers = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
@@ -55,14 +56,14 @@ public class WemoInsightConnectorTest extends HomeglueTests {
         verify(httpClient).post(url.capture(), headers.capture(), payload.capture(), contentType.capture());
         assertEquals(String.format("http://%s:%d/upnp/control/insight1",hostAddress,port), url.getValue());
         assertEquals("\"urn:Belkin:service:insight:1#GetInsightParams\"", headers.getValue().get("SOAPAction"));
-        assertEquals(resourceAsString("insightparams_request.xml"), payload.getValue());
+        assertEquals(ResourceHelper.resourceAsString("sim/insightparams_request.xml"), payload.getValue());
         assertEquals(ContentType.TEXT_XML, contentType.getValue());
     }
 
     private WemoInsightConnector connectedConnector() throws IOException {
         httpClient = mock(SimpleHttpClient.class);
         WemoInsightConnector connector = new WemoInsightConnector(httpClient, hostAddress, port);
-        when(httpClient.get(any())).thenReturn(resourceAsString("insight1_setup.xml"));
+        when(httpClient.get(any())).thenReturn(ResourceHelper.resourceAsString("sim/insight1_setup.xml"));
         assertTrue(connector.connect());
         return connector;
     }

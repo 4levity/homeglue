@@ -4,12 +4,16 @@
  * of the Apache License Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-package net.forlevity.homeglue.upnp;
+package net.forlevity.homeglue.sim;
 
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.HomeglueTests;
 import net.forlevity.homeglue.http.SimpleHttpClient;
+import net.forlevity.homeglue.upnp.BackgroundProcessHandle;
+import net.forlevity.homeglue.upnp.SsdpSearcher;
+import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
+import net.forlevity.homeglue.util.ResourceHelper;
+import net.forlevity.homeglue.util.Xml;
 import org.apache.http.entity.ContentType;
 import org.w3c.dom.Document;
 
@@ -34,7 +38,7 @@ public class SimulatedWemo implements SsdpSearcher, SimpleHttpClient {
         this.inetAddress = inetAddress;
         this.port = port;
         this.location = String.format("http://%s:%d/setup.xml", inetAddress.getHostAddress(), port);
-        this.setupXml = HomeglueTests.resourceAsString(setupXmlName);
+        this.setupXml = ResourceHelper.resourceAsString(setupXmlName);
         Document setupDocument = xml.parse(setupXml);
         this.deviceSerialNumber = xml.nodeText(setupDocument, "//serialNumber");
     }
@@ -51,10 +55,10 @@ public class SimulatedWemo implements SsdpSearcher, SimpleHttpClient {
     @Override
     public String post(String url, Map<String, String> headers, String payload, ContentType contentType) {
         if (url.endsWith("/upnp/control/insight1")
-                && payload.equals(HomeglueTests.resourceAsString("insightparams_request.xml"))
-                && headers.get("SOAPAction").equals("urn:Belkin:service:insight:1#GetInsightParams")
+                && payload.equals(ResourceHelper.resourceAsString("sim/insightparams_request.xml"))
+                && headers.get("SOAPAction").equals("\"urn:Belkin:service:insight:1#GetInsightParams\"")
                 && contentType.equals(ContentType.TEXT_XML) ) {
-            return HomeglueTests.resourceAsString("insightparams_response.xml");
+            return ResourceHelper.resourceAsString("sim/insightparams_response.xml");
         }
         return ERROR_RESPONSE;
     }
