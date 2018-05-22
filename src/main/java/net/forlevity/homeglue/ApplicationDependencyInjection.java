@@ -7,10 +7,14 @@
 package net.forlevity.homeglue;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.name.Names;
 import net.forlevity.homeglue.device.DeviceManagementDependencyInjection;
 import net.forlevity.homeglue.storage.DeviceStatusSink;
 import net.forlevity.homeglue.storage.NoStorage;
 import net.forlevity.homeglue.storage.TelemetrySink;
+
+import java.io.IOException;
+import java.util.Properties;
 
 /**
  * Top level dependency injection module.
@@ -21,6 +25,15 @@ public class ApplicationDependencyInjection extends AbstractModule {
     protected void configure() {
         // the application
         bind(HomeglueApplication.class);
+
+        // configuration
+        Properties properties = new Properties();
+        try {
+            properties.load(getClass().getResourceAsStream("/default.homeglue.properties"));
+        } catch (IOException e) {
+            throw new RuntimeException("internal error loading default properties", e);
+        }
+        Names.bindProperties(binder(), properties);
 
         // device manager child module
         install(new DeviceManagementDependencyInjection());

@@ -4,15 +4,10 @@
  * of the Apache License Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-package net.forlevity.homeglue.upnp;
+package net.forlevity.homeglue.device.wemo;
 
-/**
- * A handle to a background process that can be stopped.
- */
-public interface BackgroundProcess {
+import net.forlevity.homeglue.HomeglueTests;
 
-    /**
-     * Stop the process.
-     */
-    void stop();
+public class WemoInsightManagerTest extends HomeglueTests {
+
 }

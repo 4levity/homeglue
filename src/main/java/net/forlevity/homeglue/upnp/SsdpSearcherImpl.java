@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 @Singleton
 public class SsdpSearcherImpl implements SsdpSearcher {
 
-    public BackgroundProcess startDiscovery(DiscoveryRequest discoveryRequest, Consumer<SsdpService> serviceConsumer) {
+    public BackgroundProcessHandle startDiscovery(DiscoveryRequest discoveryRequest, Consumer<SsdpService> serviceConsumer) {
         SsdpClient client = SsdpClient.create();
         client.discoverServices(discoveryRequest, new DiscoveryListener() {
 

@@ -25,7 +25,7 @@ public class AbstractSoapDeviceConnectorTest extends HomeglueTests {
     @Test
     public void testXmlParsing() {
         TestSoapDeviceConnector connector = new TestSoapDeviceConnector();
-        String xml = resourceAsString("insight_setup.xml");
+        String xml = resourceAsString("insight1_setup.xml");
         Document document = connector.doParse(xml);
         assertNotNull(document);
         assertEquals(1, document.getElementsByTagName("manufacturer").getLength());

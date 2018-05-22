@@ -9,12 +9,12 @@ package net.forlevity.homeglue.upnp;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import io.resourcepool.ssdp.model.DiscoveryRequest;
 import io.resourcepool.ssdp.model.SsdpService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
@@ -29,18 +29,26 @@ import java.util.function.Predicate;
 @Singleton
 public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements SsdpDiscoveryService {
 
-    private static final long SSDP_SEARCH_PERIOD_MILLIS = 30 * 1000;
-    private static final long SSDP_SEARCH_ACTIVE_MILLIS = 8 * 1000;
-    private static final long STARTUP_DELAY_MILLIS = 250;
-    private static final Duration MINIMUM_TIME_BETWEEN_SEARCHES = Duration.ofSeconds(5);
-
     private final SsdpSearcher ssdpSearcher;
-    private Instant lastSearchEndTime = Instant.now().minus(MINIMUM_TIME_BETWEEN_SEARCHES);
+    private final int ssdpScanPeriodMillis;
+    private final int ssdpScanLengthMillis;
+    private final int startupDelayMillis;
+    private final int minimumInactiveMillis;
+    private Instant lastSearchEndTime = Instant.EPOCH;
+    private final Object lastSearchLock = new Object();
     private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
     private final List<Registration> registrations = new ArrayList<>();
 
     @Inject
-    public SsdpDiscoveryServiceImpl(SsdpSearcher ssdpSearcher) {
+    public SsdpDiscoveryServiceImpl(SsdpSearcher ssdpSearcher,
+                                    @Named("ssdp.scan.period.millis") int ssdpScanPeriodMillis,
+                                    @Named("ssdp.scan.length.millis") int ssdpScanLengthMillis,
+                                    @Named("ssdp.startup.delay.millis") int startupDelayMillis,
+                                    @Named("ssdp.minimum.inactive.millis") int minimumInactiveMillis) {
+        this.ssdpScanPeriodMillis = ssdpScanPeriodMillis;
+        this.ssdpScanLengthMillis = ssdpScanLengthMillis;
+        this.startupDelayMillis = startupDelayMillis;
+        this.minimumInactiveMillis = minimumInactiveMillis;
         this.ssdpSearcher = ssdpSearcher;
     }
 
@@ -63,12 +71,12 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
             } catch (InterruptedException e) {
                 log.warn("interrupted during search", e);
             }
-        }, STARTUP_DELAY_MILLIS, SSDP_SEARCH_PERIOD_MILLIS, TimeUnit.MILLISECONDS);
+        }, startupDelayMillis, ssdpScanPeriodMillis, TimeUnit.MILLISECONDS);
     }
 
     @Override
     protected void shutDown() throws Exception {
-        executor.shutdown();
+        executor.shutdownNow();
     }
 
     /**
@@ -76,9 +84,8 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
      * @throws InterruptedException if interrupted
      */
     private void search() throws InterruptedException {
-        synchronized (lastSearchEndTime) {
-            if (lastSearchEndTime != null
-                    && lastSearchEndTime.plus(MINIMUM_TIME_BETWEEN_SEARCHES).isAfter(Instant.now())) {
+        synchronized (lastSearchLock) {
+            if (lastSearchEndTime.plusMillis(minimumInactiveMillis).isAfter(Instant.now())) {
                 log.warn("an SSDP search did not complete on time, ended at {}", lastSearchEndTime);
             } else {
                 // search for root device since Belkin Wemo Insight does not respond to 'all'
@@ -95,10 +102,10 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
      * @throws InterruptedException if interrupted
      */
     private void search(DiscoveryRequest discoveryRequest) throws InterruptedException {
-        BackgroundProcess discovery = null;
+        BackgroundProcessHandle discovery = null;
         try {
             discovery = ssdpSearcher.startDiscovery(discoveryRequest, service -> dispatch(service));
-            Thread.sleep(SSDP_SEARCH_ACTIVE_MILLIS);
+            Thread.sleep(ssdpScanLengthMillis);
         } finally {
             if (discovery != null) {
                 discovery.stop();

@@ -6,6 +6,8 @@
 
 package net.forlevity.homeglue.http;
 
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 
@@ -17,14 +19,21 @@ import java.util.Map;
  */
 public class SimpleHttpClientImpl implements SimpleHttpClient {
 
-    private static final int CONNECT_TIMEOUT_MILLLIS = 5000;
-    private static final int SOCKET_TIMEOUT_MILLIS = 5000;
+    private final int connectTimeoutMillis;
+    private final int socketTimeoutMillis;
+
+    @Inject
+    public SimpleHttpClientImpl(@Named("http.connect.timeout.millis") int connectTimeoutMillis,
+                                @Named("http.socket.timeout.millis") int socketTimeoutMillis) {
+        this.connectTimeoutMillis = connectTimeoutMillis;
+        this.socketTimeoutMillis = socketTimeoutMillis;
+    }
 
     @Override
     public String get(String url) throws IOException {
         return Request.Get(url)
-                .connectTimeout(CONNECT_TIMEOUT_MILLLIS)
-                .socketTimeout(SOCKET_TIMEOUT_MILLIS)
+                .connectTimeout(connectTimeoutMillis)
+                .socketTimeout(socketTimeoutMillis)
                 .execute().returnContent().asString();
     }
 
@@ -32,8 +41,8 @@ public class SimpleHttpClientImpl implements SimpleHttpClient {
     public String post(String url, Map<String, String> headers, String payload, ContentType contentType)
             throws IOException {
         Request request = Request.Post(url)
-                .connectTimeout(CONNECT_TIMEOUT_MILLLIS)
-                .socketTimeout(SOCKET_TIMEOUT_MILLIS);
+                .connectTimeout(connectTimeoutMillis)
+                .socketTimeout(socketTimeoutMillis);
         if (headers != null) {
             headers.forEach((name, value) -> request.setHeader(name, value));
         }
