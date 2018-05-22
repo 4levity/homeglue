@@ -3,6 +3,7 @@ package net.forlevity.homeglue.device;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
+import net.forlevity.homeglue.device.generic_upnp.GenericUpnpConnectorFactory;
 import net.forlevity.homeglue.device.wemo.WemoInsightConnectorFactory;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
@@ -23,5 +24,8 @@ public class DeviceManagementModule extends AbstractModule {
 
         // wemo insight
         install(new FactoryModuleBuilder().build(WemoInsightConnectorFactory.class));
+
+        // generic UPNP
+        install(new FactoryModuleBuilder().build(GenericUpnpConnectorFactory.class));
     }
 }

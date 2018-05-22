@@ -1,7 +1,7 @@
 package net.forlevity.homeglue.device;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.AbstractIdleService;
+import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.storage.DeviceStatusSink;
@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Log4j2
-public abstract class AbstractDeviceManager extends AbstractIdleService implements DeviceManager {
+public abstract class AbstractDeviceManager extends AbstractExecutionThreadService implements DeviceManager {
 
     private final DeviceStatusSink deviceStatusSink;
     private final Map<String, DeviceConnector> devices = new HashMap<>();

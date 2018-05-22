@@ -42,6 +42,10 @@ public class AbstractDeviceManagerTest extends HomeglueTests {
         }
 
         @Override
+        protected void run() throws Exception {
+        }
+
+        @Override
         protected void shutDown() throws Exception {
         }
 

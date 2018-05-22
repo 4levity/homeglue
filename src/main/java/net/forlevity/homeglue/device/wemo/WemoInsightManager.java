@@ -2,15 +2,16 @@ package net.forlevity.homeglue.device.wemo;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.resourcepool.ssdp.model.DiscoveryRequest;
+import io.resourcepool.ssdp.model.SsdpService;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractDeviceManager;
+import net.forlevity.homeglue.device.PowerMeterConnector;
+import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.storage.DeviceStatusSink;
 import net.forlevity.homeglue.storage.TelemetrySink;
-import net.forlevity.homeglue.upnp.BackgroundProcess;
-import net.forlevity.homeglue.upnp.SsdpServiceFinder;
+import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 
-import java.util.*;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,82 +19,83 @@ import java.util.regex.Pattern;
 @Singleton
 public class WemoInsightManager extends AbstractDeviceManager {
 
-    private static final long SCAN_PERIOD_MILLIS = 5000;
     private static final Pattern SSDP_SERIALNUMBER = Pattern.compile("uuid:Insight-1.*");
     private static final Pattern SSDP_LOCATION = Pattern.compile(
             "http://(?<ipAddress>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}):(?<port>[0-9]{5})/setup.xml");
-    private static final long SSDP_DISCOVERY_WAIT_MILLIS = 2000;
+    private static final long SCAN_PERIOD_MILLIS = 5000L;
 
-    private final SsdpServiceFinder ssdpServiceFinder;
+    private final SsdpDiscoveryService ssdpDiscoveryService;
     private final WemoInsightConnectorFactory connectorFactory;
     private final TelemetrySink telemetrySink;
-    private final Map<String, WemoInsightConnector> insights = new HashMap<>();
-    private final Timer timer = new Timer();
+    private final ConcurrentHashMap<String, WemoInsightConnector> insights = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
+    private final LinkedBlockingQueue<SsdpService> discoveredWemo = new LinkedBlockingQueue<>();
 
     @Inject
-    public WemoInsightManager(SsdpServiceFinder ssdpServiceFinder,
+    public WemoInsightManager(SsdpDiscoveryService ssdpDiscoveryService,
                               WemoInsightConnectorFactory connectorFactory,
                               DeviceStatusSink deviceStatusSink, TelemetrySink telemetrySink) {
         super(deviceStatusSink);
-        this.ssdpServiceFinder = ssdpServiceFinder;
+        this.ssdpDiscoveryService = ssdpDiscoveryService;
         this.connectorFactory = connectorFactory;
         this.telemetrySink = telemetrySink;
     }
 
     @Override
-    public void startUp() {
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                update();
+    protected void run() throws Exception {
+        // register our queue for devices that look like wemo insights
+        ssdpDiscoveryService.registerSsdp(service ->
+                (SSDP_SERIALNUMBER.matcher(service.getSerialNumber()).matches()
+                        && SSDP_LOCATION.matcher(service.getLocation()).matches()), discoveredWemo, 1);
+
+        // whenever a new wemo is discovered, add it to our list and try to connect
+        while (true) {
+            SsdpService wemo = discoveredWemo.take(); // on interrupted, service will quit
+            Matcher location = SSDP_LOCATION.matcher(wemo.getLocation());
+            if (location.matches()) {
+                String ipAddress = location.group("ipAddress");
+                int port = Integer.valueOf(location.group("port"));
+                handleWemoDiscovery(ipAddress, port);
+            } else {
+                log.warn("thought we found Insight meter but has unexpected location: {}", wemo.getLocation());
             }
-        }, 0, SCAN_PERIOD_MILLIS);
+        }
+    }
+
+    private void handleWemoDiscovery(String ipAddress, int port) {
+        if (!insights.containsKey(ipAddress)) {
+            WemoInsightConnector newConnector = connectorFactory.create(ipAddress, port);
+            if (newConnector.connect()) {
+                log.info("connected to Insight meter at {}:{}", ipAddress, port);
+                boolean firstDevice = insights.isEmpty();
+                insights.put(ipAddress, newConnector);
+                register(newConnector);
+                if (firstDevice) {
+                    // as soon as the first device is found, start polling
+                    startTimer();
+                }
+            } else {
+                log.warn("detected but failed to connect to Insight meter at {}:{}", ipAddress, port);
+            }
+        } // else ignore duplicates
+    }
+
+    private void startTimer() {
+        executor.scheduleAtFixedRate(() -> poll(), 0, SCAN_PERIOD_MILLIS, TimeUnit.MILLISECONDS);
+    }
+
+    private void poll() {
+        insights.values().forEach(this::poll);
+    }
+
+    private void poll(PowerMeterConnector meter) {
+        PowerMeterData read = meter.read();
+        // TODO: handle failure to read meter
+        telemetrySink.accept(meter.getDeviceId(), read);
     }
 
     @Override
     protected void shutDown() {
-        timer.cancel();
-    }
-
-    private void update() {
-        if (getDevices().isEmpty()) {
-            discover().forEach(meter -> {
-                if (meter.connect()) {
-                    insights.put(meter.getDeviceDetails().get("macAddress"), meter);
-                    register(meter);
-                }
-            });
-        }
-        insights.values().forEach(meter -> telemetrySink.accept(meter.getDeviceId(), meter.read()));
-    }
-
-    private Collection<WemoInsightConnector> discover() {
-        Map<String, WemoInsightConnector> meters = new HashMap<>();
-        DiscoveryRequest wemoInsightDiscoveryStrategy = DiscoveryRequest.discoverRootDevice();
-        BackgroundProcess discovery = ssdpServiceFinder.startDiscovery(wemoInsightDiscoveryStrategy, service -> {
-            if (SSDP_SERIALNUMBER.matcher(service.getSerialNumber()).matches()) {
-                Matcher location = SSDP_LOCATION.matcher(service.getLocation());
-                if (location.matches()) {
-                    String ipAddress = location.group("ipAddress");
-                    int port = Integer.valueOf(location.group("port"));
-                    synchronized (meters) {
-                        if (!meters.containsKey(ipAddress)) {
-                            log.info("found Insight meter at {}:{}", ipAddress, port);
-                        }
-                        WemoInsightConnector newConnector = connectorFactory.create(ipAddress, port);
-                        meters.put(ipAddress, newConnector);
-                    }
-                } else {
-                    log.warn("looks like Insight but has unexpected location: {}", service.getLocation());
-                }
-            }
-        });
-        try {
-            Thread.sleep(SSDP_DISCOVERY_WAIT_MILLIS);
-        } catch (InterruptedException e) {
-            Thread.interrupted();
-        }
-        discovery.stop();
-        return meters.values();
+        executor.shutdown();
     }
 }

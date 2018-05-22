@@ -1,5 +1,6 @@
 package net.forlevity.homeglue.upnp;
 
+import com.google.inject.Singleton;
 import io.resourcepool.ssdp.client.SsdpClient;
 import io.resourcepool.ssdp.model.DiscoveryListener;
 import io.resourcepool.ssdp.model.DiscoveryRequest;
@@ -10,7 +11,8 @@ import lombok.extern.log4j.Log4j2;
 import java.util.function.Consumer;
 
 @Log4j2
-public class SsdpServiceFinderImpl implements SsdpServiceFinder {
+@Singleton
+public class SsdpSearcherImpl implements SsdpSearcher {
 
     public BackgroundProcess startDiscovery(DiscoveryRequest discoveryRequest, Consumer<SsdpService> serviceConsumer) {
         SsdpClient client = SsdpClient.create();
@@ -18,7 +20,7 @@ public class SsdpServiceFinderImpl implements SsdpServiceFinder {
 
             @Override
             public void onServiceDiscovered(SsdpService service) {
-                log.debug("onServiceDiscovered: {}", service);
+                log.trace("onServiceDiscovered: {}", service);
                 serviceConsumer.accept(service);
             }
 

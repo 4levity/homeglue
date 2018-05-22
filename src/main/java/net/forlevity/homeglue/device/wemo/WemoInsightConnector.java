@@ -2,6 +2,7 @@ package net.forlevity.homeglue.device.wemo;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
@@ -15,6 +16,7 @@ import java.io.IOException;
 
 @Log4j2
 @ToString(of = {"hostAddress"}, callSuper = true)
+@EqualsAndHashCode(of = {"hostAddress", "port"}, callSuper = false)
 public class WemoInsightConnector extends AbstractSoapDeviceConnector implements PowerMeterConnector {
 
     private static final String INSIGHT_SERVICE_URN = "urn:Belkin:service:insight:1";
@@ -67,14 +69,18 @@ public class WemoInsightConnector extends AbstractSoapDeviceConnector implements
     public PowerMeterData read() {
         PowerMeterData result = null;
         Document doc = execInsightSoapRequest("GetInsightParams");
-        String insightParams = nodeText(doc, "//InsightParams");
-        if (insightParams != null) {
-            String[] params = insightParams.split("\\|");
-            double milliwatts = Double.valueOf(params[7]);
-            log.debug("InsightParams={} / instantaneous power={} mw", insightParams, params[7], milliwatts);
-            result = new PowerMeterData(milliwatts / 1000.0);
+        if (doc != null) {
+            String insightParams = nodeText(doc, "//InsightParams");
+            if (insightParams != null) {
+                String[] params = insightParams.split("\\|");
+                double milliwatts = Double.valueOf(params[7]);
+                log.debug("InsightParams={} / instantaneous power={} mw", insightParams, params[7], milliwatts);
+                result = new PowerMeterData(milliwatts / 1000.0);
+            } else {
+                log.warn("didn't get InsightParams from response");
+            }
         } else {
-            log.warn("didn't get InsightParams from response");
+            log.debug("failed to execute SOAP request for GetInsightParams");
         }
         return result;
     }

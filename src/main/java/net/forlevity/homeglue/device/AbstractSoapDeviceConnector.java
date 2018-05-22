@@ -54,7 +54,6 @@ public abstract class AbstractSoapDeviceConnector extends AbstractDeviceConnecto
 
 
     protected Document execSoapRequest(String url, String urn, String action) {
-        // TODO: more standards compliance
         String payload = String.format("<?xml version=\"1.0\" encoding=utf-8\"?>" +
                 "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
                     "<s:Body>" +

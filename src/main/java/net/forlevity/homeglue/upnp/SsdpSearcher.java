@@ -6,8 +6,8 @@ import io.resourcepool.ssdp.model.SsdpService;
 
 import java.util.function.Consumer;
 
-@ImplementedBy(SsdpServiceFinderImpl.class)
-public interface SsdpServiceFinder {
+@ImplementedBy(SsdpSearcherImpl.class)
+public interface SsdpSearcher {
 
     BackgroundProcess startDiscovery(DiscoveryRequest discoveryRequest, Consumer<SsdpService> serviceConsumer);
 }
