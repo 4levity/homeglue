@@ -48,17 +48,29 @@ public class WemoInsightManager extends AbstractDeviceManager {
                 (SSDP_SERIALNUMBER.matcher(service.getSerialNumber()).matches()
                         && SSDP_LOCATION.matcher(service.getLocation()).matches()), discoveredWemo, 1);
 
+        mainLoop();
+    }
+
+    private void mainLoop() throws InterruptedException {
         // whenever a new wemo is discovered, add it to our list and try to connect
         while (true) {
             SsdpService wemo = discoveredWemo.take(); // on interrupted, service will quit
-            Matcher location = SSDP_LOCATION.matcher(wemo.getLocation());
-            if (location.matches()) {
-                String ipAddress = location.group("ipAddress");
-                int port = Integer.valueOf(location.group("port"));
-                handleWemoDiscovery(ipAddress, port);
-            } else {
-                log.warn("thought we found Insight meter but has unexpected location: {}", wemo.getLocation());
+            try {
+                handleWemoDiscovery(wemo);
+            } catch (RuntimeException e) {
+                log.error("unexpected exception handling WeMo discovery (continuing)", e);
             }
+        }
+    }
+
+    private void handleWemoDiscovery(SsdpService wemo) {
+        Matcher location = SSDP_LOCATION.matcher(wemo.getLocation());
+        if (location.matches()) {
+            String ipAddress = location.group("ipAddress");
+            int port = Integer.valueOf(location.group("port"));
+            handleWemoDiscovery(ipAddress, port);
+        } else {
+            log.warn("thought we found Insight meter but has unexpected location: {}", wemo.getLocation());
         }
     }
 
@@ -79,7 +91,7 @@ public class WemoInsightManager extends AbstractDeviceManager {
                 log.warn("detected but failed to connect to Insight meter at {}:{}", ipAddress, port);
             }
         } else if (foundConnector.getPort() != port) {
-            log.info("Wemo Insight port at {} changed from {} to {}",
+            log.info("WeMo Insight port at {} changed from {} to {}",
                     ipAddress, foundConnector.getPort(), port);
             foundConnector.setPort(port);
         }
@@ -94,9 +106,13 @@ public class WemoInsightManager extends AbstractDeviceManager {
     }
 
     private void poll(PowerMeterConnector meter) {
-        PowerMeterData read = meter.read();
-        // TODO: handle failure to read meter
-        telemetrySink.accept(meter.getDeviceId(), read);
+        try {
+            PowerMeterData read = meter.read();
+            // TODO: handle failure to read meter
+            telemetrySink.accept(meter.getDeviceId(), read);
+        } catch(RuntimeException e) {
+            log.error("unexpected exception during poll of {} (continuing)", meter, e);
+        }
     }
 
     @Override

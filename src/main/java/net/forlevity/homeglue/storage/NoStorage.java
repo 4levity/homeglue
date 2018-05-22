@@ -14,7 +14,7 @@ public class NoStorage implements DeviceStatusSink, TelemetrySink {
 
     @Override
     public void accept(String deviceId, PowerMeterData data) {
-        log.info("device {} : {}", deviceId, data.toString());
+        log.info("device {} : {}", deviceId, data);
     }
 
     @Override

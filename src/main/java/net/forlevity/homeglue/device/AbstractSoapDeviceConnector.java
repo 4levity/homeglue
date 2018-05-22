@@ -68,7 +68,7 @@ public abstract class AbstractSoapDeviceConnector extends AbstractDeviceConnecto
             DocumentBuilder db = xmlDocumentBuilderFactory.newDocumentBuilder();
             document = db.parse(new ByteArrayInputStream(result.getBytes("utf-8")));
         } catch (IOException e) {
-            log.warn("failed to execute SOAP request", e);
+            log.warn("failed to execute SOAP request: {} {}", e.getClass().getSimpleName(), e.getMessage());
         } catch (ParserConfigurationException | SAXException e) {
             log.warn("failed to parse XML from device", e);
         }
