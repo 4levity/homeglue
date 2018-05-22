@@ -31,7 +31,7 @@ public class WemoInsightManager extends AbstractDeviceManager {
     private static final Pattern SSDP_SERIALNUMBER = Pattern.compile("uuid:Insight-1.*");
     private static final Pattern SSDP_LOCATION = Pattern.compile(
             "http://(?<ipAddress>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}):(?<port>[0-9]{5})/setup.xml");
-    private static final long SCAN_PERIOD_MILLIS = 5000L;
+    private static final long SCAN_PERIOD_MILLIS = 2500L;
 
     private final SsdpDiscoveryService ssdpDiscoveryService;
     private final WemoInsightConnectorFactory connectorFactory;
