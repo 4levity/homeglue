@@ -74,7 +74,7 @@ public abstract class AbstractSoapDeviceConnector extends AbstractDeviceConnecto
      * @return DOM or null if request failed
      */
     protected Document execSoapRequest(String url, String urn, String action) {
-        String payload = String.format("<?xml version=\"1.0\" encoding=utf-8\"?>" +
+        String payload = String.format("<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
                 "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
                     "<s:Body>" +
                         "<u:%s xmlns:u=\"%s\"/>" +

@@ -16,6 +16,9 @@ import org.reflections.util.ConfigurationBuilder;
 
 import java.lang.reflect.Modifier;
 
+/**
+ * Child module for device managers and connectors.
+ */
 public class DeviceManagementDependencyInjection extends AbstractModule {
 
     private final Reflections reflections = new Reflections(new ConfigurationBuilder()
