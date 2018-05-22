@@ -1,3 +1,9 @@
+/*
+ * Part of Homeglue (c) 2018 C. Ivan Cooper - https://github.com/4levity/homeglue
+ * Homeglue is free software. You can modify and/or distribute it under the terms
+ * of the Apache License Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
+ */
+
 package net.forlevity.homeglue.device.wemo;
 
 import com.google.inject.Inject;
@@ -48,12 +54,8 @@ public class WemoInsightManager extends AbstractDeviceManager {
                 (SSDP_SERIALNUMBER.matcher(service.getSerialNumber()).matches()
                         && SSDP_LOCATION.matcher(service.getLocation()).matches()), discoveredWemo, 1);
 
-        mainLoop();
-    }
-
-    private void mainLoop() throws InterruptedException {
-        // whenever a new wemo is discovered, add it to our list and try to connect
         while (true) {
+            // whenever a new wemo is discovered, add it to our list and try to connect
             SsdpService wemo = discoveredWemo.take(); // on interrupted, service will quit
             try {
                 handleWemoDiscovery(wemo);
