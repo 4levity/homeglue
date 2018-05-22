@@ -4,7 +4,7 @@ Discover and connect to Belkin WeMo Insight plug power meters and retrieve data 
 Known working with firmware WeMo_WW_2.00.11054.PVT-OWRT-Insight (hardware version 1) as well
 as WeMo_WW_2.00.11057.PVT-OWRT-InsightV2 (hardware version 2).
 
-Also identifies other UPNP devices on the LAN, in order to monitor whether they are on or off.
+Also identifies other UPnP devices on the LAN, in order to monitor whether they are on or off.
 
 Future plans: 
 * tests

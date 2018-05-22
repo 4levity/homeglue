@@ -22,6 +22,9 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
+/**
+ * Standard implementation of SsdpDiscoveryService.
+ */
 @Log4j2
 @Singleton
 public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements SsdpDiscoveryService {
@@ -45,6 +48,7 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
     public void registerSsdp(Predicate<SsdpService> predicate, Queue<SsdpService> serviceQueue, int priority) {
         synchronized (registrations) {
             registrations.add(new Registration(priority, predicate, serviceQueue));
+            // registration list is sorted in priority order, highest priority (lowest number) first
             Collections.sort(registrations, Comparator.comparingInt(o -> o.priority));
         }
     }
@@ -67,6 +71,10 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
         executor.shutdown();
     }
 
+    /**
+     * Execute SSDP discovery requests, but suppress execution if not enough time has passed since last discovery.
+     * @throws InterruptedException if interrupted
+     */
     private void search() throws InterruptedException {
         synchronized (lastSearchEndTime) {
             if (lastSearchEndTime != null
@@ -81,6 +89,11 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
         }
     }
 
+    /**
+     * Execute a single SSDP discovery request, handling services as they come in.
+     * @param discoveryRequest the discovery request
+     * @throws InterruptedException if interrupted
+     */
     private void search(DiscoveryRequest discoveryRequest) throws InterruptedException {
         BackgroundProcess discovery = null;
         try {
@@ -93,6 +106,10 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
         }
     }
 
+    /**
+     * For a discovered service, look through existing registrations and send matching service descriptions.
+     * @param service discovered service
+     */
     private void dispatch(SsdpService service) {
         synchronized (registrations) {
             log.debug("found service {} / {} at {}",

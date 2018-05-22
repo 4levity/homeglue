@@ -16,7 +16,7 @@ import org.reflections.util.ConfigurationBuilder;
 
 import java.lang.reflect.Modifier;
 
-public class DeviceManagementModule extends AbstractModule {
+public class DeviceManagementDependencyInjection extends AbstractModule {
 
     private final Reflections reflections = new Reflections(new ConfigurationBuilder()
             .forPackages(this.getClass().getPackage().getName())); // i.e. net.4levity.homeglue.device

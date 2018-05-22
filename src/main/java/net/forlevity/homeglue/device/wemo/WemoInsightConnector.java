@@ -21,6 +21,9 @@ import org.w3c.dom.Document;
 
 import java.io.IOException;
 
+/**
+ * Implementation of DeviceConnector that connects to and reads meter data from a Belkin WeMo Insight plug meter.
+ */
 @Log4j2
 @ToString(of = {"hostAddress"}, callSuper = true)
 @EqualsAndHashCode(of = {"hostAddress", "port"}, callSuper = false)
@@ -58,6 +61,11 @@ public class WemoInsightConnector extends AbstractSoapDeviceConnector implements
         return connected;
     }
 
+    /**
+     * Extract meter metadata from setup.xml.
+     * @param setupXml xml
+     * @return true if successfully parsed setup.xml
+     */
     private boolean parseWemoSetup(String setupXml) {
         Document doc = parse(setupXml);
         boolean success = false;

@@ -8,7 +8,16 @@ package net.forlevity.homeglue.storage;
 
 import net.forlevity.homeglue.device.PowerMeterData;
 
+/**
+ * Somewhere to put telemetry information (e.g. instantaneous power from a meter).
+ */
 public interface TelemetrySink {
 
+    /**
+     * Take some new telemetry data and do something with it, like storing or logging it.
+     * This should be called whenever new telemetry is available from a device.
+     * @param deviceId device identifier
+     * @param data telemetry
+     */
     void accept(String deviceId, PowerMeterData data);
 }

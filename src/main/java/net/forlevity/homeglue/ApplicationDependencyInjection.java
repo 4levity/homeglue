@@ -7,18 +7,23 @@
 package net.forlevity.homeglue;
 
 import com.google.inject.AbstractModule;
-import net.forlevity.homeglue.device.DeviceManagementModule;
+import net.forlevity.homeglue.device.DeviceManagementDependencyInjection;
 import net.forlevity.homeglue.storage.DeviceStatusSink;
 import net.forlevity.homeglue.storage.NoStorage;
 import net.forlevity.homeglue.storage.TelemetrySink;
 
-public class ApplicationModule extends AbstractModule {
+/**
+ * Top level dependency injection module.
+ */
+public class ApplicationDependencyInjection extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(Application.class);
+        // the application
+        bind(HomeglueApplication.class);
 
-        install(new DeviceManagementModule());
+        // device manager child module
+        install(new DeviceManagementDependencyInjection());
 
         // storage
         bind(DeviceStatusSink.class).to(NoStorage.class);

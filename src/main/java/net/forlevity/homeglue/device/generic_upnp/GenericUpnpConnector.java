@@ -16,6 +16,9 @@ import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * A generic UPnP device is a collection of 1+ services detected at a particular host address.
+ */
 public class GenericUpnpConnector extends AbstractSoapDeviceConnector {
 
     private final InetAddress hostAddress;
@@ -38,15 +41,14 @@ public class GenericUpnpConnector extends AbstractSoapDeviceConnector {
         return true;
     }
 
-    public void add(SsdpService service) {
+    /**
+     * Manager calls this to add a detected service at this address.
+     * @param service service info
+     * @return true if this service was NOT already in the list
+     */
+    public boolean add(SsdpService service) {
         synchronized (ssdpServices) {
-            ssdpServices.add(service);
-        }
-    }
-
-    public boolean has(SsdpService service) {
-        synchronized (ssdpServices) {
-            return ssdpServices.contains(service);
+            return ssdpServices.add(service);
         }
     }
 }

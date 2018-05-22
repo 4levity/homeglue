@@ -16,6 +16,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Base class for DeviceManager implementations. Help maintain a list of devices.
+ */
 @Log4j2
 public abstract class AbstractDeviceManager extends AbstractExecutionThreadService implements DeviceManager {
 

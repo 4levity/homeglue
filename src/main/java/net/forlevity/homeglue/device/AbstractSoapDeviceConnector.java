@@ -27,6 +27,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
+/**
+ * Base class to assist in building a device connector that issues SOAP requests to its device and parses XML results.
+ */
 @Log4j2
 public abstract class AbstractSoapDeviceConnector extends AbstractDeviceConnector {
 
@@ -39,11 +42,16 @@ public abstract class AbstractSoapDeviceConnector extends AbstractDeviceConnecto
         this.httpClient = httpClient;
     }
 
-    protected Document parse(String setupXml) {
+    /**
+     * Convenience method to parse XML.
+     * @param xml some XML text
+     * @return DOM, or null if parsing failed
+     */
+    protected Document parse(String xml) {
         DocumentBuilder documentBuilder;
         byte[] bytes;
         try {
-            bytes = setupXml.getBytes("utf-8");
+            bytes = xml.getBytes("utf-8");
             documentBuilder = xmlDocumentBuilderFactory.newDocumentBuilder();
         } catch (ParserConfigurationException | UnsupportedEncodingException e) {
             throw new UnsupportedOperationException(e);
@@ -58,7 +66,13 @@ public abstract class AbstractSoapDeviceConnector extends AbstractDeviceConnecto
         return result == null ? documentBuilder.newDocument() : result;
     }
 
-
+    /**
+     * Convenience method to execute a SOAP-ish request to a device.
+     * @param url http endpoint URL
+     * @param urn SOAP URN
+     * @param action SOAP action
+     * @return DOM or null if request failed
+     */
     protected Document execSoapRequest(String url, String urn, String action) {
         String payload = String.format("<?xml version=\"1.0\" encoding=utf-8\"?>" +
                 "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
@@ -81,6 +95,12 @@ public abstract class AbstractSoapDeviceConnector extends AbstractDeviceConnecto
         return document;
     }
 
+    /**
+     * Convenience method to run an XPath query to find a specific node and return the text content.
+     * @param doc DOM
+     * @param query XPath query expression
+     * @return text content of node, or null if query did not find one node
+     */
     protected String nodeText(Document doc, String query) {
         Node node = null;
         try {

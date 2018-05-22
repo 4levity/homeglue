@@ -6,7 +6,13 @@
 
 package net.forlevity.homeglue.upnp;
 
+/**
+ * A handle to a background process that can be stopped.
+ */
 public interface BackgroundProcess {
 
+    /**
+     * Stop the process.
+     */
     void stop();
 }

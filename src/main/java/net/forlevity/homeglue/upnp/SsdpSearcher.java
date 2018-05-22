@@ -12,6 +12,9 @@ import io.resourcepool.ssdp.model.SsdpService;
 
 import java.util.function.Consumer;
 
+/**
+ * Interface wrapping resourcepool.io ssdp-client.
+ */
 @ImplementedBy(SsdpSearcherImpl.class)
 public interface SsdpSearcher {
 

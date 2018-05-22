@@ -12,14 +12,17 @@ import org.apache.http.entity.ContentType;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * Standard implementation for SimpleHttpClient.
+ */
 public class SimpleHttpClientImpl implements SimpleHttpClient {
 
     private static final int CONNECT_TIMEOUT_MILLLIS = 5000;
     private static final int SOCKET_TIMEOUT_MILLIS = 5000;
 
     @Override
-    public String get(String location) throws IOException {
-        return Request.Get(location)
+    public String get(String url) throws IOException {
+        return Request.Get(url)
                 .connectTimeout(CONNECT_TIMEOUT_MILLLIS)
                 .socketTimeout(SOCKET_TIMEOUT_MILLIS)
                 .execute().returnContent().asString();
@@ -31,7 +34,9 @@ public class SimpleHttpClientImpl implements SimpleHttpClient {
         Request request = Request.Post(url)
                 .connectTimeout(CONNECT_TIMEOUT_MILLLIS)
                 .socketTimeout(SOCKET_TIMEOUT_MILLIS);
-        headers.forEach((name, value) -> request.setHeader(name, value));
+        if (headers != null) {
+            headers.forEach((name, value) -> request.setHeader(name, value));
+        }
         request.bodyString(payload, ContentType.TEXT_XML);
         return request.execute().returnContent().asString();
     }

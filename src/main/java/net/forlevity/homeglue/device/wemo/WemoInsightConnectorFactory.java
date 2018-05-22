@@ -6,6 +6,16 @@
 
 package net.forlevity.homeglue.device.wemo;
 
+/**
+ * Interface for assisted injection FactoryModuleBuilder.
+ */
 public interface WemoInsightConnectorFactory {
+
+    /**
+     * Create an Insight connector.
+     * @param hostAddress IP address or hostname
+     * @param port TCP port
+     * @return connector
+     */
     WemoInsightConnector create(String hostAddress, int port);
 }

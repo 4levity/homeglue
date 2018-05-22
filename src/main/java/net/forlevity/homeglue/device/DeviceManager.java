@@ -10,7 +10,14 @@ import com.google.common.util.concurrent.Service;
 
 import java.util.Collection;
 
+/**
+ * A service that handles a particular type/group of devices.
+ */
 public interface DeviceManager extends Service {
 
+    /**
+     * Return list of devices managed by this manager.
+     * @return devices
+     */
     Collection<DeviceConnector> getDevices();
 }

@@ -8,7 +8,15 @@ package net.forlevity.homeglue.device.generic_upnp;
 
 import java.net.InetAddress;
 
+/**
+ * Interface for assisted injection FactoryModuleBuilder.
+ */
 public interface GenericUpnpConnectorFactory {
 
+    /**
+     * Create a GenericUpnpConnector.
+     * @param hostAddress address
+     * @return connector
+     */
     GenericUpnpConnector create(InetAddress hostAddress);
 }

@@ -16,6 +16,9 @@ import lombok.extern.log4j.Log4j2;
 
 import java.util.function.Consumer;
 
+/**
+ * Standard implementation of SsdpSearcher.
+ */
 @Log4j2
 @Singleton
 public class SsdpSearcherImpl implements SsdpSearcher {

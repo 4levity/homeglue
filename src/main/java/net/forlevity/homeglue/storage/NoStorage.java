@@ -14,6 +14,9 @@ import net.forlevity.homeglue.device.PowerMeterData;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Default implementation for device and telemetry data that just logs and discards the data.
+ */
 @Log4j2
 @Singleton
 public class NoStorage implements DeviceStatusSink, TelemetrySink {

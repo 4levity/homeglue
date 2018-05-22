@@ -21,6 +21,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * Implementation of DeviceManager that detects all other UPnP services that are NOT detected by other DeviceManagers.
+ * Groups services as "devices" by host address. Can use that info to track whether a networked appliance is on or off.
+ */
 @Log4j2
 @Singleton
 public class GenericUpnpManager extends AbstractDeviceManager {
@@ -42,17 +46,21 @@ public class GenericUpnpManager extends AbstractDeviceManager {
 
     @Override
     protected void run() throws Exception {
-        // give other managers time to register so we don't see their devices
+        // give other managers time to register first so we don't detect any of their devices
         Thread.sleep(STARTUP_DELAY_MILLIS);
 
-        // pick up devices that are not registered to any other service
+        // low priority (high number) means pick up devices that are not registered to any other service
         ssdpDiscoveryService.registerSsdp(service -> true, discoveredServices, Integer.MAX_VALUE);
 
         // TODO: periodically update status of devices that have not connected recently
 
         while (true) {
             SsdpService service = discoveredServices.take();
-            processServiceInfo(service);
+            try {
+                processServiceInfo(service);
+            } catch (RuntimeException e) {
+                log.error("unexpected exception processing UPnP service info (continuing)", e);
+            }
         }
     }
 
@@ -65,13 +73,13 @@ public class GenericUpnpManager extends AbstractDeviceManager {
             genericUpnpDevice.add(service);
             if (genericUpnpDevice.connect()) {
                 devicesByAddress.put(address, genericUpnpDevice);
-                log.info ("there are UPNP devices at: {}", Arrays.toString(devicesByAddress.keySet().toArray()));
+                log.info ("there are UPnP devices at: {}", Arrays.toString(devicesByAddress.keySet().toArray()));
                 if (!genericUpnpDevice.getDeviceId().equals(DeviceConnector.DEVICE_ID_UNKNOWN)) {
                     register(genericUpnpDevice); // register if identifiable
                 }
             }
-        } else if (!genericUpnpDevice.has(service)) {
-            // additional service at same address
+        } else {
+            // additional (or duplicate) service at same address
             genericUpnpDevice.add(service);
         }
     }

@@ -19,14 +19,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Singleton
+/**
+ * The application consists of a Guava ServiceManager and some injected services.
+ */
 @Log4j2
-public class Application {
+@Singleton
+public class HomeglueApplication {
 
     private final ServiceManager serviceManager;
 
     @Inject
-    public Application(
+    public HomeglueApplication(
             SsdpDiscoveryService ssdpDiscoveryService,
             Set<DeviceManager> deviceManagers) {
         List<Service> services = new ArrayList();

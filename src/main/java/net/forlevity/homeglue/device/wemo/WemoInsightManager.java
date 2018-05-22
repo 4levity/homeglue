@@ -21,6 +21,9 @@ import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * DeviceManager implementation that detects all Belkin WeMo Insight meters on the LAN and polls them periodically.
+ */
 @Log4j2
 @Singleton
 public class WemoInsightManager extends AbstractDeviceManager {
@@ -76,6 +79,13 @@ public class WemoInsightManager extends AbstractDeviceManager {
         }
     }
 
+    /**
+     * Upon hearing of a new Insight meter, if it is new then try to connect to it and register it for future polling.
+     * If it's the first meter we have detected, start polling. If it's a meter we already know about, check to see
+     * if the TCP port number has changed.
+     * @param ipAddress IP address of discovered Insight
+     * @param port TCP port of Insight
+     */
     private void handleWemoDiscovery(String ipAddress, int port) {
         WemoInsightConnector foundConnector = insights.get(ipAddress);
         if (foundConnector == null) {

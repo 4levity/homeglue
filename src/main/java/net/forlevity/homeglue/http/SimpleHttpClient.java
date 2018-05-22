@@ -12,10 +12,28 @@ import org.apache.http.entity.ContentType;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * A simple (easily mockable) HTTP client for doing simple things with web services.
+ */
 @ImplementedBy(SimpleHttpClientImpl.class)
 public interface SimpleHttpClient {
 
-    String get(String location) throws IOException;
+    /**
+     * GET with default settings.
+     * @param url the url e.g. "https://github.com/"
+     * @return response body as string (regardless of HTTP status code)
+     * @throws IOException on network problems
+     */
+    String get(String url) throws IOException;
 
+    /**
+     * POST to a web service.
+     * @param url the url
+     * @param headers additional headers, or null for none
+     * @param payload payload to send
+     * @param contentType content type of payload
+     * @return response body as string (regardless of HTTP status code)
+     * @throws IOException on network problems
+     */
     String post(String url, Map<String, String> headers, String payload, ContentType contentType) throws IOException;
 }

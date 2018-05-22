@@ -7,12 +7,17 @@
 package net.forlevity.homeglue.device;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.ToString;
 
 import java.time.Instant;
 
+/**
+ * Data from a power meter e.g. Belkin WeMo Insight.
+ */
 @AllArgsConstructor
 @ToString
+@Getter
 public class PowerMeterData {
 
     private final Instant timestamp = Instant.now();

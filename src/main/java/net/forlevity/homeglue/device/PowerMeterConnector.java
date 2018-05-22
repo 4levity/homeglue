@@ -6,7 +6,14 @@
 
 package net.forlevity.homeglue.device;
 
+/**
+ * A connection to a device that is a readable power meter, e.g. Belkin WeMo Insight.
+ */
 public interface PowerMeterConnector extends DeviceConnector {
 
+    /**
+     * Attempt to read the power meter.
+     * @return data from meter, or null if failed to read
+     */
     PowerMeterData read();
 }
