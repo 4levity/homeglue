@@ -15,6 +15,7 @@ public class AbstractDeviceConnectorTest extends HomeglueTests {
     public void setDeviceDetails() {
         TestDeviceConnector dc = new TestDeviceConnector();
         assertTrue(dc.getDeviceDetails().isEmpty());
+        assertEquals(DeviceConnector.DEVICE_ID_UNKNOWN, dc.getDeviceId());
         dc.testSetDetails(ImmutableMap.of("test1","value1","test2","value2"));
         assertEquals(2, dc.getDeviceDetails().size());
         dc.testSetDetails(ImmutableMap.of("test2","value2x"));

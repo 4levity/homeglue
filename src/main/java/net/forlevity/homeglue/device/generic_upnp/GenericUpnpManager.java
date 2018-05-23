@@ -6,8 +6,11 @@
 
 package net.forlevity.homeglue.device.generic_upnp;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractDeviceManager;
 import net.forlevity.homeglue.device.DeviceConnector;
@@ -29,38 +32,52 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Singleton
 public class GenericUpnpManager extends AbstractDeviceManager {
 
-    private static final long STARTUP_DELAY_MILLIS = 5000;
     private final GenericUpnpConnectorFactory genericUpnpConnectorFactory;
-    private final SsdpDiscoveryService ssdpDiscoveryService;
-    private final LinkedBlockingQueue<SsdpServiceDefinition> discoveredServices = new LinkedBlockingQueue<>();
+
+    @VisibleForTesting
+    @Getter(AccessLevel.PACKAGE)
+    private final LinkedBlockingQueue<SsdpServiceDefinition> discoveredServicesQueue = new LinkedBlockingQueue<>();
+
     private final Map<InetAddress, GenericUpnpConnector> devicesByAddress = new HashMap<>();
 
     @Inject
     GenericUpnpManager(GenericUpnpConnectorFactory genericUpnpConnectorFactory,
-                                 SsdpDiscoveryService ssdpDiscoveryService,
-                                 DeviceStatusSink deviceStatusSink) {
+                       SsdpDiscoveryService ssdpDiscoveryService,
+                       DeviceStatusSink deviceStatusSink) {
         super(deviceStatusSink);
         this.genericUpnpConnectorFactory = genericUpnpConnectorFactory;
-        this.ssdpDiscoveryService = ssdpDiscoveryService;
+
+        // low priority (high number) means pick up devices that are not registered to any other service
+        ssdpDiscoveryService.registerSsdp(service -> true, discoveredServicesQueue, Integer.MAX_VALUE);
     }
 
     @Override
     protected void run() throws Exception {
-        // give other managers time to register first so we don't detect any of their devices
-        Thread.sleep(STARTUP_DELAY_MILLIS);
-
-        // low priority (high number) means pick up devices that are not registered to any other service
-        ssdpDiscoveryService.registerSsdp(service -> true, discoveredServices, Integer.MAX_VALUE);
-
         // TODO: periodically update status of devices that have not connected recently
-
         while (true) {
-            SsdpServiceDefinition service = discoveredServices.take();
-            try {
-                processServiceInfo(service);
-            } catch (RuntimeException e) {
-                log.error("unexpected exception processing UPnP service info (continuing)", e);
-            }
+            processDiscoveryQueue();
+        }
+    }
+
+    /**
+     * Block until a service is discovered and process information on that service. Drain queue.
+     *
+     * @throws InterruptedException
+     */
+    @VisibleForTesting
+    void processDiscoveryQueue() throws InterruptedException {
+        processSingleQueueEntry();
+        while(!discoveredServicesQueue.isEmpty()) {
+            processSingleQueueEntry();
+        }
+    }
+
+    private void processSingleQueueEntry() throws InterruptedException {
+        SsdpServiceDefinition service = discoveredServicesQueue.take();
+        try {
+            processServiceInfo(service);
+        } catch (RuntimeException e) {
+            log.error("unexpected exception processing UPnP service info (continuing)", e);
         }
     }
 
@@ -69,8 +86,7 @@ public class GenericUpnpManager extends AbstractDeviceManager {
         GenericUpnpConnector genericUpnpDevice = devicesByAddress.get(address);
         if (genericUpnpDevice == null) {
             // new device (new IP address)
-            genericUpnpDevice = genericUpnpConnectorFactory.create(address);
-            genericUpnpDevice.add(service);
+            genericUpnpDevice = genericUpnpConnectorFactory.create(service);
             if (genericUpnpDevice.connect()) {
                 devicesByAddress.put(address, genericUpnpDevice);
                 log.info ("other UPnP devices at: {}", Arrays.toString(devicesByAddress.keySet().toArray()));

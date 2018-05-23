@@ -6,7 +6,7 @@
 
 package net.forlevity.homeglue.device.generic_upnp;
 
-import java.net.InetAddress;
+import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 
 /**
  * Interface for assisted injection FactoryModuleBuilder.
@@ -15,8 +15,8 @@ public interface GenericUpnpConnectorFactory {
 
     /**
      * Create a GenericUpnpConnector.
-     * @param hostAddress address
+     * @param firstService a service for this device
      * @return connector
      */
-    GenericUpnpConnector create(InetAddress hostAddress);
+    GenericUpnpConnector create(SsdpServiceDefinition firstService);
 }

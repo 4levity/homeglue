@@ -39,7 +39,7 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
     private final List<Registration> registrations = new ArrayList<>();
 
     @Inject
-    SsdpDiscoveryServiceImpl(SsdpSearcher ssdpSearcher,
+    public SsdpDiscoveryServiceImpl(SsdpSearcher ssdpSearcher,
                                     @Named("ssdp.scan.period.millis") int ssdpScanPeriodMillis,
                                     @Named("ssdp.scan.length.millis") int ssdpScanLengthMillis,
                                     @Named("ssdp.startup.delay.millis") int startupDelayMillis,
@@ -63,12 +63,12 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
     }
 
     @Override
-    protected void startUp() throws Exception {
+    protected void startUp() {
         executor.scheduleAtFixedRate(this::runOnce, startupDelayMillis, ssdpScanPeriodMillis, TimeUnit.MILLISECONDS);
     }
 
     @Override
-    protected void shutDown() throws Exception {
+    protected void shutDown() {
         executor.shutdownNow();
     }
 
@@ -77,7 +77,7 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
      * @throws InterruptedException if interrupted
      */
     @VisibleForTesting
-    void runOnce() {
+    public void runOnce() {
         log.trace("starting SSDP search");
         synchronized (lastSearchLock) {
             if (lastSearchEndTime.plusMillis(minimumInactiveMillis).isAfter(Instant.now())) {
@@ -106,7 +106,7 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
     private void search(String serviceType) throws InterruptedException {
         BackgroundProcessHandle discovery = null;
         try {
-            discovery = ssdpSearcher.startDiscovery(serviceType, service -> dispatch(service));
+            discovery = ssdpSearcher.startDiscovery(serviceType, this::dispatch);
             Thread.sleep(ssdpScanLengthMillis);
         } finally {
             if (discovery != null) {

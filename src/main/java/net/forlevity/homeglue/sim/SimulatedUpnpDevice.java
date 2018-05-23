@@ -6,6 +6,7 @@
 
 package net.forlevity.homeglue.sim;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import lombok.Synchronized;
@@ -78,7 +79,8 @@ public class SimulatedUpnpDevice extends BasicSimulatedNetworkDevice implements 
      * Subclass calls to provide data for SSDP discovery if not provided with constructor.
      */
     @Synchronized("configurationLock")
-    protected final void setServices(Collection<UpnpServiceInfo> services) {
+    @VisibleForTesting
+    public final void setServices(Collection<UpnpServiceInfo> services) {
         this.services = ImmutableList.copyOf(services);
     }
 

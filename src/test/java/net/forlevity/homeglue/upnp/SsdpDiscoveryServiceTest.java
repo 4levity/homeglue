@@ -6,10 +6,8 @@
 
 package net.forlevity.homeglue.upnp;
 
-import com.google.common.collect.ImmutableList;
-import net.forlevity.homeglue.HomeglueTests;
 import net.forlevity.homeglue.LinkedUniqueQueue;
-import net.forlevity.homeglue.sim.BasicSimulatedNetworkDevice;
+import net.forlevity.homeglue.SimulatedNetworkTests;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sim.SimulatedUpnpDevice;
 import net.forlevity.homeglue.sim.UpnpServiceInfo;
@@ -25,7 +23,7 @@ import static net.forlevity.homeglue.upnp.SsdpSearcher.ROOT_DEVICE_SERVICE_TYPE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-public class SsdpDiscoveryServiceTest extends HomeglueTests {
+public class SsdpDiscoveryServiceTest extends SimulatedNetworkTests {
 
     @Test
     @SuppressWarnings("unchecked")
@@ -49,20 +47,8 @@ public class SsdpDiscoveryServiceTest extends HomeglueTests {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testDiscoveryPriority() throws UnknownHostException, InterruptedException {
-        // create sim devices and network
-        InetAddress remoteIp1 = InetAddress.getByName("10.0.0.1");
-        InetAddress remoteIp2 = InetAddress.getByName("10.0.0.2");
-        InetAddress remoteIp3 = InetAddress.getByName("10.0.0.3");
-        Collection<UpnpServiceInfo> services1 = Collections.singleton(new UpnpServiceInfo(ROOT_DEVICE_SERVICE_TYPE, "uuid:1"));
-        Collection<UpnpServiceInfo> services2 = Collections.singleton(new UpnpServiceInfo(ROOT_DEVICE_SERVICE_TYPE, "uuid:2"));
-        Collection<UpnpServiceInfo> services3 = ImmutableList.of(
-                new UpnpServiceInfo(ROOT_DEVICE_SERVICE_TYPE, "uuid:3"),
-                new UpnpServiceInfo("urn:x", "uuid:3::urn:x"));
-        SimulatedUpnpDevice device1 = new SimulatedUpnpDevice(remoteIp1, 9000, services1);
-        SimulatedUpnpDevice device2 = new SimulatedUpnpDevice(remoteIp2, 9000, services2);
-        SimulatedUpnpDevice device3 = new SimulatedUpnpDevice(remoteIp3, 9000, services3);
-        SimulatedNetwork network = new SimulatedNetwork(ImmutableList.of(device1, device2, device3));
+    public void testDiscoveryPriority() throws InterruptedException {
+        SimulatedNetwork network = makeTestNetwork();
 
         // create test service and register interest in our service
         SsdpDiscoveryServiceImpl service = new SsdpDiscoveryServiceImpl(network,0,0,0,0);

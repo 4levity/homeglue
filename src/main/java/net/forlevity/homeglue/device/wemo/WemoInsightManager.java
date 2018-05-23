@@ -33,7 +33,6 @@ public class WemoInsightManager extends AbstractDeviceManager {
             "http://(?<ipAddress>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}):(?<port>[0-9]{5})/setup.xml");
     private static final long SCAN_PERIOD_MILLIS = 2500L;
 
-    private final SsdpDiscoveryService ssdpDiscoveryService;
     private final WemoInsightConnectorFactory connectorFactory;
     private final TelemetrySink telemetrySink;
     private final ConcurrentHashMap<String, WemoInsightConnector> insights = new ConcurrentHashMap<>();
@@ -45,18 +44,17 @@ public class WemoInsightManager extends AbstractDeviceManager {
                               WemoInsightConnectorFactory connectorFactory,
                               DeviceStatusSink deviceStatusSink, TelemetrySink telemetrySink) {
         super(deviceStatusSink);
-        this.ssdpDiscoveryService = ssdpDiscoveryService;
         this.connectorFactory = connectorFactory;
         this.telemetrySink = telemetrySink;
-    }
 
-    @Override
-    protected void run() throws Exception {
         // register our queue for devices that look like wemo insights
         ssdpDiscoveryService.registerSsdp(service ->
                 (SSDP_SERIALNUMBER.matcher(service.getSerialNumber()).matches()
                         && SSDP_LOCATION.matcher(service.getLocation()).matches()), discoveredWemo, 1);
+    }
 
+    @Override
+    protected void run() throws Exception {
         while (true) {
             // whenever a new wemo is discovered, add it to our list and try to connect
             SsdpServiceDefinition ssdpWemo = discoveredWemo.take(); // on interrupted, service will quit
