@@ -5,12 +5,12 @@ repositories {
     mavenCentral()
 }
 
-group 'net.forlevity.wemosnarfer'
-version '1.0'
+group 'net.forlevity.homeglue'
+version '0.1'
 
 jar {
     manifest {
-        attributes 'Main-Class': 'net.forlevity.wemosnarfer.Main'
+        attributes 'Main-Class': 'net.forlevity.homeglue.Main'
     }
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }

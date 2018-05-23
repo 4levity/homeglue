@@ -7,10 +7,7 @@
 package net.forlevity.homeglue.device;
 
 import com.google.common.collect.ImmutableMap;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,12 +23,12 @@ public abstract class AbstractDeviceConnector implements DeviceConnector {
     private String deviceId = DEVICE_ID_UNKNOWN;
 
     private Map<String, String> deviceDetails = new HashMap<>();
+    private final Object deviceDetailsLock = new Object();
 
     @Override
+    @Synchronized("deviceDetailsLock")
     public Map<String, String> getDeviceDetails() {
-        synchronized (deviceDetails) {
-            return ImmutableMap.copyOf(deviceDetails);
-        }
+        return ImmutableMap.copyOf(deviceDetails);
     }
 
     /**
@@ -39,13 +36,8 @@ public abstract class AbstractDeviceConnector implements DeviceConnector {
      * @param key metadata key
      * @param value metadata value, or null to remove/unset
      */
-    protected void setDeviceDetail(String key, String value) {
-        synchronized (deviceDetails) {
-            if (value != null) {
-                deviceDetails.put(key, value);
-            } else {
-                deviceDetails.remove(key);
-            }
-        }
+    @Synchronized("deviceDetailsLock")
+    protected void setDeviceDetails(Map<String, String> deviceDetails) {
+        this.deviceDetails = deviceDetails;
     }
 }

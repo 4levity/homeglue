@@ -6,6 +6,7 @@
 
 package net.forlevity.homeglue.device.wemo;
 
+import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.HomeglueTests;
 import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.http.SimpleHttpClient;
@@ -23,15 +24,16 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@Log4j2
 public class WemoInsightConnectorTest extends HomeglueTests {
 
     SimpleHttpClient httpClient;
     String hostAddress = "10.1.1.1";
-    int port = 45678;
 
     @Test
     public void testInitialConnect() throws IOException {
-        WemoInsightConnector connector = connectedConnector();
+        int port = 45678;
+        WemoInsightConnector connector = connectedConnector(port);
         ArgumentCaptor<String> url = ArgumentCaptor.forClass(String.class);
         verify(httpClient).get(url.capture());
         assertEquals(String.format("http://%s:%d/setup.xml", hostAddress, port), url.getValue());
@@ -42,29 +44,33 @@ public class WemoInsightConnectorTest extends HomeglueTests {
     @Test
     @SuppressWarnings("unchecked")
     public void testRead() throws IOException {
-        WemoInsightConnector connector = connectedConnector();
+        int port = 45678;
+        WemoInsightConnector connector = connectedConnector(port);
         when(httpClient.post(any(),any(),any(),any()))
-                .thenReturn(ResourceHelper.resourceAsString("sim/insightparams_response.xml"));
+                .thenReturn(ResourceHelper.resourceAsString("net/forlevity/homeglue/sim/insightparams_response.xml"));
         ArgumentCaptor<String> url = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Map<String,String>> headers = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<ContentType> contentType = ArgumentCaptor.forClass(ContentType.class);
         PowerMeterData data = connector.read();
+        log.info("wemo driver read: {}", data);
         assertEquals(4.155, data.getInstantaneousWatts(), 0.001);
         // timestamp within 100ms of now:
         assertEquals(Instant.now().toEpochMilli() / 100.0, data.getTimestamp().toEpochMilli() / 100.0, 1.0);
         verify(httpClient).post(url.capture(), headers.capture(), payload.capture(), contentType.capture());
         assertEquals(String.format("http://%s:%d/upnp/control/insight1",hostAddress,port), url.getValue());
         assertEquals("\"urn:Belkin:service:insight:1#GetInsightParams\"", headers.getValue().get("SOAPAction"));
-        assertEquals(ResourceHelper.resourceAsString("sim/insightparams_request.xml"), payload.getValue());
+        assertEquals(ResourceHelper.resourceAsString("net/forlevity/homeglue/sim/insightparams_request.xml"), payload.getValue());
         assertEquals(ContentType.TEXT_XML, contentType.getValue());
     }
 
-    private WemoInsightConnector connectedConnector() throws IOException {
+    private WemoInsightConnector connectedConnector(int port) throws IOException {
         httpClient = mock(SimpleHttpClient.class);
         WemoInsightConnector connector = new WemoInsightConnector(httpClient, hostAddress, port);
-        when(httpClient.get(any())).thenReturn(ResourceHelper.resourceAsString("sim/insight1_setup.xml"));
+        when(httpClient.get(any())).thenReturn(ResourceHelper.resourceAsString("net/forlevity/homeglue/sim/insight1_setup.xml"));
+        log.info("before connecting: {}", connector);
         assertTrue(connector.connect());
+        log.info("after connecting: {}", connector);
         return connector;
     }
 }

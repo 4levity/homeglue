@@ -34,12 +34,14 @@ public abstract class AbstractSimulatedUpnpDevice extends AbstractSimulatedNetwo
 
     /**
      * Subclass implements to provide data for SSDP discovery.
+     *
      * @return list of services
      */
     protected abstract Collection<UpnpServiceInfo> getServices();
 
     /**
      * Subclass implements to provide SSDP location URL.
+     * 
      * @return url
      */
     protected abstract String getLocation();

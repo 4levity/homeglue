@@ -29,7 +29,7 @@ public class AbstractSoapDeviceConnectorTest extends HomeglueTests {
     @Test
     public void testXmlParsing() {
         TestSoapDeviceConnector connector = new TestSoapDeviceConnector();
-        String xmlText = ResourceHelper.resourceAsString("sim/insight1_setup.xml");
+        String xmlText = ResourceHelper.resourceAsString("net/forlevity/homeglue/sim/insight1_setup.xml");
         Document document = xml.parse(xmlText);
         assertNotNull(document);
         assertEquals(1, document.getElementsByTagName("manufacturer").getLength());
@@ -45,7 +45,7 @@ public class AbstractSoapDeviceConnectorTest extends HomeglueTests {
         String urn = "urn:something";
         String action = "DoNothing";
         when(mockHttp.post(any(),any(),any(),any()))
-                .thenReturn(ResourceHelper.resourceAsString("sim/insightparams_response.xml"));
+                .thenReturn(ResourceHelper.resourceAsString("net/forlevity/homeglue/sim/insightparams_response.xml"));
         Document document = connector.doExecSoapRequest(url, urn, action);
 
         ArgumentCaptor<String> xmlRequest = ArgumentCaptor.forClass(String.class);

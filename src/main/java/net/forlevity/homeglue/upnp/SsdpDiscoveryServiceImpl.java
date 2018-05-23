@@ -127,7 +127,7 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
                 Registration registration = registrations.get(ix);
                 if (registration.predicate.test(service)) {
                     registration.serviceQueue.offer(service);
-                    return;
+                    break;
                 }
             }
         }

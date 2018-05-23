@@ -6,7 +6,9 @@
 
 package net.forlevity.homeglue.upnp;
 
+import com.google.common.collect.ImmutableList;
 import net.forlevity.homeglue.HomeglueTests;
+import net.forlevity.homeglue.LinkedUniqueQueue;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sim.UpnpServiceInfo;
 import org.junit.Test;
@@ -41,5 +43,43 @@ public class SsdpDiscoveryServiceTest extends HomeglueTests {
         service.runOnce();
         assertFalse(queue.isEmpty());
         assertEquals(remoteIp, queue.take().getRemoteIp());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testDiscoveryPriority() throws UnknownHostException, InterruptedException {
+        // create sim devices and network
+        InetAddress remoteIp1 = InetAddress.getByName("10.0.0.1");
+        InetAddress remoteIp2 = InetAddress.getByName("10.0.0.2");
+        InetAddress remoteIp3 = InetAddress.getByName("10.0.0.3");
+        Collection<UpnpServiceInfo> services1 = Collections.singleton(new UpnpServiceInfo(ROOT_DEVICE_SERVICE_TYPE, "uuid:1"));
+        Collection<UpnpServiceInfo> services2 = Collections.singleton(new UpnpServiceInfo(ROOT_DEVICE_SERVICE_TYPE, "uuid:2"));
+        Collection<UpnpServiceInfo> services3 = ImmutableList.of(
+                new UpnpServiceInfo(ROOT_DEVICE_SERVICE_TYPE, "uuid:3"),
+                new UpnpServiceInfo("urn:x", "uuid:3::urn:x"));
+        TestNetworkDevice device1 = new TestNetworkDevice(remoteIp1, 9000, services1);
+        TestNetworkDevice device2 = new TestNetworkDevice(remoteIp2, 9000, services2);
+        TestNetworkDevice device3 = new TestNetworkDevice(remoteIp3, 9000, services3);
+        SimulatedNetwork network = new SimulatedNetwork(ImmutableList.of(device1, device2, device3));
+
+        // create test service and register interest in our service
+        SsdpDiscoveryServiceImpl service = new SsdpDiscoveryServiceImpl(network,0,0,0,0);
+        LinkedBlockingQueue<SsdpServiceDefinition> queueIp1 = new LinkedUniqueQueue<>();
+        LinkedBlockingQueue<SsdpServiceDefinition> queueOtherRootDevices = new LinkedUniqueQueue<>();
+        LinkedBlockingQueue<SsdpServiceDefinition> queueUsn3 = new LinkedUniqueQueue<>();
+        // priority 1 queue gets anything at remoteIp1
+        service.registerSsdp(candidate -> candidate.getRemoteIp().equals(remoteIp1), queueIp1, 1);
+        // priority 2 queue gets all root devices (except the one at remoteIp1)
+        service.registerSsdp(candidate -> candidate.getServiceType().equals(ROOT_DEVICE_SERVICE_TYPE), queueOtherRootDevices, 2);
+        // priority 3 queue gets all services where serial starts with uuid:3 (except the one that's a root device)
+        service.registerSsdp(candidate -> candidate.getSerialNumber().startsWith("uuid:3"), queueUsn3, 3);
+
+        // run search and confirm we got expected results
+        service.runOnce();
+        assertEquals(1, queueIp1.size());
+        assertEquals("uuid:1", queueIp1.take().getSerialNumber());
+        assertEquals(1, queueUsn3.size());
+        assertEquals("urn:x", queueUsn3.take().getServiceType());
+        assertEquals(2, queueOtherRootDevices.size());
     }
 }

@@ -16,7 +16,7 @@ import java.util.Collection;
  * Lo-fi simulation of OpenWRT router with UPnP service enabled.
  */
 @Getter
-public class SimulatedRouter extends AbstractSimulatedUpnpDevice {
+public class SimulatedUpnpRouter extends AbstractSimulatedUpnpDevice {
 
     private static String USN1 = "uuid:2447cd11-081b-4225-ad70-0d9de3aed106";
     private static String USN2 = "uuid:2447cd11-081b-4225-ad70-0d9de3aed107";
@@ -43,7 +43,7 @@ public class SimulatedRouter extends AbstractSimulatedUpnpDevice {
             new UpnpServiceInfo(GATEWAY, USN1 + "::" + GATEWAY)
     );
 
-    protected SimulatedRouter(InetAddress inetAddress, int upnpPort) {
+    protected SimulatedUpnpRouter(InetAddress inetAddress, int upnpPort) {
         super(inetAddress, upnpPort);
     }
 

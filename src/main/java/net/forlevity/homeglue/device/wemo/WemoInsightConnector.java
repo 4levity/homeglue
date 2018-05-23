@@ -6,6 +6,7 @@
 
 package net.forlevity.homeglue.device.wemo;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import lombok.EqualsAndHashCode;
@@ -74,10 +75,11 @@ public class WemoInsightConnector extends AbstractSoapDeviceConnector implements
             log.warn("xml did not contain device macAddress");
         } else {
             this.setDeviceId(macAddress); // use MAC address as device ID
-            this.setDeviceDetail("model", xml.nodeText(doc, "/root/device/modelDescription"));
-            this.setDeviceDetail("serialNumber", xml.nodeText(doc, "/root/device/serialNumber"));
-            this.setDeviceDetail("name", xml.nodeText(doc, "/root/device/friendlyName"));
-            this.setDeviceDetail("firmwareVersion", xml.nodeText(doc, "/root/device/firmwareVersion"));
+            this.setDeviceDetails(ImmutableMap.of(
+                    "model", xml.nodeText(doc, "/root/device/modelDescription"),
+                    "serialNumber", xml.nodeText(doc, "/root/device/serialNumber"),
+                    "name", xml.nodeText(doc, "/root/device/friendlyName"),
+                    "firmwareVersion", xml.nodeText(doc, "/root/device/firmwareVersion") ));
             success = true;
         }
         return success;

@@ -53,10 +53,10 @@ public class SimulatedWemo extends AbstractSimulatedUpnpDevice {
     public String post(String url, Map<String, String> headers, String payload, ContentType contentType)
             throws IOException {
         if (url.endsWith("/upnp/control/insight1")
-                && payload.equals(ResourceHelper.resourceAsString("sim/insightparams_request.xml"))
+                && payload.equals(ResourceHelper.resourceAsString("net/forlevity/homeglue/sim/insightparams_request.xml"))
                 && headers.get("SOAPAction").equals("\"urn:Belkin:service:insight:1#GetInsightParams\"")
                 && contentType.equals(ContentType.TEXT_XML) ) {
-            return ResourceHelper.resourceAsString("sim/insightparams_response.xml");
+            return ResourceHelper.resourceAsString("net/forlevity/homeglue/sim/insightparams_response.xml");
         }
         return super.post(url, headers, payload, contentType);
     }
