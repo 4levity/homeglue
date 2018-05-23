@@ -54,7 +54,7 @@ public class AbstractSoapDeviceConnectorTest extends HomeglueTests {
         Document requestDoc = xml.parse(xmlRequest.getValue());
         assertEquals(1, requestDoc.getElementsByTagName("u:DoNothing").getLength());
         assertEquals(String.format("\"%s#%s\"", urn, action), requestHeaders.getValue().get("SOAPAction"));
-        assertEquals(11, xml.nodeText(document, "//InsightParams").split("\\|").length);
+        assertEquals(12, xml.nodeText(document, "//InsightParams").split("\\|").length);
     }
 
     private static class TestSoapDeviceConnector extends AbstractSoapDeviceConnector {

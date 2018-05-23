@@ -24,6 +24,7 @@ Then to run the application:
     java -jar build/libs/homeglue-0.1.jar
 
 #### Future plans ####
+
 * more tests 
   * Integration test with device managers on full simulated network
   * application Main DI and startup
@@ -32,9 +33,10 @@ Then to run the application:
   * malformed XML at various points
 * store data (local H2, csv, AWS DynamoDB or other free services)
 * handle read errors/offline devices
-* update to Java 10 (after next Lombok release)
 * support turning switch on/off
 * automatically turn off my coffee maker if left on
+* auto versioning and publishing from Travis CI
+* update to Java 10 (after next Lombok release)
 * support other home metering and automation devices
 * user interface
 * style and static analysis checks
