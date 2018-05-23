@@ -6,7 +6,6 @@
 
 package net.forlevity.homeglue.sim;
 
-import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.upnp.BackgroundProcessHandle;
@@ -17,7 +16,8 @@ import org.w3c.dom.Document;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -62,9 +62,8 @@ public class SimulatedWemo extends AbstractSimulatedUpnpDevice {
     }
 
     @Override
-    public List<UpnpServiceMock> getServices() {
-        return ImmutableList.of(new UpnpServiceMock(
-                ROOT_DEVICE_SERVICE_TYPE,
+    public Collection<UpnpServiceInfo> getServices() {
+        return Collections.singleton(new UpnpServiceInfo(ROOT_DEVICE_SERVICE_TYPE,
                 String.format("uuid:Insight-1_0-%s::%s", deviceSerialNumber, ROOT_DEVICE_SERVICE_TYPE)));
     }
 

@@ -14,7 +14,7 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public class UpnpServiceMock {
+public class UpnpServiceInfo {
     String serviceType;
     String usn;
 }

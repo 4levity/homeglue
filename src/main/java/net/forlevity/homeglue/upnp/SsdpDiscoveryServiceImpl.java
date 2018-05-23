@@ -6,6 +6,7 @@
 
 package net.forlevity.homeglue.upnp;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -38,7 +39,7 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
     private final List<Registration> registrations = new ArrayList<>();
 
     @Inject
-    public SsdpDiscoveryServiceImpl(SsdpSearcher ssdpSearcher,
+    SsdpDiscoveryServiceImpl(SsdpSearcher ssdpSearcher,
                                     @Named("ssdp.scan.period.millis") int ssdpScanPeriodMillis,
                                     @Named("ssdp.scan.length.millis") int ssdpScanLengthMillis,
                                     @Named("ssdp.startup.delay.millis") int startupDelayMillis,
@@ -63,15 +64,7 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
 
     @Override
     protected void startUp() throws Exception {
-        executor.scheduleAtFixedRate(() -> {
-            try {
-                log.trace("starting search");
-                search();
-                log.trace("search done");
-            } catch (InterruptedException e) {
-                log.warn("interrupted during search", e);
-            }
-        }, startupDelayMillis, ssdpScanPeriodMillis, TimeUnit.MILLISECONDS);
+        executor.scheduleAtFixedRate(this::runOnce, startupDelayMillis, ssdpScanPeriodMillis, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -83,17 +76,26 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
      * Execute SSDP discovery requests, but suppress execution if not enough time has passed since last discovery.
      * @throws InterruptedException if interrupted
      */
-    private void search() throws InterruptedException {
+    @VisibleForTesting
+    void runOnce() {
+        log.trace("starting SSDP search");
         synchronized (lastSearchLock) {
             if (lastSearchEndTime.plusMillis(minimumInactiveMillis).isAfter(Instant.now())) {
                 log.warn("an SSDP search did not complete on time, ended at {}", lastSearchEndTime);
             } else {
-                // search for root device since Belkin Wemo Insight does not respond to 'all'
-                search(SsdpSearcher.ROOT_DEVICE_SERVICE_TYPE);
-                search(null);
+                try {
+                    // search for root device since Belkin Wemo Insight does not respond to 'all'
+                    search(SsdpSearcher.ROOT_DEVICE_SERVICE_TYPE);
+                    // regular search for all services
+                    search(null);
+                } catch (InterruptedException e) {
+                    log.warn("interrupted during search", e);
+                    Thread.currentThread().interrupt();
+                }
                 lastSearchEndTime = Instant.now();
             }
         }
+        log.trace("SSDP search done");
     }
 
     /**

@@ -32,13 +32,13 @@ public class HomeglueApplication {
     public HomeglueApplication(
             SsdpDiscoveryService ssdpDiscoveryService,
             Set<DeviceManager> deviceManagers) {
-        List<Service> services = new ArrayList();
+        List<Service> services = new ArrayList<>();
         services.add(ssdpDiscoveryService);
         services.addAll(deviceManagers);
         serviceManager = new ServiceManager(services);
     }
 
-    public void start() {
+    void start() {
         serviceManager.startAsync().awaitHealthy();
         String services = serviceManager.servicesByState().values().stream()
                 .map(service -> (service.getClass().getSimpleName() + "=" + service.state().toString()))

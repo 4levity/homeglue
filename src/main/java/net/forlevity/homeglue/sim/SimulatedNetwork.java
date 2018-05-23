@@ -18,8 +18,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -29,10 +29,14 @@ import java.util.function.Consumer;
 @Singleton
 public class SimulatedNetwork implements SimpleHttpClient, SsdpSearcher {
 
-    private final List<SimulatedNetworkDevice> devices = new ArrayList<>();
+    private final Collection<SimulatedNetworkDevice> devices;
 
+    /**
+     * Create a default network.
+     */
     @Inject
     public SimulatedNetwork() {
+        this.devices = new ArrayList<>();
         try {
             devices.add(new SimulatedRouter(InetAddress.getByName("192.168.6.1"), 5000));
             devices.add(new SimulatedWemo(InetAddress.getByName("192.168.6.231"), 49153, "sim/insight1_setup.xml"));
@@ -40,6 +44,15 @@ public class SimulatedNetwork implements SimpleHttpClient, SsdpSearcher {
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Create a simulation with some devices.
+     *
+     * @param devices simulated devices
+     */
+    public SimulatedNetwork(Collection<SimulatedNetworkDevice> devices) {
+        this.devices = devices;
     }
 
     @Override

@@ -8,12 +8,16 @@ package net.forlevity.homeglue.upnp;
 
 import io.resourcepool.ssdp.model.SsdpService;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.net.InetAddress;
 
 @Getter
 @AllArgsConstructor
+@EqualsAndHashCode
+@ToString
 public class SsdpServiceDefinition {
     private final String serialNumber;
     private final String serviceType;

@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 
 import java.net.InetAddress;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Lo-fi simulation of OpenWRT router with UPnP service enabled.
@@ -29,18 +29,18 @@ public class SimulatedRouter extends AbstractSimulatedUpnpDevice {
     private static String WANCONNECTION = "urn:schemas-upnp-org:device:WANConnectionDevice:1";
     private static String GATEWAY = "urn:schemas-upnp-org:device:InternetGatewayDevice:1";
 
-    List<UpnpServiceMock> services = ImmutableList.of(
-            new UpnpServiceMock(ROOT_DEVICE_SERVICE_TYPE, USN1 + "::" + ROOT_DEVICE_SERVICE_TYPE),
-            new UpnpServiceMock(USN1, USN1),
-            new UpnpServiceMock(USN2, USN2),
-            new UpnpServiceMock(USN3, USN3),
-            new UpnpServiceMock(L3FWD, USN1 + "::" + L3FWD),
-            new UpnpServiceMock(WANPPP, USN3 + "::" + WANPPP),
-            new UpnpServiceMock(WANIP, USN3 + "::" + WANIP),
-            new UpnpServiceMock(WANCOMMON, USN2 + "::" + WANCOMMON),
-            new UpnpServiceMock(WANDEVICE, USN2 + "::" + WANDEVICE),
-            new UpnpServiceMock(WANCONNECTION, USN2 + "::" + WANCONNECTION),
-            new UpnpServiceMock(GATEWAY, USN1 + "::" + GATEWAY)
+    Collection<UpnpServiceInfo> services = ImmutableList.of(
+            new UpnpServiceInfo(ROOT_DEVICE_SERVICE_TYPE, USN1 + "::" + ROOT_DEVICE_SERVICE_TYPE),
+            new UpnpServiceInfo(USN1, USN1),
+            new UpnpServiceInfo(USN2, USN2),
+            new UpnpServiceInfo(USN3, USN3),
+            new UpnpServiceInfo(L3FWD, USN1 + "::" + L3FWD),
+            new UpnpServiceInfo(WANPPP, USN3 + "::" + WANPPP),
+            new UpnpServiceInfo(WANIP, USN3 + "::" + WANIP),
+            new UpnpServiceInfo(WANCOMMON, USN2 + "::" + WANCOMMON),
+            new UpnpServiceInfo(WANDEVICE, USN2 + "::" + WANDEVICE),
+            new UpnpServiceInfo(WANCONNECTION, USN2 + "::" + WANCONNECTION),
+            new UpnpServiceInfo(GATEWAY, USN1 + "::" + GATEWAY)
     );
 
     protected SimulatedRouter(InetAddress inetAddress, int upnpPort) {

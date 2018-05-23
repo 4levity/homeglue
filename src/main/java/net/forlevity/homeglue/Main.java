@@ -9,7 +9,6 @@ package net.forlevity.homeglue;
 import com.google.inject.Guice;
 import lombok.extern.log4j.Log4j2;
 
-import java.io.IOException;
 import java.util.Properties;
 
 /**

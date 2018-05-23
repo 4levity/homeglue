@@ -1,13 +1,9 @@
 package net.forlevity.homeglue;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import lombok.extern.log4j.Log4j2;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
-
-import java.io.IOException;
 
 @Log4j2
 public abstract class HomeglueTests {

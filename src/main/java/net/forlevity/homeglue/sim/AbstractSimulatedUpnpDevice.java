@@ -14,7 +14,7 @@ import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 import net.forlevity.homeglue.util.Xml;
 
 import java.net.InetAddress;
-import java.util.List;
+import java.util.Collection;
 import java.util.function.Consumer;
 
 /**
@@ -36,7 +36,7 @@ public abstract class AbstractSimulatedUpnpDevice extends AbstractSimulatedNetwo
      * Subclass implements to provide data for SSDP discovery.
      * @return list of services
      */
-    protected abstract List<UpnpServiceMock> getServices();
+    protected abstract Collection<UpnpServiceInfo> getServices();
 
     /**
      * Subclass implements to provide SSDP location URL.
