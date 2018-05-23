@@ -36,7 +36,7 @@ public class GenericUpnpManager extends AbstractDeviceManager {
     private final Map<InetAddress, GenericUpnpConnector> devicesByAddress = new HashMap<>();
 
     @Inject
-    protected GenericUpnpManager(GenericUpnpConnectorFactory genericUpnpConnectorFactory,
+    GenericUpnpManager(GenericUpnpConnectorFactory genericUpnpConnectorFactory,
                                  SsdpDiscoveryService ssdpDiscoveryService,
                                  DeviceStatusSink deviceStatusSink) {
         super(deviceStatusSink);

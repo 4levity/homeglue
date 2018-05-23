@@ -9,7 +9,9 @@ package net.forlevity.homeglue.upnp;
 import com.google.common.collect.ImmutableList;
 import net.forlevity.homeglue.HomeglueTests;
 import net.forlevity.homeglue.LinkedUniqueQueue;
+import net.forlevity.homeglue.sim.BasicSimulatedNetworkDevice;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
+import net.forlevity.homeglue.sim.SimulatedUpnpDevice;
 import net.forlevity.homeglue.sim.UpnpServiceInfo;
 import org.junit.Test;
 
@@ -31,7 +33,7 @@ public class SsdpDiscoveryServiceTest extends HomeglueTests {
         // create sim device and network
         InetAddress remoteIp = InetAddress.getByName("10.1.2.3");
         Collection<UpnpServiceInfo> services = Collections.singleton(new UpnpServiceInfo(ROOT_DEVICE_SERVICE_TYPE, "uuid:1"));
-        TestNetworkDevice device = new TestNetworkDevice(remoteIp, 9000, services);
+        SimulatedUpnpDevice device = new SimulatedUpnpDevice(remoteIp, 9000, services);
         SimulatedNetwork network = new SimulatedNetwork(Collections.singleton(device));
 
         // create test service and register interest in our service
@@ -57,9 +59,9 @@ public class SsdpDiscoveryServiceTest extends HomeglueTests {
         Collection<UpnpServiceInfo> services3 = ImmutableList.of(
                 new UpnpServiceInfo(ROOT_DEVICE_SERVICE_TYPE, "uuid:3"),
                 new UpnpServiceInfo("urn:x", "uuid:3::urn:x"));
-        TestNetworkDevice device1 = new TestNetworkDevice(remoteIp1, 9000, services1);
-        TestNetworkDevice device2 = new TestNetworkDevice(remoteIp2, 9000, services2);
-        TestNetworkDevice device3 = new TestNetworkDevice(remoteIp3, 9000, services3);
+        SimulatedUpnpDevice device1 = new SimulatedUpnpDevice(remoteIp1, 9000, services1);
+        SimulatedUpnpDevice device2 = new SimulatedUpnpDevice(remoteIp2, 9000, services2);
+        SimulatedUpnpDevice device3 = new SimulatedUpnpDevice(remoteIp3, 9000, services3);
         SimulatedNetwork network = new SimulatedNetwork(ImmutableList.of(device1, device2, device3));
 
         // create test service and register interest in our service

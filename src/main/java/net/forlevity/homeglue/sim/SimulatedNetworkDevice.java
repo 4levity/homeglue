@@ -11,7 +11,7 @@ import net.forlevity.homeglue.http.SimpleHttpClient;
 import java.net.InetAddress;
 
 /**
- * A simulated network device with a LAN IP address.
+ * A simulated network device with a LAN IP address that may accept HTTP requests.
  */
 public interface SimulatedNetworkDevice extends SimpleHttpClient {
 

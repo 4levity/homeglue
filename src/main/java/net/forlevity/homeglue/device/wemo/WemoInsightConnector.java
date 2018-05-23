@@ -41,7 +41,7 @@ public class WemoInsightConnector extends AbstractSoapDeviceConnector implements
     private boolean connected = false;
 
     @Inject
-    public WemoInsightConnector(SimpleHttpClient httpClient,
+    WemoInsightConnector(SimpleHttpClient httpClient,
                                 @Assisted String hostAddress,
                                 @Assisted int port) {
         super(httpClient);

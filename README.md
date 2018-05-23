@@ -43,7 +43,7 @@ Then to run the application:
 * automatically turn off my coffee maker if left on
 * auto versioning (major/branch/build)
 * user interface
-* publishing packaged app from Travis CI
-* update to Java 10 (after next Lombok release)
+* publish packaged app from Travis CI
 * support other home metering and automation devices
 * style and static analysis checks
+* consider updating to Java 9 or 10

@@ -7,7 +7,6 @@
 package net.forlevity.homeglue.sim;
 
 import lombok.Getter;
-import net.forlevity.homeglue.http.SimpleHttpClient;
 import org.apache.http.entity.ContentType;
 
 import java.io.IOException;
@@ -18,13 +17,13 @@ import java.util.Map;
  * Lo-fi simulation of LAN device with an IP address and web server.
  */
 @Getter
-public abstract class AbstractSimulatedNetworkDevice implements SimulatedNetworkDevice, SimpleHttpClient {
+public class BasicSimulatedNetworkDevice implements SimulatedNetworkDevice {
 
     public static final String ERROR_RESPONSE = "error";
 
     protected final InetAddress inetAddress;
 
-    protected AbstractSimulatedNetworkDevice(InetAddress inetAddress) {
+    BasicSimulatedNetworkDevice(InetAddress inetAddress) {
         this.inetAddress = inetAddress;
     }
 

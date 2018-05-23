@@ -41,7 +41,7 @@ public class WemoInsightManager extends AbstractDeviceManager {
     private final LinkedBlockingQueue<SsdpServiceDefinition> discoveredWemo = new LinkedBlockingQueue<>();
 
     @Inject
-    public WemoInsightManager(SsdpDiscoveryService ssdpDiscoveryService,
+    WemoInsightManager(SsdpDiscoveryService ssdpDiscoveryService,
                               WemoInsightConnectorFactory connectorFactory,
                               DeviceStatusSink deviceStatusSink, TelemetrySink telemetrySink) {
         super(deviceStatusSink);

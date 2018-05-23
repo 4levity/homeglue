@@ -16,7 +16,6 @@ import org.w3c.dom.Document;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -26,18 +25,18 @@ import java.util.function.Consumer;
  */
 @Log4j2
 @Getter
-public class SimulatedWemo extends AbstractSimulatedUpnpDevice {
+public class SimulatedWemo extends SimulatedUpnpDevice {
 
-    private final String location;
     private final String setupXml;
     private final String deviceSerialNumber;
 
-    public SimulatedWemo(InetAddress inetAddress, int port, String setupXmlName) {
-        super(inetAddress, port);
-        this.location = String.format("http://%s:%d/setup.xml", inetAddress.getHostAddress(), port);
+    SimulatedWemo(InetAddress inetAddress, int port, String setupXmlName) {
+        super(inetAddress, port, String.format("http://%s:%d/setup.xml", inetAddress.getHostAddress(), port));
         this.setupXml = ResourceHelper.resourceAsString(setupXmlName);
         Document setupDocument = xml.parse(setupXml);
         this.deviceSerialNumber = xml.nodeText(setupDocument, "//serialNumber");
+        setServices(Collections.singleton(new UpnpServiceInfo(ROOT_DEVICE_SERVICE_TYPE,
+                String.format("uuid:Insight-1_0-%s::%s", deviceSerialNumber, ROOT_DEVICE_SERVICE_TYPE))) );
     }
 
     @Override
@@ -59,12 +58,6 @@ public class SimulatedWemo extends AbstractSimulatedUpnpDevice {
             return ResourceHelper.resourceAsString("net/forlevity/homeglue/sim/insightparams_response.xml");
         }
         return super.post(url, headers, payload, contentType);
-    }
-
-    @Override
-    public Collection<UpnpServiceInfo> getServices() {
-        return Collections.singleton(new UpnpServiceInfo(ROOT_DEVICE_SERVICE_TYPE,
-                String.format("uuid:Insight-1_0-%s::%s", deviceSerialNumber, ROOT_DEVICE_SERVICE_TYPE)));
     }
 
     @Override

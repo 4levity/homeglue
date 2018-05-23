@@ -7,7 +7,6 @@
 package net.forlevity.homeglue.sim;
 
 import com.google.common.collect.ImmutableList;
-import lombok.Getter;
 
 import java.net.InetAddress;
 import java.util.Collection;
@@ -15,21 +14,20 @@ import java.util.Collection;
 /**
  * Lo-fi simulation of OpenWRT router with UPnP service enabled.
  */
-@Getter
-public class SimulatedUpnpRouter extends AbstractSimulatedUpnpDevice {
+public class SimulatedUpnpRouter extends SimulatedUpnpDevice {
 
-    private static String USN1 = "uuid:2447cd11-081b-4225-ad70-0d9de3aed106";
-    private static String USN2 = "uuid:2447cd11-081b-4225-ad70-0d9de3aed107";
-    private static String USN3 = "uuid:2447cd11-081b-4225-ad70-0d9de3aed108";
-    private static String L3FWD = "urn:schemas-upnp-org:service:Layer3Forwarding:1";
-    private static String WANPPP = "urn:schemas-upnp-org:service:WANPPPConnection:1";
-    private static String WANIP = "urn:schemas-upnp-org:service:WANIPConnection:1";
-    private static String WANCOMMON = "urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1";
-    private static String WANDEVICE = "urn:schemas-upnp-org:device:WANDevice:1";
-    private static String WANCONNECTION = "urn:schemas-upnp-org:device:WANConnectionDevice:1";
-    private static String GATEWAY = "urn:schemas-upnp-org:device:InternetGatewayDevice:1";
+    private static final String USN1 = "uuid:2447cd11-081b-4225-ad70-0d9de3aed106";
+    private static final String USN2 = "uuid:2447cd11-081b-4225-ad70-0d9de3aed107";
+    private static final String USN3 = "uuid:2447cd11-081b-4225-ad70-0d9de3aed108";
+    private static final String L3FWD = "urn:schemas-upnp-org:service:Layer3Forwarding:1";
+    private static final String WANPPP = "urn:schemas-upnp-org:service:WANPPPConnection:1";
+    private static final String WANIP = "urn:schemas-upnp-org:service:WANIPConnection:1";
+    private static final String WANCOMMON = "urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1";
+    private static final String WANDEVICE = "urn:schemas-upnp-org:device:WANDevice:1";
+    private static final String WANCONNECTION = "urn:schemas-upnp-org:device:WANConnectionDevice:1";
+    private static final String GATEWAY = "urn:schemas-upnp-org:device:InternetGatewayDevice:1";
 
-    Collection<UpnpServiceInfo> services = ImmutableList.of(
+    private static final Collection<UpnpServiceInfo> services = ImmutableList.of(
             new UpnpServiceInfo(ROOT_DEVICE_SERVICE_TYPE, USN1 + "::" + ROOT_DEVICE_SERVICE_TYPE),
             new UpnpServiceInfo(USN1, USN1),
             new UpnpServiceInfo(USN2, USN2),
@@ -43,12 +41,8 @@ public class SimulatedUpnpRouter extends AbstractSimulatedUpnpDevice {
             new UpnpServiceInfo(GATEWAY, USN1 + "::" + GATEWAY)
     );
 
-    protected SimulatedUpnpRouter(InetAddress inetAddress, int upnpPort) {
-        super(inetAddress, upnpPort);
-    }
-
-    @Override
-    public String getLocation() {
-        return String.format("http://%s:%d/rootDesc.xml", getInetAddress().getHostAddress(), getUpnpPort());
+    SimulatedUpnpRouter(InetAddress inetAddress, int upnpPort) {
+        super(inetAddress, upnpPort, services,
+                String.format("http://%s:%d/rootDesc.xml", inetAddress.getHostAddress(), upnpPort));
     }
 }

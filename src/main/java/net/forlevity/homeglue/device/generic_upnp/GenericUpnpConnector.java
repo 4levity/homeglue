@@ -25,7 +25,7 @@ public class GenericUpnpConnector extends AbstractSoapDeviceConnector {
     private final Set<SsdpServiceDefinition> ssdpServices = new HashSet<>();
 
     @Inject
-    protected GenericUpnpConnector(SimpleHttpClient httpClient,
+    GenericUpnpConnector(SimpleHttpClient httpClient,
                                    @Assisted InetAddress hostAddress) {
         super(httpClient);
         this.hostAddress = hostAddress;

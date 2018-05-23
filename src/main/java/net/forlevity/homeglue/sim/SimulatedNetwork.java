@@ -39,6 +39,7 @@ public class SimulatedNetwork implements SimpleHttpClient, SsdpSearcher {
         this.devices = new ArrayList<>();
         try {
             devices.add(new SimulatedUpnpRouter(InetAddress.getByName("192.168.6.1"), 5000));
+            devices.add(new SimulatedUpnpMediaPlayer(InetAddress.getByName("192.168.6.119"), 8080));
             devices.add(new SimulatedWemo(InetAddress.getByName("192.168.6.231"), 49153, "net/forlevity/homeglue/sim/insight1_setup.xml"));
             devices.add(new SimulatedWemo(InetAddress.getByName("192.168.6.209"), 49154, "net/forlevity/homeglue/sim/insight2_setup.xml"));
         } catch (UnknownHostException e) {
