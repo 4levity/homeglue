@@ -9,6 +9,9 @@ package net.forlevity.homeglue;
 import com.google.inject.Guice;
 import lombok.extern.log4j.Log4j2;
 
+import java.io.IOException;
+import java.util.Properties;
+
 /**
  * Application entry point.
  */
@@ -16,7 +19,10 @@ import lombok.extern.log4j.Log4j2;
 public class Main {
 
     public static void main(String... args) throws Exception {
-        Guice.createInjector(new ApplicationDependencyInjection())
+        Properties configuration = new Properties();
+        configuration.load(Main.class.getResourceAsStream("/default.homeglue.properties"));
+        // TODO: try to load non-default properties from file
+        Guice.createInjector(new ApplicationDependencyInjection(configuration))
                 .getInstance(HomeglueApplication.class)
                 .start();
     }

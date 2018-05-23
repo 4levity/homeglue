@@ -82,9 +82,9 @@ public class WemoInsightManager extends AbstractDeviceManager {
     /**
      * Upon hearing of a new Insight meter, if it is new then try to connect to it and register it for future polling.
      * If it's the first meter we have detected, start polling. If it's a meter we already know about, check to see
-     * if the TCP port number has changed.
+     * if the TCP upnpPort number has changed.
      * @param ipAddress IP address of discovered Insight
-     * @param port TCP port of Insight
+     * @param port TCP upnpPort of Insight
      */
     private void handleWemoDiscovery(String ipAddress, int port) {
         WemoInsightConnector foundConnector = insights.get(ipAddress);
@@ -103,7 +103,7 @@ public class WemoInsightManager extends AbstractDeviceManager {
                 log.warn("detected but failed to connect to Insight meter at {}:{}", ipAddress, port);
             }
         } else if (foundConnector.getPort() != port) {
-            log.info("WeMo Insight port at {} changed from {} to {}",
+            log.info("WeMo Insight upnpPort at {} changed from {} to {}",
                     ipAddress, foundConnector.getPort(), port);
             foundConnector.setPort(port);
         }

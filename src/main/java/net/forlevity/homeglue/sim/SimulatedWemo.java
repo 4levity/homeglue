@@ -6,37 +6,34 @@
 
 package net.forlevity.homeglue.sim;
 
+import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.upnp.BackgroundProcessHandle;
-import net.forlevity.homeglue.upnp.SsdpSearcher;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 import net.forlevity.homeglue.util.ResourceHelper;
-import net.forlevity.homeglue.util.Xml;
 import org.apache.http.entity.ContentType;
 import org.w3c.dom.Document;
 
+import java.io.IOException;
 import java.net.InetAddress;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * Lo-fi simulation of a Belkin WeMo Insight plug meter device.
+ */
 @Log4j2
 @Getter
-public class SimulatedWemo implements SsdpSearcher, SimpleHttpClient {
+public class SimulatedWemo extends AbstractSimulatedUpnpDevice {
 
-    private static final String ERROR_RESPONSE = "error";
-
-    private final Xml xml = new Xml();
-    private final InetAddress inetAddress;
-    private final int port;
     private final String location;
     private final String setupXml;
     private final String deviceSerialNumber;
 
     public SimulatedWemo(InetAddress inetAddress, int port, String setupXmlName) {
-        this.inetAddress = inetAddress;
-        this.port = port;
+        super(inetAddress, port);
         this.location = String.format("http://%s:%d/setup.xml", inetAddress.getHostAddress(), port);
         this.setupXml = ResourceHelper.resourceAsString(setupXmlName);
         Document setupDocument = xml.parse(setupXml);
@@ -44,23 +41,31 @@ public class SimulatedWemo implements SsdpSearcher, SimpleHttpClient {
     }
 
     @Override
-    public String get(String url) {
+    public String get(String url) throws IOException {
         if (url.endsWith("setup.xml")) {
             log.info("providing setup.xml for {}", deviceSerialNumber);
             return setupXml;
         }
-        return ERROR_RESPONSE;
+        return super.get(url);
     }
 
     @Override
-    public String post(String url, Map<String, String> headers, String payload, ContentType contentType) {
+    public String post(String url, Map<String, String> headers, String payload, ContentType contentType)
+            throws IOException {
         if (url.endsWith("/upnp/control/insight1")
                 && payload.equals(ResourceHelper.resourceAsString("sim/insightparams_request.xml"))
                 && headers.get("SOAPAction").equals("\"urn:Belkin:service:insight:1#GetInsightParams\"")
                 && contentType.equals(ContentType.TEXT_XML) ) {
             return ResourceHelper.resourceAsString("sim/insightparams_response.xml");
         }
-        return ERROR_RESPONSE;
+        return super.post(url, headers, payload, contentType);
+    }
+
+    @Override
+    public List<UpnpServiceMock> getServices() {
+        return ImmutableList.of(new UpnpServiceMock(
+                ROOT_DEVICE_SERVICE_TYPE,
+                String.format("uuid:Insight-1_0-%s::%s", deviceSerialNumber, ROOT_DEVICE_SERVICE_TYPE)));
     }
 
     @Override
@@ -68,12 +73,7 @@ public class SimulatedWemo implements SsdpSearcher, SimpleHttpClient {
                                                   Consumer<SsdpServiceDefinition> serviceConsumer) {
         // non-compliant WeMo only answers to specific service type request:
         if (serviceType.equals(ROOT_DEVICE_SERVICE_TYPE)) {
-            // create mock service and send to consumer
-            String serviceSerialNumber = String.format("uuid:Insight-1_0-%s::%s",
-                    deviceSerialNumber, ROOT_DEVICE_SERVICE_TYPE);
-            SsdpServiceDefinition service =
-                    new SsdpServiceDefinition(serviceSerialNumber, ROOT_DEVICE_SERVICE_TYPE, location, inetAddress);
-            serviceConsumer.accept(service);
+            super.startDiscovery(serviceType, serviceConsumer);
         }
         return () -> {};
     }

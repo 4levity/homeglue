@@ -8,38 +8,19 @@ package net.forlevity.homeglue.upnp;
 
 import com.google.common.util.concurrent.ServiceManager;
 import net.forlevity.homeglue.HomeglueTests;
+import net.forlevity.homeglue.sim.SimulatedNetwork;
 import org.junit.Test;
 
 import java.util.Collections;
 
-import static org.mockito.Mockito.mock;
-
 public class SsdpDiscoveryServiceTest extends HomeglueTests {
 
+    SimulatedNetwork network = new SimulatedNetwork();
     ServiceManager serviceManager;
-    private SsdpSearcher searcher;
 
     @Test
-    public void test() {
-
-    }
-
-    private TestSsdpDiscoveryServiceImpl startedService() {
-        searcher = mock(SsdpSearcher.class);
-        TestSsdpDiscoveryServiceImpl service = new TestSsdpDiscoveryServiceImpl(searcher);
+    public void testDiscoveryService() {
+        SsdpDiscoveryService service = new SsdpDiscoveryServiceImpl(network,100,40,0,0);
         serviceManager = new ServiceManager(Collections.singleton(service));
-        serviceManager.startAsync().awaitHealthy();
-        return service;
-    }
-
-    private static class TestSsdpDiscoveryServiceImpl extends SsdpDiscoveryServiceImpl {
-
-        public TestSsdpDiscoveryServiceImpl(SsdpSearcher ssdpSearcher) {
-            super(ssdpSearcher, 100, 40, 0, 0);
-        }
-
-        void stop() throws Exception {
-            shutDown();
-        }
     }
 }

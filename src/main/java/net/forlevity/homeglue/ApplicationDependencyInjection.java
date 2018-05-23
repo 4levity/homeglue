@@ -8,6 +8,7 @@ package net.forlevity.homeglue;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
+import lombok.AllArgsConstructor;
 import net.forlevity.homeglue.device.DeviceManagementDependencyInjection;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.http.SimpleHttpClientImpl;
@@ -18,13 +19,15 @@ import net.forlevity.homeglue.storage.TelemetrySink;
 import net.forlevity.homeglue.upnp.SsdpSearcher;
 import net.forlevity.homeglue.upnp.SsdpSearcherImpl;
 
-import java.io.IOException;
 import java.util.Properties;
 
 /**
- * Top level dependency injection module.
+ * Top level dependency injection module. Caller must pass in a complete configuration with all required @Named values.
  */
+@AllArgsConstructor
 public class ApplicationDependencyInjection extends AbstractModule {
+
+    private Properties namedConfigurationProperties;
 
     @Override
     protected void configure() {
@@ -32,16 +35,10 @@ public class ApplicationDependencyInjection extends AbstractModule {
         bind(HomeglueApplication.class);
 
         // configuration
-        Properties properties = new Properties();
-        try {
-            properties.load(getClass().getResourceAsStream("/default.homeglue.properties"));
-        } catch (IOException e) {
-            throw new RuntimeException("internal error loading default properties", e);
-        }
-        Names.bindProperties(binder(), properties);
+        Names.bindProperties(binder(), namedConfigurationProperties);
 
         // use simulation instead of real devices?
-        if (Boolean.valueOf(properties.get("network.simulated").toString())) {
+        if (Boolean.valueOf(namedConfigurationProperties.get("network.simulated").toString())) {
             bind(SsdpSearcher.class).to(SimulatedNetwork.class);
             bind(SimpleHttpClient.class).to(SimulatedNetwork.class);
         } else {

@@ -23,18 +23,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * Lo-fi simulation of a network with some devices that can be discovered via UPnP and contacted via HTTP.
+ */
 @Singleton
 public class SimulatedNetwork implements SimpleHttpClient, SsdpSearcher {
 
-    private final List<SimulatedWemo> simulatedWemos = new ArrayList<>();
+    private final List<SimulatedNetworkDevice> devices = new ArrayList<>();
 
     @Inject
     public SimulatedNetwork() {
         try {
-            simulatedWemos.add(
-                    new SimulatedWemo(InetAddress.getByName("192.168.6.231"), 49153, "sim/insight1_setup.xml"));
-            simulatedWemos.add(
-                    new SimulatedWemo(InetAddress.getByName("192.168.6.209"), 49154, "sim/insight2_setup.xml"));
+            devices.add(new SimulatedRouter(InetAddress.getByName("192.168.6.1"), 5000));
+            devices.add(new SimulatedWemo(InetAddress.getByName("192.168.6.231"), 49153, "sim/insight1_setup.xml"));
+            devices.add(new SimulatedWemo(InetAddress.getByName("192.168.6.209"), 49154, "sim/insight2_setup.xml"));
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
@@ -50,10 +52,10 @@ public class SimulatedNetwork implements SimpleHttpClient, SsdpSearcher {
         return target(url).post(url, headers, payload, contentType);
     }
 
-    private SimulatedWemo target(String url) throws UnknownHostException {
-        for (Iterator<SimulatedWemo> iterator = simulatedWemos.iterator(); iterator.hasNext();) {
-            SimulatedWemo candidate = iterator.next();
-            if (url.startsWith(String.format("http://%s:%d/", candidate.getInetAddress().getHostAddress(), candidate.getPort()))) {
+    private SimulatedNetworkDevice target(String url) throws UnknownHostException {
+        for (Iterator<SimulatedNetworkDevice> iterator = devices.iterator(); iterator.hasNext();) {
+            SimulatedNetworkDevice candidate = iterator.next();
+            if (url.startsWith(String.format("http://%s:", candidate.getInetAddress().getHostAddress()))) {
                 return candidate;
             }
         }
@@ -62,7 +64,12 @@ public class SimulatedNetwork implements SimpleHttpClient, SsdpSearcher {
 
     @Override
     public BackgroundProcessHandle startDiscovery(String serviceType, Consumer<SsdpServiceDefinition> serviceConsumer) {
-        simulatedWemos.forEach(wemo -> wemo.startDiscovery(serviceType, serviceConsumer));
+        devices.forEach(device -> {
+            if (device instanceof SsdpSearcher) {
+                SsdpSearcher ssdpDevice = (SsdpSearcher) device;
+                ssdpDevice.startDiscovery(serviceType, serviceConsumer);
+            }
+        });
         return () -> {};
     }
 }
