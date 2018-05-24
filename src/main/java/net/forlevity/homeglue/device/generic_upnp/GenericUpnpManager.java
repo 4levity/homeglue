@@ -6,13 +6,10 @@
 
 package net.forlevity.homeglue.device.generic_upnp;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.device.AbstractDeviceManager;
+import net.forlevity.homeglue.device.AbstractUpnpDeviceManager;
 import net.forlevity.homeglue.device.DeviceConnector;
 import net.forlevity.homeglue.storage.DeviceStatusSink;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
@@ -22,7 +19,6 @@ import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Implementation of DeviceManager that detects all other UPnP services that are NOT detected by other DeviceManagers.
@@ -30,58 +26,23 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 @Log4j2
 @Singleton
-public class GenericUpnpManager extends AbstractDeviceManager {
+public class GenericUpnpManager extends AbstractUpnpDeviceManager {
 
     private final GenericUpnpConnectorFactory genericUpnpConnectorFactory;
-
-    @VisibleForTesting
-    @Getter(AccessLevel.PACKAGE)
-    private final LinkedBlockingQueue<SsdpServiceDefinition> discoveredServicesQueue = new LinkedBlockingQueue<>();
 
     private final Map<InetAddress, GenericUpnpConnector> devicesByAddress = new HashMap<>();
 
     @Inject
-    GenericUpnpManager(GenericUpnpConnectorFactory genericUpnpConnectorFactory,
-                       SsdpDiscoveryService ssdpDiscoveryService,
+    GenericUpnpManager(SsdpDiscoveryService ssdpDiscoveryService,
+                       GenericUpnpConnectorFactory genericUpnpConnectorFactory,
                        DeviceStatusSink deviceStatusSink) {
-        super(deviceStatusSink);
+        super(deviceStatusSink, ssdpDiscoveryService, service -> true, Integer.MAX_VALUE);
         this.genericUpnpConnectorFactory = genericUpnpConnectorFactory;
-
-        // low priority (high number) means pick up devices that are not registered to any other service
-        ssdpDiscoveryService.registerSsdp(service -> true, discoveredServicesQueue, Integer.MAX_VALUE);
+        // TODO: periodically update status of devices that have not connected recently
     }
 
     @Override
-    protected void run() throws Exception {
-        // TODO: periodically update status of devices that have not connected recently
-        while (true) {
-            processDiscoveryQueue();
-        }
-    }
-
-    /**
-     * Block until a service is discovered and process information on that service. Drain queue.
-     *
-     * @throws InterruptedException
-     */
-    @VisibleForTesting
-    void processDiscoveryQueue() throws InterruptedException {
-        processSingleQueueEntry();
-        while(!discoveredServicesQueue.isEmpty()) {
-            processSingleQueueEntry();
-        }
-    }
-
-    private void processSingleQueueEntry() throws InterruptedException {
-        SsdpServiceDefinition service = discoveredServicesQueue.take();
-        try {
-            processServiceInfo(service);
-        } catch (RuntimeException e) {
-            log.error("unexpected exception processing UPnP service info (continuing)", e);
-        }
-    }
-
-    private void processServiceInfo(SsdpServiceDefinition service) {
+    protected void processDiscoveredService(SsdpServiceDefinition service) {
         InetAddress address = service.getRemoteIp();
         GenericUpnpConnector genericUpnpDevice = devicesByAddress.get(address);
         if (genericUpnpDevice == null) {

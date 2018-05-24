@@ -29,6 +29,17 @@ Then to run the application:
 
     java -jar build/libs/homeglue-0.1.jar
 
+### Disclaimers ###
+
+This product should not be assumed to be fit for any purpose. Even though it 
+has pretty decent automated test coverage, you can't hold me responsible if, 
+for example, it fails to turn off your coffeemaker and subsequently your house
+burns down. You should have bought a better coffee maker.
+
+Belkin, WeMo and WeMo Insight are presumably trademarks of and otherwise the
+property of Belkin. These terms are used only to refer to those neat-o
+products. 4Levity and Homeglue is not in any way affiliated with Belkin.
+
 ### Future plans ###
 
 * more tests 
@@ -37,13 +48,18 @@ Then to run the application:
   * WeMo UPnP port number changes after detection
   * IOExceptions at various points
   * malformed XML at various points
-* store data (local H2, csv, AWS DynamoDB or other free services)
+* store data (local SQL db, CSV file, AWS DynamoDB or other free cloud db)
 * handle read errors/offline devices
 * support turning switch on/off
-* automatically turn off my coffee maker if left on
+* automatically turn off my coffee maker\* if left on\*\*
 * auto versioning (major/branch/build)
 * user interface
 * publish packaged app from Travis CI
 * support other home metering and automation devices
 * style and static analysis checks
 * consider updating to Java 9 or 10
+
+\* - Pretty much why I wrote all this in the first place
+
+\*\* - The Insight switch isn't smart enough to tell on its own, since the
+heating element cycles off for a few minutes at a time

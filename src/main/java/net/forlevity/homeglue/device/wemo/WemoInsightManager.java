@@ -9,7 +9,7 @@ package net.forlevity.homeglue.device.wemo;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.device.AbstractDeviceManager;
+import net.forlevity.homeglue.device.AbstractUpnpDeviceManager;
 import net.forlevity.homeglue.device.PowerMeterConnector;
 import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.storage.DeviceStatusSink;
@@ -17,7 +17,10 @@ import net.forlevity.homeglue.storage.TelemetrySink;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,7 +29,7 @@ import java.util.regex.Pattern;
  */
 @Log4j2
 @Singleton
-public class WemoInsightManager extends AbstractDeviceManager {
+public class WemoInsightManager extends AbstractUpnpDeviceManager {
 
     private static final Pattern SSDP_SERIALNUMBER = Pattern.compile("uuid:Insight-1.*");
     private static final Pattern SSDP_LOCATION = Pattern.compile(
@@ -37,36 +40,20 @@ public class WemoInsightManager extends AbstractDeviceManager {
     private final TelemetrySink telemetrySink;
     private final ConcurrentHashMap<String, WemoInsightConnector> insights = new ConcurrentHashMap<>();
     private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
-    private final LinkedBlockingQueue<SsdpServiceDefinition> discoveredWemo = new LinkedBlockingQueue<>();
 
     @Inject
     WemoInsightManager(SsdpDiscoveryService ssdpDiscoveryService,
-                              WemoInsightConnectorFactory connectorFactory,
-                              DeviceStatusSink deviceStatusSink, TelemetrySink telemetrySink) {
-        super(deviceStatusSink);
+                       WemoInsightConnectorFactory connectorFactory,
+                       DeviceStatusSink deviceStatusSink, TelemetrySink telemetrySink) {
+        super(deviceStatusSink, ssdpDiscoveryService,
+                service -> (SSDP_SERIALNUMBER.matcher(service.getSerialNumber()).matches()
+                        && SSDP_LOCATION.matcher(service.getLocation()).matches()), 1);
         this.connectorFactory = connectorFactory;
         this.telemetrySink = telemetrySink;
-
-        // register our queue for devices that look like wemo insights
-        ssdpDiscoveryService.registerSsdp(service ->
-                (SSDP_SERIALNUMBER.matcher(service.getSerialNumber()).matches()
-                        && SSDP_LOCATION.matcher(service.getLocation()).matches()), discoveredWemo, 1);
     }
 
     @Override
-    protected void run() throws Exception {
-        while (true) {
-            // whenever a new wemo is discovered, add it to our list and try to connect
-            SsdpServiceDefinition ssdpWemo = discoveredWemo.take(); // on interrupted, service will quit
-            try {
-                handleWemoDiscovery(ssdpWemo);
-            } catch (RuntimeException e) {
-                log.error("unexpected exception handling WeMo discovery (continuing)", e);
-            }
-        }
-    }
-
-    private void handleWemoDiscovery(SsdpServiceDefinition ssdpWemo) {
+    protected void processDiscoveredService(SsdpServiceDefinition ssdpWemo) {
         Matcher location = SSDP_LOCATION.matcher(ssdpWemo.getLocation());
         if (location.matches()) {
             String ipAddress = location.group("ipAddress");

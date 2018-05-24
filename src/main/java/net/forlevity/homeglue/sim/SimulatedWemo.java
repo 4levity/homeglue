@@ -6,6 +6,7 @@
 
 package net.forlevity.homeglue.sim;
 
+import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.upnp.BackgroundProcessHandle;
@@ -30,7 +31,8 @@ public class SimulatedWemo extends SimulatedUpnpDevice {
     private final String setupXml;
     private final String deviceSerialNumber;
 
-    SimulatedWemo(InetAddress inetAddress, int port, String setupXmlName) {
+    @VisibleForTesting
+    public SimulatedWemo(InetAddress inetAddress, int port, String setupXmlName) {
         super(inetAddress, port, String.format("http://%s:%d/setup.xml", inetAddress.getHostAddress(), port));
         this.setupXml = ResourceHelper.resourceAsString(setupXmlName);
         Document setupDocument = xml.parse(setupXml);
@@ -64,7 +66,7 @@ public class SimulatedWemo extends SimulatedUpnpDevice {
     public BackgroundProcessHandle startDiscovery(String serviceType,
                                                   Consumer<SsdpServiceDefinition> serviceConsumer) {
         // non-compliant WeMo only answers to specific service type request:
-        if (serviceType.equals(ROOT_DEVICE_SERVICE_TYPE)) {
+        if (serviceType != null && serviceType.equals(ROOT_DEVICE_SERVICE_TYPE)) {
             super.startDiscovery(serviceType, serviceConsumer);
         }
         return () -> {};
