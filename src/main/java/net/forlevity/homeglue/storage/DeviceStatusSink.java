@@ -6,8 +6,6 @@
 
 package net.forlevity.homeglue.storage;
 
-import net.forlevity.homeglue.device.DeviceConnector;
-
 /**
  * Somewhere to put device info and info data (e.g. connection state, serial number info, etc).
  */
@@ -18,5 +16,5 @@ public interface DeviceStatusSink {
      * This should be called whenever a new device is discovered or a change is detected.
      * @param deviceConnector the device info
      */
-    void accept(DeviceConnector deviceConnector);
+    void accept(DeviceStatus deviceConnector);
 }

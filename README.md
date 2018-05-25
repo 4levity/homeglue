@@ -43,7 +43,6 @@ products. 4Levity and Homeglue is not in any way affiliated with Belkin.
 ### Future plans ###
 
 * more tests 
-  * application Main DI and startup
   * WeMo UPnP port number changes after detection
   * IOExceptions at various points
   * malformed XML at various points

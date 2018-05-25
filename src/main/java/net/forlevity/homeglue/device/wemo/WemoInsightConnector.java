@@ -16,8 +16,8 @@ import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractSoapDeviceConnector;
 import net.forlevity.homeglue.device.PowerMeterConnector;
-import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.http.SimpleHttpClient;
+import net.forlevity.homeglue.storage.PowerMeterData;
 import org.w3c.dom.Document;
 
 import java.io.IOException;

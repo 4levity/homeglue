@@ -6,8 +6,6 @@
 
 package net.forlevity.homeglue.storage;
 
-import net.forlevity.homeglue.device.PowerMeterData;
-
 /**
  * Somewhere to put telemetry information (e.g. instantaneous power from a meter).
  */

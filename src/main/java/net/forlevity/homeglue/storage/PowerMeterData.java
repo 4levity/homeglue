@@ -4,7 +4,7 @@
  * of the Apache License Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-package net.forlevity.homeglue.device;
+package net.forlevity.homeglue.storage;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

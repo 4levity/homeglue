@@ -8,8 +8,6 @@ package net.forlevity.homeglue.storage;
 
 import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.device.DeviceConnector;
-import net.forlevity.homeglue.device.PowerMeterData;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,7 +25,7 @@ public class NoStorage implements DeviceStatusSink, TelemetrySink {
     }
 
     @Override
-    public void accept(DeviceConnector deviceConnector) {
+    public void accept(DeviceStatus deviceConnector) {
         String deviceId = deviceConnector.getDeviceId();
         Map<String, String> deviceDetails = deviceConnector.getDeviceDetails();
         log.info("device {} : connected={}, {}", deviceId, deviceConnector.isConnected(),
