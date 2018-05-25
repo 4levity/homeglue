@@ -6,17 +6,15 @@
 
 package net.forlevity.homeglue.device.wemo;
 
-import net.forlevity.homeglue.SimulatedNetworkTests;
-import net.forlevity.homeglue.device.DeviceConnector;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sim.SimulatedWemo;
 import net.forlevity.homeglue.storage.NoStorage;
+import net.forlevity.homeglue.testing.SimulatedNetworkTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryServiceImpl;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 public class WemoInsightManagerTest extends SimulatedNetworkTests {
 

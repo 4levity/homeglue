@@ -6,8 +6,8 @@
 
 package net.forlevity.homeglue.device;
 
-import net.forlevity.homeglue.HomeglueTests;
 import net.forlevity.homeglue.http.SimpleHttpClient;
+import net.forlevity.homeglue.testing.HomeglueTests;
 import net.forlevity.homeglue.util.ResourceHelper;
 import net.forlevity.homeglue.util.Xml;
 import org.junit.Test;

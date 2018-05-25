@@ -1,7 +1,7 @@
 package net.forlevity.homeglue.device;
 
 import com.google.common.collect.ImmutableMap;
-import net.forlevity.homeglue.HomeglueTests;
+import net.forlevity.homeglue.testing.HomeglueTests;
 import org.junit.Test;
 
 import java.util.Map;

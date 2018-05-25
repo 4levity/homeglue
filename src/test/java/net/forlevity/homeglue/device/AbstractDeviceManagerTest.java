@@ -1,7 +1,7 @@
 package net.forlevity.homeglue.device;
 
-import net.forlevity.homeglue.HomeglueTests;
 import net.forlevity.homeglue.storage.NoStorage;
+import net.forlevity.homeglue.testing.HomeglueTests;
 import org.junit.Test;
 
 import static junit.framework.TestCase.assertEquals;

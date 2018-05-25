@@ -8,9 +8,9 @@ package net.forlevity.homeglue.device.generic_upnp;
 
 import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.SimulatedNetworkTests;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.storage.NoStorage;
+import net.forlevity.homeglue.testing.SimulatedNetworkTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryServiceImpl;
 import org.junit.Test;
 

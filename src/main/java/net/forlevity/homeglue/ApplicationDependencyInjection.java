@@ -16,6 +16,7 @@ import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.storage.DeviceStatusSink;
 import net.forlevity.homeglue.storage.NoStorage;
 import net.forlevity.homeglue.storage.TelemetrySink;
+import net.forlevity.homeglue.upnp.SsdpDiscoveryServiceImpl;
 import net.forlevity.homeglue.upnp.SsdpSearcher;
 import net.forlevity.homeglue.upnp.SsdpSearcherImpl;
 
@@ -31,11 +32,23 @@ public class ApplicationDependencyInjection extends AbstractModule {
 
     @Override
     protected void configure() {
-        // the application
-        bind(HomeglueApplication.class);
 
         // configuration
         Names.bindProperties(binder(), namedConfigurationProperties);
+
+        // the application
+        bind(HomeglueApplication.class);
+
+        // storage
+        bind(DeviceStatusSink.class).to(NoStorage.class);
+        bind(TelemetrySink.class).to(NoStorage.class);
+
+        // http
+        bind(SimpleHttpClient.class).to(SimpleHttpClientImpl.class);
+
+        // upnp
+        bind(SsdpSearcher.class).to(SsdpSearcherImpl.class);
+        bind(SsdpDiscoveryServiceImpl.class).to(SsdpDiscoveryServiceImpl.class);
 
         // use simulation instead of real devices?
         if (Boolean.valueOf(namedConfigurationProperties.get("network.simulated").toString())) {
@@ -48,9 +61,5 @@ public class ApplicationDependencyInjection extends AbstractModule {
 
         // device manager child module
         install(new DeviceManagementDependencyInjection());
-
-        // storage
-        bind(DeviceStatusSink.class).to(NoStorage.class);
-        bind(TelemetrySink.class).to(NoStorage.class);
     }
 }

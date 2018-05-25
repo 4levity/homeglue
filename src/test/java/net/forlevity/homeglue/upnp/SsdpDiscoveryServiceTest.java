@@ -6,11 +6,11 @@
 
 package net.forlevity.homeglue.upnp;
 
-import net.forlevity.homeglue.LinkedUniqueQueue;
-import net.forlevity.homeglue.SimulatedNetworkTests;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sim.SimulatedUpnpDevice;
 import net.forlevity.homeglue.sim.UpnpServiceInfo;
+import net.forlevity.homeglue.testing.LinkedUniqueQueue;
+import net.forlevity.homeglue.testing.SimulatedNetworkTests;
 import org.junit.Test;
 
 import java.net.InetAddress;

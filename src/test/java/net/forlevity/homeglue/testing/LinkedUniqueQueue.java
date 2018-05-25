@@ -4,7 +4,7 @@
  * of the Apache License Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-package net.forlevity.homeglue;
+package net.forlevity.homeglue.testing;
 
 import java.util.HashSet;
 import java.util.concurrent.LinkedBlockingQueue;
