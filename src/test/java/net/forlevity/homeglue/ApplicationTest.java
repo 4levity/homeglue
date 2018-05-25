@@ -15,9 +15,9 @@ import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.testing.HomeglueTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpSearcher;
+import net.forlevity.homeglue.util.ResourceHelper;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.Properties;
 
 import static org.junit.Assert.assertFalse;
@@ -26,10 +26,9 @@ import static org.junit.Assert.assertTrue;
 public class ApplicationTest extends HomeglueTests {
 
     @Test
-    public void startStopApplication() throws IOException {
-        Properties configuration = new Properties();
-        configuration.load(Main.class.getResourceAsStream("/test.homeglue.properties"));
-        Injector injector = Guice.createInjector(new ApplicationDependencyInjection(configuration));
+    public void startStopApplication() {
+        Properties configuration = ResourceHelper.resourceAsProperties("test.properties");
+        Injector injector = Guice.createInjector(new ApplicationGuice(configuration));
         HomeglueApplication application = injector.getInstance(HomeglueApplication.class);
         application.start();
         assertTrue(application.getServiceManager().isHealthy());

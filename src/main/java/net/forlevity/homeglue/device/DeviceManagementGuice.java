@@ -17,7 +17,7 @@ import net.forlevity.homeglue.device.wemo.WemoInsightManager;
 /**
  * Child module for device managers and connectors.
  */
-public class DeviceManagementDependencyInjection extends AbstractModule {
+public class DeviceManagementGuice extends AbstractModule {
 
     @Override
     protected void configure() {

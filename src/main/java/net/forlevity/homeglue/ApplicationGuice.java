@@ -9,7 +9,7 @@ package net.forlevity.homeglue;
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 import lombok.AllArgsConstructor;
-import net.forlevity.homeglue.device.DeviceManagementDependencyInjection;
+import net.forlevity.homeglue.device.DeviceManagementGuice;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.http.SimpleHttpClientImpl;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
@@ -27,7 +27,7 @@ import java.util.Properties;
  * Top level dependency injection module. Caller must pass in a complete configuration with all required @Named values.
  */
 @AllArgsConstructor
-public class ApplicationDependencyInjection extends AbstractModule {
+public class ApplicationGuice extends AbstractModule {
 
     private Properties namedConfigurationProperties;
 
@@ -57,6 +57,6 @@ public class ApplicationDependencyInjection extends AbstractModule {
         }
 
         // device manager child module
-        install(new DeviceManagementDependencyInjection());
+        install(new DeviceManagementGuice());
     }
 }
