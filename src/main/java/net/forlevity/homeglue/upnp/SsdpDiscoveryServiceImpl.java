@@ -89,6 +89,7 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
                     // regular search for all services
                     search(null);
                 } catch (InterruptedException e) {
+                    // if shutDown was called, the executor is terminating this thread
                     log.warn("interrupted during search", e);
                     Thread.currentThread().interrupt();
                 }

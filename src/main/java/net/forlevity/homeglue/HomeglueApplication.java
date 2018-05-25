@@ -6,10 +6,13 @@
 
 package net.forlevity.homeglue;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ServiceManager;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.DeviceManager;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
@@ -26,6 +29,8 @@ import java.util.stream.Collectors;
 @Singleton
 public class HomeglueApplication {
 
+    @VisibleForTesting
+    @Getter(AccessLevel.PACKAGE)
     private final ServiceManager serviceManager;
 
     @Inject
@@ -39,10 +44,17 @@ public class HomeglueApplication {
     }
 
     void start() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> HomeglueApplication.this.stop()));
         serviceManager.startAsync().awaitHealthy();
         String services = serviceManager.servicesByState().values().stream()
                 .map(service -> (service.getClass().getSimpleName() + "=" + service.state().toString()))
                 .collect(Collectors.joining(", "));
         log.info("application started services: {}", services);
+    }
+
+    void stop() {
+        System.out.print(" shutting down...");
+        serviceManager.stopAsync().awaitStopped();
+        System.out.println(" shutdown complete.");
     }
 }

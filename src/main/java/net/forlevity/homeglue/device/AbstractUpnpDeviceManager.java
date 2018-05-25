@@ -19,6 +19,8 @@ import java.util.function.Predicate;
 @Log4j2
 public abstract class AbstractUpnpDeviceManager extends AbstractDeviceManager {
 
+    private static final SsdpServiceDefinition POISON = new SsdpServiceDefinition("POISON",null,null,null);
+
     @VisibleForTesting
     @Getter
     private final LinkedBlockingQueue<SsdpServiceDefinition> discoveredServicesQueue = new LinkedBlockingQueue<>();
@@ -49,6 +51,9 @@ public abstract class AbstractUpnpDeviceManager extends AbstractDeviceManager {
 
     private boolean processSingleQueueEntry() throws InterruptedException {
         SsdpServiceDefinition entry = discoveredServicesQueue.take();
+        if (entry == POISON) {
+            return false;
+        }
         try {
             processDiscoveredService(entry);
         } catch (RuntimeException e) {
@@ -62,4 +67,9 @@ public abstract class AbstractUpnpDeviceManager extends AbstractDeviceManager {
      * main thread, one at a time.
      */
     protected abstract void processDiscoveredService(SsdpServiceDefinition service);
+
+    @Override
+    protected void triggerShutdown() {
+        discoveredServicesQueue.offer(POISON);
+    }
 }

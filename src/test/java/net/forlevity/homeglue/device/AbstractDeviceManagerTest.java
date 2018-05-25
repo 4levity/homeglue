@@ -43,6 +43,9 @@ public class AbstractDeviceManagerTest extends HomeglueTests {
 
         @Override
         protected void run() throws Exception {
+            while (isRunning()) {
+                Thread.sleep(50);
+            }
         }
 
         @Override

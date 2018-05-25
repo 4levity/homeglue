@@ -39,7 +39,6 @@ dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
 
     compile group: 'com.google.guava', name: 'guava', version: '24.1-jre'
-    compile group: 'org.reflections', name: 'reflections', version: '0.9.11'
     compile group: 'com.google.inject', name: 'guice', version: guiceVersion
     compile group: 'com.google.inject.extensions', name: 'guice-assistedinject', version: guiceVersion
 

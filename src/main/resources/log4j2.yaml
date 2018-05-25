@@ -35,5 +35,3 @@ Configuration:
     Logger:
     - name: net.forlevity
       level: info
-    - name: org.reflections.Reflections
-      level: error # don't care about Reflections startup or warnings about missing runtime classes we aren't using
