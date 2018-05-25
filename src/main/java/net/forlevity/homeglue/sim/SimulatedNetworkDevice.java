@@ -16,4 +16,6 @@ import java.net.InetAddress;
 public interface SimulatedNetworkDevice extends SimpleHttpClient {
 
     InetAddress getInetAddress();
+
+    int getWebPort();
 }

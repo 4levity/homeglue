@@ -30,20 +30,27 @@ public class SimulatedWemo extends SimulatedUpnpDevice {
 
     private final String setupXml;
     private final String deviceSerialNumber;
+    private final String macAddress;
 
     @VisibleForTesting
-    public SimulatedWemo(InetAddress inetAddress, int port, String setupXmlName) {
-        super(inetAddress, port, String.format("http://%s:%d/setup.xml", inetAddress.getHostAddress(), port));
-        this.setupXml = ResourceHelper.resourceAsString(setupXmlName);
+    public SimulatedWemo(InetAddress inetAddress, int port, String location) {
+        super(inetAddress, port);
+        this.setupXml = ResourceHelper.resourceAsString(location);
         Document setupDocument = xml.parse(setupXml);
         this.deviceSerialNumber = xml.nodeText(setupDocument, "//serialNumber");
+        this.macAddress = xml.nodeText(setupDocument, "//macAddress");
         setServices(Collections.singleton(new UpnpServiceInfo(ROOT_DEVICE_SERVICE_TYPE,
                 String.format("uuid:Insight-1_0-%s::%s", deviceSerialNumber, ROOT_DEVICE_SERVICE_TYPE))) );
     }
 
     @Override
+    protected String getLocation() {
+        return String.format("http://%s:%d/setup.xml", inetAddress.getHostAddress(), getWebPort());
+    }
+
+    @Override
     public String get(String url) throws IOException {
-        if (url.endsWith("setup.xml")) {
+        if (url.equals(getLocation())) {
             log.info("providing setup.xml for {}", deviceSerialNumber);
             return setupXml;
         }
@@ -53,7 +60,9 @@ public class SimulatedWemo extends SimulatedUpnpDevice {
     @Override
     public String post(String url, Map<String, String> headers, String payload, ContentType contentType)
             throws IOException {
-        if (url.endsWith("/upnp/control/insight1")
+        String expected = String.format("http://%s:%d/upnp/control/insight1",
+                getInetAddress().getHostAddress(), getWebPort());
+        if (url.equals(expected)
                 && payload.equals(ResourceHelper.resourceAsString("net/forlevity/homeglue/sim/insightparams_request.xml"))
                 && headers.get("SOAPAction").equals("\"urn:Belkin:service:insight:1#GetInsightParams\"")
                 && contentType.equals(ContentType.TEXT_XML) ) {

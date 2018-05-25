@@ -11,11 +11,15 @@ Homeglue builds on Travis CI - https://travis-ci.com/4levity/homeglue
 
 ### Compatibility ###
 
-Known working with:
+Known working:
 
-* Belkin WeMo Insight wifi plug meter
+* Communicates with Belkin WeMo Insight wifi plug meter
   * **WeMo_WW_2.00.11057.PVT-OWRT-Insight** (hardware version 1)
   * **WeMo_WW_2.00.11057.PVT-OWRT-InsightV2** (hardware version 2)
+
+* Runs on Raspberry Pi (any model)
+
+* Any Linux/OS X/Windows PC with Java 8 and 256 MB RAM
 
 ### Build + Use ###
 
@@ -43,7 +47,6 @@ products. 4Levity and Homeglue is not in any way affiliated with Belkin.
 ### Future plans ###
 
 * more tests 
-  * WeMo UPnP port number changes after detection
   * IOExceptions at various points
   * malformed XML at various points
 * store data (local SQL db, CSV file, AWS DynamoDB or other free cloud db)

@@ -14,7 +14,7 @@ public interface WemoInsightConnectorFactory {
     /**
      * Create an Insight connector.
      * @param hostAddress IP address or hostname
-     * @param port TCP upnpPort
+     * @param port TCP webPort
      * @return connector
      */
     WemoInsightConnector create(String hostAddress, int port);

@@ -42,7 +42,11 @@ public class SimulatedUpnpRouter extends SimulatedUpnpDevice {
     );
 
     SimulatedUpnpRouter(InetAddress inetAddress, int upnpPort) {
-        super(inetAddress, upnpPort, services,
-                String.format("http://%s:%d/rootDesc.xml", inetAddress.getHostAddress(), upnpPort));
+        super(inetAddress, upnpPort, services);
+    }
+
+    @Override
+    protected String getLocation() {
+        return String.format("http://%s:%d/rootDesc.xml", inetAddress.getHostAddress(), getWebPort());
     }
 }

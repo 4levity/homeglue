@@ -7,10 +7,13 @@
 package net.forlevity.homeglue.sim;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.http.entity.ContentType;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Map;
 
 /**
@@ -19,21 +22,38 @@ import java.util.Map;
 @Getter
 public class BasicSimulatedNetworkDevice implements SimulatedNetworkDevice {
 
-    public static final String ERROR_RESPONSE = "error";
+    public static final String ERROR_RESPONSE = "";
 
     protected final InetAddress inetAddress;
 
-    BasicSimulatedNetworkDevice(InetAddress inetAddress) {
+    @Setter
+    private int webPort;
+
+    BasicSimulatedNetworkDevice(InetAddress inetAddress, int webPort) {
         this.inetAddress = inetAddress;
+        this.webPort = webPort;
     }
 
     @Override
     public String get(String url) throws IOException {
+        checkUrl(url);
         return ERROR_RESPONSE;
     }
 
     @Override
     public String post(String url, Map<String, String> headers, String payload, ContentType contentType) throws IOException {
+        checkUrl(url);
         return ERROR_RESPONSE;
+    }
+
+    private void checkUrl(String url) throws ConnectException, UnknownHostException {
+        String prefix1 = String.format("http://%s:", getInetAddress().getHostAddress());
+        String prefix2 = String.format("%s%d/", prefix1, getWebPort());
+        if (!url.startsWith(prefix1)) {
+            throw new UnknownHostException("unknown host for " + url);
+        }
+        if (!url.startsWith(prefix2)) {
+            throw new ConnectException("connection refused (wrong port) for " + url);
+        }
     }
 }

@@ -28,26 +28,20 @@ import java.util.function.Consumer;
 public class SimulatedUpnpDevice extends BasicSimulatedNetworkDevice implements SsdpSearcher {
 
     protected final Xml xml = new Xml();
-    protected final int upnpPort;
 
     private Collection<UpnpServiceInfo> services;
-    private String location;
     private final Object configurationLock = new Object();
 
     /**
      * Construct a simulated UPnP device.
      *
      * @param inetAddress ip addr
-     * @param upnpPort port
+     * @param webPort port
      * @param services service info
-     * @param location url
      */
-    SimulatedUpnpDevice(InetAddress inetAddress, int upnpPort,
-                                  Collection<UpnpServiceInfo> services, String location) {
-        super(inetAddress);
-        this.upnpPort = upnpPort;
+    public SimulatedUpnpDevice(InetAddress inetAddress, int webPort, Collection<UpnpServiceInfo> services) {
+        super(inetAddress, webPort);
         this.services = services;
-        this.location = location;
     }
 
     /**
@@ -55,24 +49,10 @@ public class SimulatedUpnpDevice extends BasicSimulatedNetworkDevice implements 
      * Implementation should call setServices() later.
      *
      * @param inetAddress ip addr
-     * @param upnpPort port
-     * @param location url
+     * @param webPort port
      */
-    SimulatedUpnpDevice(InetAddress inetAddress, int upnpPort, String location) {
-        this(inetAddress, upnpPort, ImmutableList.of(), location);
-    }
-
-    /**
-     * Construct a simulated UPnP device with known services and a default "/root.xml" location.
-     *
-     * @param inetAddress ip addr
-     * @param upnpPort port
-     * @param services service info
-     */
-    public SimulatedUpnpDevice(InetAddress inetAddress, int upnpPort,
-                                  Collection<UpnpServiceInfo> services) {
-        this(inetAddress, upnpPort, services,
-                String.format("http://%s:%d/root.xml", inetAddress.getHostAddress(), upnpPort));
+    SimulatedUpnpDevice(InetAddress inetAddress, int webPort) {
+        this(inetAddress, webPort, ImmutableList.of());
     }
 
     /**
@@ -85,11 +65,12 @@ public class SimulatedUpnpDevice extends BasicSimulatedNetworkDevice implements 
     }
 
     /**
-     * Subclass implements to provide SSDP location URL if not provided with constructor.
+     * Subclass overrides this method to provide location. Note that port or address could change.
+     *
+     * @return location string
      */
-    @Synchronized("configurationLock")
-    protected final void setLocation(String location) {
-        this.location = location;
+    protected String getLocation() {
+        return String.format("http://%s:%d/root.xml", getInetAddress().getHostAddress(), getWebPort());
     }
 
     @Override

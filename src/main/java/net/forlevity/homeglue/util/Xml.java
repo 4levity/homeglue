@@ -9,7 +9,9 @@ package net.forlevity.homeglue.util;
 import lombok.extern.log4j.Log4j2;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -19,34 +21,45 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 @Log4j2
-public class Xml {
+public class Xml implements ErrorHandler {
 
     private final DocumentBuilderFactory xmlDocumentBuilderFactory = DocumentBuilderFactory.newInstance();
     private final XPathFactory xPathFactory = XPathFactory.newInstance();
 
     /**
-     * Parse XML.
+     * Parse XML String.
+     *
      * @param xml some XML text
-     * @return DOM, or null if parsing failed
+     * @return DOM, or empty document if parsing failed
      */
     public Document parse(String xml) {
-        DocumentBuilder documentBuilder;
         byte[] bytes;
         try {
             bytes = xml.getBytes("utf-8");
-            documentBuilder = xmlDocumentBuilderFactory.newDocumentBuilder();
-        } catch (ParserConfigurationException | UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) {
             throw new UnsupportedOperationException(e);
         }
         ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+        return parse(stream);
+    }
+
+    /**
+     * Parse XML InputStream.
+     *
+     * @param stream stream of XML text
+     * @return DOM, or empty document if parsing failed
+     */
+    public Document parse(InputStream stream) {
+        DocumentBuilder documentBuilder = makeDocumentBuilder();
         Document result = null;
         try {
             result = documentBuilder.parse(stream);
         } catch (SAXException | IOException e) {
-            log.warn("failed to parse XML");
+            log.debug("failed to parse XML", e);
         }
         return result == null ? documentBuilder.newDocument() : result;
     }
@@ -65,5 +78,31 @@ public class Xml {
             log.warn("failed to get text from node", e);
         }
         return node == null ? null : node.getTextContent();
+    }
+
+    private DocumentBuilder makeDocumentBuilder() {
+        DocumentBuilder documentBuilder;
+        try {
+            documentBuilder = xmlDocumentBuilderFactory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new UnsupportedOperationException(e);
+        }
+        documentBuilder.setErrorHandler(this);
+        return documentBuilder;
+    }
+
+    @Override
+    public void warning(SAXParseException exception) throws SAXException {
+        log.warn("XML parse warning: {} {}", exception.getClass().getSimpleName(), exception.getMessage());
+    }
+
+    @Override
+    public void error(SAXParseException exception) throws SAXException {
+        log.warn("XML parse error: {} {}", exception.getClass().getSimpleName(), exception.getMessage());
+    }
+
+    @Override
+    public void fatalError(SAXParseException exception) throws SAXException {
+        log.warn("XML parse fatal error: {} {}", exception.getClass().getSimpleName(), exception.getMessage());
     }
 }

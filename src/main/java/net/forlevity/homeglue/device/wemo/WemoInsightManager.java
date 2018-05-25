@@ -6,6 +6,7 @@
 
 package net.forlevity.homeglue.device.wemo;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
@@ -33,13 +34,15 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
 
     private static final Pattern SSDP_SERIALNUMBER = Pattern.compile("uuid:Insight-1.*");
     private static final Pattern SSDP_LOCATION = Pattern.compile(
-            "http://(?<ipAddress>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}):(?<port>[0-9]{5})/setup.xml");
+            "http://(?<ipAddress>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}):(?<port>[0-9]{4,5})/setup.xml");
     private static final long SCAN_PERIOD_MILLIS = 2500L;
 
     private final WemoInsightConnectorFactory connectorFactory;
     private final TelemetrySink telemetrySink;
     private final ConcurrentHashMap<String, WemoInsightConnector> insights = new ConcurrentHashMap<>();
     private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
+
+    private final Object meterReadLock = new Object();
 
     @Inject
     WemoInsightManager(SsdpDiscoveryService ssdpDiscoveryService,
@@ -67,9 +70,9 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
     /**
      * Upon hearing of a new Insight meter, if it is new then try to connect to it and register it for future polling.
      * If it's the first meter we have detected, start polling. If it's a meter we already know about, check to see
-     * if the TCP upnpPort number has changed.
+     * if the TCP webPort number has changed.
      * @param ipAddress IP address of discovered Insight
-     * @param port TCP upnpPort of Insight
+     * @param port TCP webPort of Insight
      */
     private void handleWemoDiscovery(String ipAddress, int port) {
         WemoInsightConnector foundConnector = insights.get(ipAddress);
@@ -88,28 +91,48 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
                 log.warn("detected but failed to connect to Insight meter at {}:{}", ipAddress, port);
             }
         } else if (foundConnector.getPort() != port) {
-            log.info("WeMo Insight upnpPort at {} changed from {} to {}",
+            log.info("WeMo Insight webPort at {} changed from {} to {}",
                     ipAddress, foundConnector.getPort(), port);
             foundConnector.setPort(port);
+            executor.execute(() -> poll(foundConnector)); // immediate poll
         }
     }
 
     private void startTimer() {
-        executor.scheduleAtFixedRate(() -> poll(), 0, SCAN_PERIOD_MILLIS, TimeUnit.MILLISECONDS);
+        poll(); // first poll blocking on discovery thread, then start timer
+        executor.scheduleAtFixedRate(this::poll, SCAN_PERIOD_MILLIS, SCAN_PERIOD_MILLIS, TimeUnit.MILLISECONDS);
     }
 
-    private void poll() {
-        insights.values().forEach(this::poll);
+    /**
+     * Poll all Insights and send data to sink. Normally run by ScheduledExecutor.
+     *
+     * @return number of devices successfully polled
+     */
+    @VisibleForTesting
+    int poll() {
+        int[] polled = new int[1];
+        insights.values().forEach(meter -> {
+            if (poll(meter)) {
+                polled[0]++;
+            }
+        });
+        return polled[0];
     }
 
-    private void poll(PowerMeterConnector meter) {
+    private boolean poll(PowerMeterConnector meter) {
+        PowerMeterData read = null;
         try {
-            PowerMeterData read = meter.read();
-            // TODO: handle failure to read meter
-            telemetrySink.accept(meter.getDeviceId(), read);
+            read = meter.read();
         } catch(RuntimeException e) {
             log.error("unexpected exception during poll of {} (continuing)", meter, e);
         }
+        // TODO: handle failure to read meter
+        try {
+            telemetrySink.accept(meter.getDeviceId(), read);
+        } catch(RuntimeException e) {
+            log.error("unexpected exception during storage of telemetry for {} (continuing)", meter, e);
+        }
+        return read != null;
     }
 
     @Override

@@ -23,7 +23,11 @@ public class SimulatedUpnpMediaPlayer extends SimulatedUpnpDevice {
     );
 
     SimulatedUpnpMediaPlayer(InetAddress inetAddress, int upnpPort) {
-        super(inetAddress, upnpPort, services,
-                String.format("http://%s:%d/description.xml", inetAddress.getHostAddress(), upnpPort));
+        super(inetAddress, upnpPort, services);
+    }
+
+    @Override
+    protected String getLocation() {
+        return String.format("http://%s:%d/description.xml", inetAddress.getHostAddress(), getWebPort());
     }
 }

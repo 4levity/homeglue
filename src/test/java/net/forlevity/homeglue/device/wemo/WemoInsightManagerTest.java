@@ -6,27 +6,29 @@
 
 package net.forlevity.homeglue.device.wemo;
 
+import net.forlevity.homeglue.device.LastTelemetryCache;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sim.SimulatedWemo;
-import net.forlevity.homeglue.storage.NoStorage;
 import net.forlevity.homeglue.testing.SimulatedNetworkTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryServiceImpl;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import java.time.Instant;
+
+import static org.junit.Assert.*;
 
 public class WemoInsightManagerTest extends SimulatedNetworkTests {
+
+    SimulatedNetwork network;
+    WemoInsightManager manager;
+    SsdpDiscoveryServiceImpl ssdp;
+    LastTelemetryCache telemetryCache;
 
     @Test
     public void testWemoInsightManager() throws InterruptedException {
         SimulatedWemo wemo1 = new SimulatedWemo(remoteIp4, 45678, "net/forlevity/homeglue/sim/insight1_setup.xml");
         SimulatedWemo wemo2 = new SimulatedWemo(remoteIp5, 45678, "net/forlevity/homeglue/sim/insight2_setup.xml");
-        SimulatedNetwork network = makeTestNetwork(wemo1, wemo2);
-        WemoInsightConnectorFactory factory = (hostAddress, port) -> new WemoInsightConnector(network, hostAddress, port);
-        SsdpDiscoveryServiceImpl ssdp = new SsdpDiscoveryServiceImpl(network, 0, 0, 0, 0);
-        NoStorage noStorage = new NoStorage();
-        WemoInsightManager manager = new WemoInsightManager(ssdp, factory, noStorage, noStorage);
+        makeWemoManager(wemo1, wemo2);
 
         // devices never connected
         assertEquals(0, manager.getDevices().size());
@@ -44,5 +46,52 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
             assertNotNull(device.getDeviceDetails().get("firmwareVersion"));
             assertNotNull(device.getDeviceDetails().get("serialNumber"));
         });
+    }
+
+    private void makeWemoManager(SimulatedWemo... wemos) {
+        network = makeTestNetwork(wemos);
+        WemoInsightConnectorFactory factory = (hostAddress, port) -> new WemoInsightConnector(network, hostAddress, port);
+        ssdp = new SsdpDiscoveryServiceImpl(network, 0, 0, 0, 0);
+        telemetryCache = new LastTelemetryCache();
+        manager = new WemoInsightManager(ssdp, factory, telemetryCache, telemetryCache);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void changeWemoInsightPortNumber() throws InterruptedException {
+        SimulatedWemo simulator = new SimulatedWemo(remoteIp4, 2000, "net/forlevity/homeglue/sim/insight1_setup.xml");
+        String macAddress = simulator.getMacAddress();
+        assertEquals(12, macAddress.length());
+        makeWemoManager(simulator);
+        ssdp.runOnce();
+        assertEquals(1, manager.getDiscoveredServicesQueue().size());
+        manager.processDiscoveryQueue();
+        assertEquals(1, manager.getDevices().size());
+        WemoInsightConnector device = (WemoInsightConnector) manager.getDevices().iterator().next();
+        assertEquals(macAddress, device.getDeviceId());
+        assertEquals(2000, device.getPort());
+        Instant lastTelemetryTime = telemetryCache.lastPowerMeterData.get(macAddress).getTimestamp();
+
+        // timestamp changes because successful poll
+        assertEquals(1, manager.poll());
+        Instant newTelemetryTime = telemetryCache.lastPowerMeterData.get(macAddress).getTimestamp();
+        assertNotEquals(lastTelemetryTime, newTelemetryTime);
+        lastTelemetryTime = newTelemetryTime;
+
+        // now this time the poll should have failed
+        simulator.setWebPort(3000);
+        assertEquals(0, manager.poll());
+
+        // now we rescan and device manager should pick up the new port
+        ssdp.runOnce();
+        manager.processDiscoveryQueue();
+        assertEquals(1, manager.getDevices().size());
+        device = (WemoInsightConnector) manager.getDevices().iterator().next();
+        assertEquals(3000, device.getPort());
+
+        // poll was triggered by port change, so within a couple ms it has also polled the device successfully again
+        Thread.sleep(50);
+        newTelemetryTime = telemetryCache.lastPowerMeterData.get(macAddress).getTimestamp();
+        assertNotEquals(lastTelemetryTime, newTelemetryTime);
     }
 }
