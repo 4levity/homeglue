@@ -53,7 +53,7 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
         WemoInsightConnectorFactory factory = (hostAddress, port) -> new WemoInsightConnector(network, hostAddress, port);
         ssdp = new SsdpDiscoveryServiceImpl(network, 0, 0, 0, 0);
         telemetryCache = new LastTelemetryCache();
-        manager = new WemoInsightManager(ssdp, factory, telemetryCache, telemetryCache);
+        manager = new WemoInsightManager(ssdp, factory, telemetryCache, telemetryCache, 2500);
     }
 
     @Test
