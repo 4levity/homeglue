@@ -40,6 +40,7 @@ dependencies {
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: jacksonVersion
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: jacksonVersion
 
     // guava and guice
     compile group: 'com.google.guava', name: 'guava', version: '24.1-jre'

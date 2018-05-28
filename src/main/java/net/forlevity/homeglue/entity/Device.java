@@ -6,7 +6,6 @@
 
 package net.forlevity.homeglue.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.NaturalId;
@@ -23,7 +22,6 @@ public class Device {
     @Id
     @GeneratedValue
     @Column(name = "id")
-    @JsonIgnore
     @Getter
     @Setter(AccessLevel.PRIVATE)
     private Long id;
