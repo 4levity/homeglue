@@ -9,6 +9,7 @@ package net.forlevity.homeglue.persistence;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import io.github.lukehutch.fastclasspathscanner.scanner.ClassInfo;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
  * PersistenceService implementation.
  */
 @Log4j2
+@Singleton
 public class PersistenceServiceImpl extends AbstractIdleService implements PersistenceService {
 
     private final Integer h2WebserverPort;

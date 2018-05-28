@@ -105,23 +105,19 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
 
     /**
      * Execute a single SSDP discovery request, handling services as they come in.
+     *
      * @param serviceType the service type or null
      * @throws InterruptedException if interrupted
      */
     private void search(String serviceType) throws InterruptedException {
-        BackgroundProcessHandle discovery = null;
-        try {
-            discovery = ssdpSearcher.startDiscovery(serviceType, this::dispatch);
-            Thread.sleep(ssdpScanLengthMillis);
-        } finally {
-            if (discovery != null) {
-                discovery.stop();
-            }
-        }
+        try (SafeCloseable handle = ssdpSearcher.startDiscovery(serviceType, this::dispatch)) {
+            Thread.sleep(ssdpScanLengthMillis); // wait for scan results to come in
+        } // autoclose
     }
 
     /**
      * For a discovered service, look through existing registrations and send matching service descriptions.
+     *
      * @param service discovered service
      */
     private void dispatch(SsdpServiceDefinition service) {

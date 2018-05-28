@@ -9,7 +9,7 @@ package net.forlevity.homeglue.sim;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.upnp.BackgroundProcessHandle;
+import net.forlevity.homeglue.upnp.SafeCloseable;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 import net.forlevity.homeglue.util.ResourceHelper;
 import org.apache.http.entity.ContentType;
@@ -45,7 +45,7 @@ public class SimulatedWemo extends SimulatedUpnpDevice {
 
     @Override
     protected String getLocation() {
-        return String.format("http://%s:%d/setup.xml", inetAddress.getHostAddress(), getWebPort());
+        return String.format("http://%s:%d/setup.xml", getInetAddress().getHostAddress(), getWebPort());
     }
 
     @Override
@@ -72,8 +72,8 @@ public class SimulatedWemo extends SimulatedUpnpDevice {
     }
 
     @Override
-    public BackgroundProcessHandle startDiscovery(String serviceType,
-                                                  Consumer<SsdpServiceDefinition> serviceConsumer) {
+    public SafeCloseable startDiscovery(String serviceType,
+                                        Consumer<SsdpServiceDefinition> serviceConsumer) {
         // non-compliant WeMo only answers to specific service type request:
         if (serviceType != null && serviceType.equals(ROOT_DEVICE_SERVICE_TYPE)) {
             super.startDiscovery(serviceType, serviceConsumer);

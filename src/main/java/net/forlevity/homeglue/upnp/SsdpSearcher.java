@@ -20,11 +20,11 @@ public interface SsdpSearcher {
 
     /**
      * Start an SSDP broadcast discovery. As services are discovered, they will be passed to a consumer. The consumer
-     * should be fast. Caller must retain the BackgroundProcessHandle and call handle.stop() after a few seconds.
+     * should be fast. Caller must retain the SafeCloseable handle and call handle.close() after a few seconds.
      *
      * @param serviceType specific service type e.g. "upnp:rootdevice", or null for 'all'
      * @param serviceConsumer sink for service information
      * @return handle to stop discovery
      */
-    BackgroundProcessHandle startDiscovery(String serviceType, Consumer<SsdpServiceDefinition> serviceConsumer);
+    SafeCloseable startDiscovery(String serviceType, Consumer<SsdpServiceDefinition> serviceConsumer);
 }

@@ -8,7 +8,6 @@ package net.forlevity.homeglue.sink;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.ifttt.IftttMakerWebhookClient;
 
 import java.util.function.Consumer;
@@ -17,16 +16,18 @@ import java.util.function.Consumer;
  * Proof of concept - send device status to IFTTT maker service.
  */
 @Singleton
-public class DeviceConnectionToIfttt extends IftttMakerWebhookClient implements Consumer<DeviceStatus> {
+public class DeviceConnectionToIfttt implements Consumer<DeviceStatus> {
+
+    private final IftttMakerWebhookClient webhookClient;
 
     @Inject
-    public DeviceConnectionToIfttt(SimpleHttpClient httpClient) {
-        super(httpClient);
+    public DeviceConnectionToIfttt(IftttMakerWebhookClient webhookClient) {
+        this.webhookClient = webhookClient;
     }
 
     @Override
     public void accept(DeviceStatus deviceStatus) {
-        trigger("homeglue_device_status",
+        webhookClient.trigger("homeglue_device_status",
                 deviceStatus.getDeviceId(), Boolean.valueOf(deviceStatus.isConnected()).toString(), null);
     }
 }

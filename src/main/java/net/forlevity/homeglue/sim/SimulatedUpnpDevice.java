@@ -11,7 +11,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.upnp.BackgroundProcessHandle;
+import net.forlevity.homeglue.upnp.SafeCloseable;
 import net.forlevity.homeglue.upnp.SsdpSearcher;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 import net.forlevity.homeglue.util.Xml;
@@ -74,12 +74,12 @@ public class SimulatedUpnpDevice extends BasicSimulatedNetworkDevice implements 
     }
 
     @Override
-    public BackgroundProcessHandle startDiscovery(String serviceType,
-                                                  Consumer<SsdpServiceDefinition> serviceConsumer) {
+    public SafeCloseable startDiscovery(String serviceType,
+                                        Consumer<SsdpServiceDefinition> serviceConsumer) {
         // create mock service and send to consumer
         getServices().forEach(serviceMock -> {
             SsdpServiceDefinition serviceDefinition = new SsdpServiceDefinition(
-                            serviceMock.getUsn(), serviceMock.getServiceType(), getLocation(), inetAddress);
+                            serviceMock.getUsn(), serviceMock.getServiceType(), getLocation(), getInetAddress());
             serviceConsumer.accept(serviceDefinition);
         });
         return () -> {};

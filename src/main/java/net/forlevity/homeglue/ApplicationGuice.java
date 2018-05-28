@@ -15,6 +15,8 @@ import lombok.AllArgsConstructor;
 import net.forlevity.homeglue.device.DeviceManagementGuice;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.http.SimpleHttpClientImpl;
+import net.forlevity.homeglue.ifttt.IftttMakerWebhookClient;
+import net.forlevity.homeglue.ifttt.IftttMakerWebhookClientImpl;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.persistence.PersistenceServiceImpl;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
@@ -49,7 +51,7 @@ public class ApplicationGuice extends AbstractModule {
                 .to(new TypeLiteral<Exchange<DeviceStatus>>(){}).in(Scopes.SINGLETON);
         Multibinder<Consumer<DeviceStatus>> statusSinkBinder =
                 Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<DeviceStatus>>(){});
-        statusSinkBinder.addBinding().to(StatusLogger.class);
+        statusSinkBinder.addBinding().to(DeviceStatusLogger.class);
         statusSinkBinder.addBinding().to(DeviceConnectionToIfttt.class);
 
         // telemetry
@@ -63,7 +65,10 @@ public class ApplicationGuice extends AbstractModule {
         bind(SsdpDiscoveryService.class).to(SsdpDiscoveryServiceImpl.class);
 
         // local data storage
-        bind(PersistenceService.class).to(PersistenceServiceImpl.class).in(Scopes.SINGLETON);
+        bind(PersistenceService.class).to(PersistenceServiceImpl.class);
+
+        // ifttt
+        bind(IftttMakerWebhookClient.class).to(IftttMakerWebhookClientImpl.class);
 
         // use simulation instead of real devices?
         if (Boolean.valueOf(namedConfigurationProperties.get("network.simulated").toString())) {

@@ -7,10 +7,12 @@
 package net.forlevity.homeglue.persistence;
 
 import com.google.common.util.concurrent.Service;
+import com.google.inject.ImplementedBy;
 
 /**
  * PersistenceService service to execute work units in a managed Hibernate session.
  */
+@ImplementedBy(PersistenceServiceImpl.class)
 public interface PersistenceService extends Service {
 
     /**

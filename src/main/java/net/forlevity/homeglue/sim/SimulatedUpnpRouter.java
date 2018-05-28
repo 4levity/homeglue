@@ -47,6 +47,6 @@ public class SimulatedUpnpRouter extends SimulatedUpnpDevice {
 
     @Override
     protected String getLocation() {
-        return String.format("http://%s:%d/rootDesc.xml", inetAddress.getHostAddress(), getWebPort());
+        return String.format("http://%s:%d/rootDesc.xml", getInetAddress().getHostAddress(), getWebPort());
     }
 }

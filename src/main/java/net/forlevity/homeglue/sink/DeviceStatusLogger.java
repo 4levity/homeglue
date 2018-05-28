@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @Log4j2
 @Singleton
-public class StatusLogger implements Consumer<DeviceStatus> {
+public class DeviceStatusLogger implements Consumer<DeviceStatus> {
 
     @Override
     public void accept(DeviceStatus deviceConnector) {

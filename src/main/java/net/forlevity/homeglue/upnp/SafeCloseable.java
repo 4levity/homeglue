@@ -7,12 +7,13 @@
 package net.forlevity.homeglue.upnp;
 
 /**
- * A handle to a background process that can be stopped.
+ * A handle to a resource that can be closed such as a background process, where failure to close is unlikely.
  */
-public interface BackgroundProcessHandle {
+public interface SafeCloseable extends AutoCloseable {
 
     /**
-     * Stop the process.
+     * Close the resource or stop the background process.
      */
-    void stop();
+    @Override
+    void close();
 }

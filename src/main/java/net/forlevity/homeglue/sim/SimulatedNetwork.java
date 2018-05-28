@@ -9,7 +9,7 @@ package net.forlevity.homeglue.sim;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import net.forlevity.homeglue.http.SimpleHttpClient;
-import net.forlevity.homeglue.upnp.BackgroundProcessHandle;
+import net.forlevity.homeglue.upnp.SafeCloseable;
 import net.forlevity.homeglue.upnp.SsdpSearcher;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 import org.apache.http.entity.ContentType;
@@ -77,7 +77,7 @@ public class SimulatedNetwork implements SimpleHttpClient, SsdpSearcher {
     }
 
     @Override
-    public BackgroundProcessHandle startDiscovery(String serviceType, Consumer<SsdpServiceDefinition> serviceConsumer) {
+    public SafeCloseable startDiscovery(String serviceType, Consumer<SsdpServiceDefinition> serviceConsumer) {
         devices.forEach(device -> {
             if (device instanceof SsdpSearcher) {
                 SsdpSearcher ssdpDevice = (SsdpSearcher) device;

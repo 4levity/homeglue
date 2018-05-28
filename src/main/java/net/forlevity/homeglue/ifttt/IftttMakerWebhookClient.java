@@ -6,58 +6,28 @@
 
 package net.forlevity.homeglue.ifttt;
 
-import com.google.common.base.Strings;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import lombok.AccessLevel;
-import lombok.Setter;
-import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.http.SimpleHttpClient;
-import net.forlevity.homeglue.util.Json;
-import org.apache.http.entity.ContentType;
+import com.google.inject.ImplementedBy;
 
-import java.io.IOException;
+/**
+ * Interface to trigget IFTTT Maker Webhooks. See https://ifttt.com/maker_webhooks .
+ */
+@ImplementedBy(IftttMakerWebhookClientImpl.class)
+public interface IftttMakerWebhookClient {
 
-@Log4j2
-public class IftttMakerWebhookClient {
+    /**
+     * Trigger an event, specifying values for the parameters.
+     *
+     * @param event event
+     * @param value1 value or null
+     * @param value2 value or null
+     * @param value3 value or null
+     */
+    void trigger(String event, String value1, String value2, String value3);
 
-    @Setter(AccessLevel.PACKAGE)
-    @Inject @Named("ifttt.webhooks.key")
-    private String key;
-
-    private boolean notifiedDisabled = false;
-
-    private final SimpleHttpClient httpClient;
-
-    public IftttMakerWebhookClient(SimpleHttpClient httpClient) {
-        this.httpClient = httpClient;
-    }
-
-    protected synchronized void trigger(String event, String value1, String value2, String value3) {
-        if (Strings.isNullOrEmpty(key)) {
-            if (!notifiedDisabled) {
-                log.info("IFTTT disabled, to enable put \"ifttt.webhooks.key=xxxxx\" in configuration file");
-                notifiedDisabled = true; // only log this message once
-            }
-        } else {
-            String url = String.format("https://maker.ifttt.com/trigger/%s/with/key/%s", event, key);
-            String payload;
-            if (value1 == null && value2 == null && value3 == null) {
-                payload = null;
-            } else {
-                payload = Json.toJson(new WebhookPostBody(value1, value2, value3));
-            }
-            try {
-                String result = httpClient.post(url, null, payload, ContentType.APPLICATION_JSON);
-                log.debug("result: {}", result);
-            } catch (IOException e) {
-                log.warn("failed to trigger IFTTT {} event because {} {}",
-                        event, e.getClass().getSimpleName(), e.getMessage());
-            }
-        }
-    }
-
-    protected void trigger(String event) throws IOException {
-        trigger(event, null, null, null);
-    }
+    /**
+     * Trigger an event without parameters.
+     *
+     * @param event event
+     */
+    void trigger(String event);
 }

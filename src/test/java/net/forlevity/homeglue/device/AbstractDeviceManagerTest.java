@@ -1,6 +1,6 @@
 package net.forlevity.homeglue.device;
 
-import net.forlevity.homeglue.sink.StatusLogger;
+import net.forlevity.homeglue.sink.DeviceStatusLogger;
 import net.forlevity.homeglue.testing.HomeglueTests;
 import org.junit.Test;
 
@@ -34,7 +34,7 @@ public class AbstractDeviceManagerTest extends HomeglueTests {
     private static class TestDeviceManager extends AbstractDeviceManager {
 
         protected TestDeviceManager() {
-            super(new StatusLogger());
+            super(new DeviceStatusLogger());
         }
 
         @Override

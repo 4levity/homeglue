@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 public class SsdpSearcherImpl implements SsdpSearcher {
 
     @Override
-    public BackgroundProcessHandle startDiscovery(String serviceType, Consumer<SsdpServiceDefinition> serviceConsumer) {
+    public SafeCloseable startDiscovery(String serviceType, Consumer<SsdpServiceDefinition> serviceConsumer) {
         SsdpClient client = SsdpClient.create();
         DiscoveryRequest.Builder discoveryRequest = DiscoveryRequest.builder();
         if (serviceType != null) {

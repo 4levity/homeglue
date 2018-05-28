@@ -28,6 +28,6 @@ public class SimulatedUpnpMediaPlayer extends SimulatedUpnpDevice {
 
     @Override
     protected String getLocation() {
-        return String.format("http://%s:%d/description.xml", inetAddress.getHostAddress(), getWebPort());
+        return String.format("http://%s:%d/description.xml", getInetAddress().getHostAddress(), getWebPort());
     }
 }

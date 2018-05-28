@@ -24,7 +24,7 @@ public class BasicSimulatedNetworkDevice implements SimulatedNetworkDevice {
 
     public static final String ERROR_RESPONSE = "";
 
-    protected final InetAddress inetAddress;
+    private final InetAddress inetAddress;
 
     @Setter
     private int webPort;
