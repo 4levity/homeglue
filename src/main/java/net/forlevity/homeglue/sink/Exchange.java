@@ -12,6 +12,11 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.function.Consumer;
 
+/**
+ * Defines a simple "exchange" where messages of some type are distributed to a list of consumers.
+ *
+ * @param <T> message type
+ */
 public class Exchange<T> implements Consumer<T> {
 
     private final Collection<Consumer<T>> sinks;

@@ -6,6 +6,7 @@
 
 package net.forlevity.homeglue.sink;
 
+import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.Map;
@@ -13,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Log4j2
+@Singleton
 public class StatusLogger implements Consumer<DeviceStatus> {
 
     @Override

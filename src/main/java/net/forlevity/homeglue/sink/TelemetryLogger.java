@@ -6,11 +6,13 @@
 
 package net.forlevity.homeglue.sink;
 
+import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.function.Consumer;
 
 @Log4j2
+@Singleton
 public class TelemetryLogger implements Consumer<PowerMeterData> {
 
     @Override

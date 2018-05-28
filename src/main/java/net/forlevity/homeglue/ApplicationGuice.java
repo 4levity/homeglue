@@ -7,6 +7,7 @@
 package net.forlevity.homeglue;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Scopes;
 import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
@@ -42,13 +43,16 @@ public class ApplicationGuice extends AbstractModule {
         bind(HomeglueApplication.class);
 
         // device
-        bind(new TypeLiteral<Consumer<DeviceStatus>>(){}).to(new TypeLiteral<Exchange<DeviceStatus>>(){});
+        bind(new TypeLiteral<Consumer<DeviceStatus>>(){})
+                .to(new TypeLiteral<Exchange<DeviceStatus>>(){}).in(Scopes.SINGLETON);
         Multibinder<Consumer<DeviceStatus>> statusSinkBinder =
                 Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<DeviceStatus>>(){});
         statusSinkBinder.addBinding().to(StatusLogger.class);
+        statusSinkBinder.addBinding().to(DeviceConnectionToIfttt.class);
 
         // telemetry
-        bind(new TypeLiteral<Consumer<PowerMeterData>>(){}).to(new TypeLiteral<Exchange<PowerMeterData>>(){});
+        bind(new TypeLiteral<Consumer<PowerMeterData>>(){})
+                .to(new TypeLiteral<Exchange<PowerMeterData>>(){}).in(Scopes.SINGLETON);
         Multibinder<Consumer<PowerMeterData>> telemetrySinkBinder =
                 Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<PowerMeterData>>(){});
         telemetrySinkBinder.addBinding().to(TelemetryLogger.class);

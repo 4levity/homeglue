@@ -48,7 +48,7 @@ public class SimpleHttpClientImpl implements SimpleHttpClient {
         if (headers != null) {
             headers.forEach((name, value) -> request.setHeader(name, value));
         }
-        request.bodyString(payload, ContentType.TEXT_XML);
+        request.bodyString(payload, contentType);
         return request.execute().returnContent().asString();
     }
 }

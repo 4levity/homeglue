@@ -17,9 +17,9 @@ Known working:
   * **WeMo_WW_2.00.11057.PVT-OWRT-Insight** (hardware version 1)
   * **WeMo_WW_2.00.11057.PVT-OWRT-InsightV2** (hardware version 2)
 
-* Runs on Raspberry Pi (any model)
+* Runs on Raspberry Pi (any model) or any other Linux/OS X/Windows PC with Java 8 and 256 MB RAM
 
-* Any Linux/OS X/Windows PC with Java 8 and 256 MB RAM
+* Works with IFTTT Maker Webhooks
 
 ### Build + Use ###
 
@@ -32,6 +32,12 @@ To build and test locally, run this command from project folder (skip the `./` o
 Then to run the application:
 
     java -jar build/libs/homeglue-0.1.jar
+
+To enable sending to [IFTTT Maker Webhooks](https://ifttt.com/maker_webhooks), create or edit a file called 
+`homeglue.properties` in the project root which contains a line similar to 
+this (use your own Maker Webhooks key):
+
+    ifttt.webhooks.key=c1eN9MOy2kPSgJ98iIzcie
 
 ### Disclaimers ###
 

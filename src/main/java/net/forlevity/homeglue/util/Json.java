@@ -1,0 +1,36 @@
+/*
+ * Part of Homeglue (c) 2018 C. Ivan Cooper - https://github.com/4levity/homeglue
+ * Homeglue is free software. You can modify and/or distribute it under the terms
+ * of the Apache License Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
+ */
+
+package net.forlevity.homeglue.util;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
+import lombok.extern.log4j.Log4j2;
+
+@Log4j2
+public class Json {
+
+    public static final ObjectMapper JACKSON = new ObjectMapper().findAndRegisterModules();
+
+    private Json() {}
+
+    /**
+     * Convert an object to JSON string.
+     *
+     * @param object convertible object
+     * @return string
+     */
+    public static String toJson(Object object) {
+        Preconditions.checkNotNull(object);
+        try {
+            return JACKSON.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            log.error("failed to serialize object of type {}", object.getClass().getSimpleName());
+            throw new RuntimeException(e);
+        }
+    }
+}
