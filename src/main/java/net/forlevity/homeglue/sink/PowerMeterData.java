@@ -4,7 +4,7 @@
  * of the Apache License Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-package net.forlevity.homeglue.storage;
+package net.forlevity.homeglue.sink;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +20,9 @@ import java.time.Instant;
 @Getter
 public class PowerMeterData {
 
+    private final String deviceId;
+
     private final Instant timestamp = Instant.now();
 
-    private final double instantaneousWatts;
+    private final Double instantaneousWatts;
 }

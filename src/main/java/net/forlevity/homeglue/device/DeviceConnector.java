@@ -6,7 +6,7 @@
 
 package net.forlevity.homeglue.device;
 
-import net.forlevity.homeglue.storage.DeviceStatus;
+import net.forlevity.homeglue.sink.DeviceStatus;
 
 /**
  * Represents a connection to a device like a meter/switch/appliance/etc.

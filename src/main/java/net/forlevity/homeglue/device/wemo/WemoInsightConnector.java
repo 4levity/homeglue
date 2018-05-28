@@ -17,7 +17,7 @@ import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractSoapDeviceConnector;
 import net.forlevity.homeglue.device.PowerMeterConnector;
 import net.forlevity.homeglue.http.SimpleHttpClient;
-import net.forlevity.homeglue.storage.PowerMeterData;
+import net.forlevity.homeglue.sink.PowerMeterData;
 import org.w3c.dom.Document;
 
 import java.io.IOException;
@@ -95,7 +95,7 @@ public class WemoInsightConnector extends AbstractSoapDeviceConnector implements
                 String[] params = insightParams.split("\\|");
                 double milliwatts = Double.valueOf(params[7]);
                 log.debug("InsightParams={} / instantaneous power={} mw", insightParams, params[7], milliwatts);
-                result = new PowerMeterData(milliwatts / 1000.0);
+                result = new PowerMeterData(getDeviceId(), milliwatts / 1000.0);
             } else {
                 log.warn("didn't get InsightParams from response");
             }

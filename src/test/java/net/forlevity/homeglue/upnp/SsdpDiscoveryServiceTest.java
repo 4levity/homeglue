@@ -37,7 +37,7 @@ public class SsdpDiscoveryServiceTest extends SimulatedNetworkTests {
         // create test service and register interest in our service
         SsdpDiscoveryServiceImpl service = new SsdpDiscoveryServiceImpl(network,0,0,0,0);
         LinkedBlockingQueue<SsdpServiceDefinition> queue = new LinkedBlockingQueue<>();
-        service.registerSsdp(candidate -> candidate.getRemoteIp().equals(remoteIp), queue, 0);
+        service.registerSsdp(candidate -> candidate.getRemoteIp().equals(remoteIp), queue::offer, 0);
 
         // run search and confirm we got our result
         service.runOnce();
@@ -56,11 +56,11 @@ public class SsdpDiscoveryServiceTest extends SimulatedNetworkTests {
         LinkedBlockingQueue<SsdpServiceDefinition> queueOtherRootDevices = new LinkedUniqueQueue<>();
         LinkedBlockingQueue<SsdpServiceDefinition> queueUsn3 = new LinkedUniqueQueue<>();
         // priority 1 queue gets anything at remoteIp1
-        service.registerSsdp(candidate -> candidate.getRemoteIp().equals(remoteIp1), queueIp1, 1);
+        service.registerSsdp(candidate -> candidate.getRemoteIp().equals(remoteIp1), queueIp1::offer, 1);
         // priority 2 queue gets all root devices (except the one at remoteIp1)
-        service.registerSsdp(candidate -> candidate.getServiceType().equals(ROOT_DEVICE_SERVICE_TYPE), queueOtherRootDevices, 2);
+        service.registerSsdp(candidate -> candidate.getServiceType().equals(ROOT_DEVICE_SERVICE_TYPE), queueOtherRootDevices::offer, 2);
         // priority 3 queue gets all services where serial starts with uuid:3 (except the one that's a root device)
-        service.registerSsdp(candidate -> candidate.getSerialNumber().startsWith("uuid:3"), queueUsn3, 3);
+        service.registerSsdp(candidate -> candidate.getSerialNumber().startsWith("uuid:3"), queueUsn3::offer, 3);
 
         // run search and confirm we got expected results
         service.runOnce();

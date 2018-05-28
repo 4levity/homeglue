@@ -8,6 +8,7 @@ package net.forlevity.homeglue;
 
 import com.google.inject.Guice;
 import lombok.extern.log4j.Log4j2;
+import net.forlevity.homeglue.util.PropertiesHelper;
 import net.forlevity.homeglue.util.ResourceHelper;
 
 import java.util.Properties;
@@ -20,6 +21,7 @@ public class Main {
 
     public static void main(String... args) {
         Properties configuration = ResourceHelper.resourceAsProperties("default.properties");
+        PropertiesHelper.tryMergeFile(configuration, "homeglue.properties");
         Guice.createInjector(new ApplicationGuice(configuration)).getInstance(HomeglueApplication.class).start();
     }
 }

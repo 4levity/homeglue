@@ -10,11 +10,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.storage.DeviceStatusSink;
+import net.forlevity.homeglue.sink.DeviceStatus;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Base class for DeviceManager implementations. Help maintain a list of devices.
@@ -22,10 +23,10 @@ import java.util.Map;
 @Log4j2
 public abstract class AbstractDeviceManager extends AbstractExecutionThreadService implements DeviceManager {
 
-    private final DeviceStatusSink deviceStatusSink;
+    private final Consumer<DeviceStatus> deviceStatusSink;
     private final Map<String, DeviceConnector> devices = new HashMap<>();
 
-    protected AbstractDeviceManager(DeviceStatusSink deviceStatusSink) {
+    protected AbstractDeviceManager(Consumer<DeviceStatus> deviceStatusSink) {
         this.deviceStatusSink = deviceStatusSink;
     }
 

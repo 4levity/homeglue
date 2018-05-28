@@ -27,7 +27,7 @@ public class ApplicationTest extends HomeglueTests {
 
     @Test
     public void startStopApplication() {
-        Properties configuration = ResourceHelper.resourceAsProperties("test.properties");
+        Properties configuration = ResourceHelper.resourceAsProperties("default.properties", "test.properties");
         Injector injector = Guice.createInjector(new ApplicationGuice(configuration));
         HomeglueApplication application = injector.getInstance(HomeglueApplication.class);
         application.start();

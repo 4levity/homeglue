@@ -6,7 +6,7 @@
 
 package net.forlevity.homeglue.device;
 
-import net.forlevity.homeglue.storage.PowerMeterData;
+import net.forlevity.homeglue.sink.PowerMeterData;
 
 /**
  * A connection to a device that is a readable power meter, e.g. Belkin WeMo Insight.

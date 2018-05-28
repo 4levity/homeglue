@@ -4,25 +4,16 @@
  * of the Apache License Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-package net.forlevity.homeglue.storage;
+package net.forlevity.homeglue.sink;
 
-import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-/**
- * Default implementation for device and telemetry data that just logs and discards the data.
- */
 @Log4j2
-@Singleton
-public class NoStorage implements DeviceStatusSink, TelemetrySink {
-
-    @Override
-    public void accept(String deviceId, PowerMeterData data) {
-        log.info("device {} : {}", deviceId, data);
-    }
+public class StatusLogger implements Consumer<DeviceStatus> {
 
     @Override
     public void accept(DeviceStatus deviceConnector) {

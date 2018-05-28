@@ -7,21 +7,22 @@
 package net.forlevity.homeglue;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.TypeLiteral;
+import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 import lombok.AllArgsConstructor;
 import net.forlevity.homeglue.device.DeviceManagementGuice;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.http.SimpleHttpClientImpl;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
-import net.forlevity.homeglue.storage.DeviceStatusSink;
-import net.forlevity.homeglue.storage.NoStorage;
-import net.forlevity.homeglue.storage.TelemetrySink;
+import net.forlevity.homeglue.sink.*;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryServiceImpl;
 import net.forlevity.homeglue.upnp.SsdpSearcher;
 import net.forlevity.homeglue.upnp.SsdpSearcherImpl;
 
 import java.util.Properties;
+import java.util.function.Consumer;
 
 /**
  * Top level dependency injection module. Caller must pass in a complete configuration with all required @Named values.
@@ -40,9 +41,17 @@ public class ApplicationGuice extends AbstractModule {
         // the application
         bind(HomeglueApplication.class);
 
-        // storage
-        bind(DeviceStatusSink.class).to(NoStorage.class);
-        bind(TelemetrySink.class).to(NoStorage.class);
+        // device
+        bind(new TypeLiteral<Consumer<DeviceStatus>>(){}).to(new TypeLiteral<Exchange<DeviceStatus>>(){});
+        Multibinder<Consumer<DeviceStatus>> statusSinkBinder =
+                Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<DeviceStatus>>(){});
+        statusSinkBinder.addBinding().to(StatusLogger.class);
+
+        // telemetry
+        bind(new TypeLiteral<Consumer<PowerMeterData>>(){}).to(new TypeLiteral<Exchange<PowerMeterData>>(){});
+        Multibinder<Consumer<PowerMeterData>> telemetrySinkBinder =
+                Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<PowerMeterData>>(){});
+        telemetrySinkBinder.addBinding().to(TelemetryLogger.class);
 
         // upnp
         bind(SsdpDiscoveryService.class).to(SsdpDiscoveryServiceImpl.class);

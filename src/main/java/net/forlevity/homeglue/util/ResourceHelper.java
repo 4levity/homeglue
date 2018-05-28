@@ -31,15 +31,17 @@ public class ResourceHelper {
     }
 
     /**
-     * Get a resource *.properties file by name.
+     * Load one or more resource *.properties files by name. Files load in order (later items overwrite earlier).
      *
      * @param resourceName name
      * @return properties
      */
-    public static Properties resourceAsProperties(String resourceName) {
+    public static Properties resourceAsProperties(String... resourceNames) {
         Properties properties = new Properties();
         try {
-            properties.load(ClassLoader.getSystemClassLoader().getResourceAsStream(resourceName));
+            for (int ix = 0; ix < resourceNames.length; ix++) {
+                properties.load(ClassLoader.getSystemClassLoader().getResourceAsStream(resourceNames[ix]));
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

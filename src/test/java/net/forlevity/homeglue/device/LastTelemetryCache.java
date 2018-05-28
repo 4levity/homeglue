@@ -6,23 +6,22 @@
 
 package net.forlevity.homeglue.device;
 
-import net.forlevity.homeglue.storage.NoStorage;
-import net.forlevity.homeglue.storage.PowerMeterData;
+import net.forlevity.homeglue.sink.PowerMeterData;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
-public class LastTelemetryCache extends NoStorage {
+public class LastTelemetryCache implements Consumer<PowerMeterData> {
 
     public final Map<String, PowerMeterData> lastPowerMeterData = new ConcurrentHashMap<>();
 
     @Override
-    public void accept(String deviceId, PowerMeterData data) {
-        if (data != null) {
-            this.lastPowerMeterData.put(deviceId, data);
+    public void accept(PowerMeterData data) {
+        if (data.getInstantaneousWatts() != null) {
+            this.lastPowerMeterData.put(data.getDeviceId(), data);
         } else {
-            this.lastPowerMeterData.remove(deviceId);
+            this.lastPowerMeterData.remove(data.getDeviceId());
         }
-        super.accept(deviceId, data);
     }
 }

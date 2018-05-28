@@ -15,10 +15,14 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -53,10 +57,10 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
 
     @Override
     public void registerSsdp(Predicate<SsdpServiceDefinition> predicate,
-                             Queue<SsdpServiceDefinition> serviceQueue,
+                             Consumer<SsdpServiceDefinition> consumer,
                              int priority) {
         synchronized (registrations) {
-            registrations.add(new Registration(priority, predicate, serviceQueue));
+            registrations.add(new Registration(priority, predicate, consumer));
             // registration list is sorted in priority order, highest priority (lowest number) first
             Collections.sort(registrations, Comparator.comparingInt(o -> o.priority));
         }
@@ -127,7 +131,7 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
             for (int ix = 0; ix < registrations.size(); ix++) {
                 Registration registration = registrations.get(ix);
                 if (registration.predicate.test(service)) {
-                    registration.serviceQueue.offer(service);
+                    registration.serviceQueue.accept(service);
                     break;
                 }
             }
@@ -138,6 +142,6 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
     private static class Registration {
         public int priority;
         public Predicate<SsdpServiceDefinition> predicate;
-        public Queue<SsdpServiceDefinition> serviceQueue;
+        public Consumer<SsdpServiceDefinition> serviceQueue;
     }
 }

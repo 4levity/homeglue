@@ -4,7 +4,7 @@
  * of the Apache License Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-package net.forlevity.homeglue.storage;
+package net.forlevity.homeglue.sink;
 
 import java.util.Map;
 

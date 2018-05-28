@@ -13,9 +13,8 @@ import com.google.inject.name.Named;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractUpnpDeviceManager;
 import net.forlevity.homeglue.device.PowerMeterConnector;
-import net.forlevity.homeglue.storage.DeviceStatusSink;
-import net.forlevity.homeglue.storage.PowerMeterData;
-import net.forlevity.homeglue.storage.TelemetrySink;
+import net.forlevity.homeglue.sink.DeviceStatus;
+import net.forlevity.homeglue.sink.PowerMeterData;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 
@@ -23,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,7 +38,7 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
             "http://(?<ipAddress>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}):(?<port>[0-9]{4,5})/setup.xml");
 
     private final WemoInsightConnectorFactory connectorFactory;
-    private final TelemetrySink telemetrySink;
+    private final Consumer<PowerMeterData> telemetrySink;
     private final ConcurrentHashMap<String, WemoInsightConnector> insights = new ConcurrentHashMap<>();
     private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
     private final long pollPeriodMillis;
@@ -48,8 +48,8 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
     @Inject
     WemoInsightManager(SsdpDiscoveryService ssdpDiscoveryService,
                        WemoInsightConnectorFactory connectorFactory,
-                       DeviceStatusSink deviceStatusSink,
-                       TelemetrySink telemetrySink,
+                       Consumer<DeviceStatus> deviceStatusSink,
+                       Consumer<PowerMeterData> telemetrySink,
                        @Named("wemo.poll.period.millis") int pollPeriodMillis) {
         super(deviceStatusSink, ssdpDiscoveryService,
                 service -> (SSDP_SERIALNUMBER.matcher(service.getSerialNumber()).matches()
@@ -132,7 +132,7 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
         }
         // TODO: handle failure to read meter
         try {
-            telemetrySink.accept(meter.getDeviceId(), read);
+            telemetrySink.accept(read == null ? new PowerMeterData(meter.getDeviceId(), null) : read);
         } catch(RuntimeException e) {
             log.error("unexpected exception during storage of telemetry for {} (continuing)", meter, e);
         }

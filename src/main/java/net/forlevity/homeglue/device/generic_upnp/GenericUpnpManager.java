@@ -11,7 +11,7 @@ import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractUpnpDeviceManager;
 import net.forlevity.homeglue.device.DeviceConnector;
-import net.forlevity.homeglue.storage.DeviceStatusSink;
+import net.forlevity.homeglue.sink.DeviceStatus;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 
@@ -19,6 +19,7 @@ import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Implementation of DeviceManager that detects all other UPnP services that are NOT detected by other DeviceManagers.
@@ -35,7 +36,7 @@ public class GenericUpnpManager extends AbstractUpnpDeviceManager {
     @Inject
     GenericUpnpManager(SsdpDiscoveryService ssdpDiscoveryService,
                        GenericUpnpConnectorFactory genericUpnpConnectorFactory,
-                       DeviceStatusSink deviceStatusSink) {
+                       Consumer<DeviceStatus> deviceStatusSink) {
         super(deviceStatusSink, ssdpDiscoveryService, service -> true, Integer.MAX_VALUE);
         this.genericUpnpConnectorFactory = genericUpnpConnectorFactory;
         // TODO: periodically update status of devices that have not connected recently

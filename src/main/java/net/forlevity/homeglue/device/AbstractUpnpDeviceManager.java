@@ -9,11 +9,12 @@ package net.forlevity.homeglue.device;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.storage.DeviceStatusSink;
+import net.forlevity.homeglue.sink.DeviceStatus;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 @Log4j2
@@ -25,12 +26,12 @@ public abstract class AbstractUpnpDeviceManager extends AbstractDeviceManager {
     @Getter
     private final LinkedBlockingQueue<SsdpServiceDefinition> discoveredServicesQueue = new LinkedBlockingQueue<>();
 
-    protected AbstractUpnpDeviceManager(DeviceStatusSink deviceStatusSink,
+    protected AbstractUpnpDeviceManager(Consumer<DeviceStatus> deviceStatusSink,
                                         SsdpDiscoveryService ssdpDiscoveryService,
                                         Predicate<SsdpServiceDefinition> serviceMatcher,
                                         int priority) {
         super(deviceStatusSink);
-        ssdpDiscoveryService.registerSsdp(serviceMatcher, discoveredServicesQueue, priority);
+        ssdpDiscoveryService.registerSsdp(serviceMatcher, this.discoveredServicesQueue::offer, priority);
     }
 
     @Override
