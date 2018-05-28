@@ -15,6 +15,8 @@ import lombok.AllArgsConstructor;
 import net.forlevity.homeglue.device.DeviceManagementGuice;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.http.SimpleHttpClientImpl;
+import net.forlevity.homeglue.persistence.PersistenceService;
+import net.forlevity.homeglue.persistence.PersistenceServiceImpl;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sink.*;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
@@ -59,6 +61,9 @@ public class ApplicationGuice extends AbstractModule {
 
         // upnp
         bind(SsdpDiscoveryService.class).to(SsdpDiscoveryServiceImpl.class);
+
+        // local data storage
+        bind(PersistenceService.class).to(PersistenceServiceImpl.class).in(Scopes.SINGLETON);
 
         // use simulation instead of real devices?
         if (Boolean.valueOf(namedConfigurationProperties.get("network.simulated").toString())) {

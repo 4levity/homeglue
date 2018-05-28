@@ -9,6 +9,8 @@ package net.forlevity.homeglue.ifttt;
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import lombok.AccessLevel;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.util.Json;
@@ -19,6 +21,7 @@ import java.io.IOException;
 @Log4j2
 public class IftttMakerWebhookClient {
 
+    @Setter(AccessLevel.PACKAGE)
     @Inject @Named("ifttt.webhooks.key")
     private String key;
 

@@ -24,6 +24,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
+/**
+ * Object to handle XML document parsing and XPath query operations. Malformed XML and queries result in
+ * empty results (and log entries), rather than exceptions.
+ */
 @Log4j2
 public class Xml implements ErrorHandler {
 

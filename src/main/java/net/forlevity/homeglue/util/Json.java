@@ -11,6 +11,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 
+/**
+ * Static holder for global reusable Jackson ObjectMapper and convenience methods to generate/parse JSON.
+ */
 @Log4j2
 public class Json {
 

@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+/**
+ * Static convenience methods related to Properties.
+ */
 public class PropertiesHelper {
 
     private PropertiesHelper() {}

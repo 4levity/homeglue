@@ -12,6 +12,9 @@ import com.google.common.io.Resources;
 import java.io.IOException;
 import java.util.Properties;
 
+/**
+ * Static convenience methods related to loading data from resources.
+ */
 public class ResourceHelper {
 
     private ResourceHelper() {}

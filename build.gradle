@@ -25,25 +25,36 @@ ext {
     log4j2version = '2.11.0'
     jacksonVersion = '2.9.5'
     guiceVersion = '4.2.0'
+    hibernateVersion = '5.3.1.Final'
 }
 
 dependencies {
 
+    // lombok
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
     compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
 
+    // logging
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4j2version
     compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: log4j2version
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: jacksonVersion
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
 
+    // guava and guice
     compile group: 'com.google.guava', name: 'guava', version: '24.1-jre'
     compile group: 'com.google.inject', name: 'guice', version: guiceVersion
     compile group: 'com.google.inject.extensions', name: 'guice-assistedinject', version: guiceVersion
 
+    // local persistence and database
+    compile group: 'org.hibernate', name: 'hibernate-core', version: hibernateVersion
+    compile group: 'org.hibernate', name: 'hibernate-c3p0', version: hibernateVersion
+    compile group: 'com.h2database', name: 'h2', version: '1.4.197'
+
+    // utilities
     compile group: 'io.resourcepool', name: 'ssdp-client', version: '2.1.0'
     compile group: 'org.apache.httpcomponents', name: 'fluent-hc', version: '4.5.5'
+    compile group: 'io.github.lukehutch', name: 'fast-classpath-scanner', version: '2.21'
 
     // test
     testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion

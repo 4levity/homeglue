@@ -15,6 +15,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.DeviceManager;
+import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 
 import java.util.ArrayList;
@@ -35,16 +36,18 @@ public class HomeglueApplication {
 
     @Inject
     public HomeglueApplication(
+            PersistenceService persistenceService,
             SsdpDiscoveryService ssdpDiscoveryService,
             Set<DeviceManager> deviceManagers) {
         List<Service> services = new ArrayList<>();
+        services.add(persistenceService);
         services.add(ssdpDiscoveryService);
         services.addAll(deviceManagers);
         serviceManager = new ServiceManager(services);
     }
 
     void start() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> HomeglueApplication.this.stop()));
+        Runtime.getRuntime().addShutdownHook(new Thread(HomeglueApplication.this::stop));
         serviceManager.startAsync().awaitHealthy();
         String services = serviceManager.servicesByState().values().stream()
                 .map(service -> (service.getClass().getSimpleName() + "=" + service.state().toString()))
