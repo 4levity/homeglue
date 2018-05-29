@@ -8,8 +8,11 @@ package net.forlevity.homeglue.util;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import lombok.extern.log4j.Log4j2;
 
+import java.time.Instant;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
@@ -22,16 +25,29 @@ import java.util.function.Consumer;
  * @param <T> item type
  */
 @Log4j2
+@Accessors(chain = true)
 public class QueueProcessingThread<T> extends Thread implements Consumer<T> {
+
+    private static final int DEFAULT_QUEUE_SIZE_ALERT_THRESHOLD = 5;
+    private static final int DEFAULT_MIN_SECS_BETWEEN_QUEUE_SIZE_ALERTS = 5;
 
     @Getter
     private volatile boolean running = false;
+
+    @Getter
+    @Setter
+    private int queueSizeAlertThreshold = DEFAULT_QUEUE_SIZE_ALERT_THRESHOLD;
+
+    @Getter
+    @Setter
+    private long minSecondsBetweenQueueLengthAlerts = DEFAULT_MIN_SECS_BETWEEN_QUEUE_SIZE_ALERTS;
 
     @VisibleForTesting
     @Getter
     private final BlockingQueue<T> queue;
     private final Consumer<T> processor;
     private final Class<T> itemType;
+    private Instant suppressQueueLengthAlertUntil = Instant.now();
 
     /**
      * Create a queue processing thread. Items are passed to the processor
@@ -67,8 +83,14 @@ public class QueueProcessingThread<T> extends Thread implements Consumer<T> {
 
     @VisibleForTesting
     public void processQueue() throws InterruptedException {
-        while (processSingleQueueEntry())
-            ;
+        while (processSingleQueueEntry()) {
+            int size = queue.size();
+            Instant now = Instant.now();
+            if (size > getQueueSizeAlertThreshold() && suppressQueueLengthAlertUntil.isBefore(now)) {
+                log.warn("queue length alert! {} > {}", size, DEFAULT_QUEUE_SIZE_ALERT_THRESHOLD);
+                suppressQueueLengthAlertUntil = now.plusSeconds(minSecondsBetweenQueueLengthAlerts);
+            }
+        }
     }
 
     private boolean processSingleQueueEntry() throws InterruptedException {

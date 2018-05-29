@@ -20,39 +20,44 @@ import java.util.function.Consumer;
  */
 @Log4j2
 @Singleton
-public class IftttDeviceStatusService extends AbstractIdleService implements Consumer<DeviceStatus> {
+public class IftttDeviceStatusService extends AbstractIdleService implements Consumer<DeviceStatusChange> {
 
     private static final String DEVICE_STATUS_EVENT = "homeglue_device_status";
 
     private final IftttMakerWebhookClient webhookClient;
-    private final QueueProcessingThread<DeviceStatus> deviceStatusProcessor;
+    private final QueueProcessingThread<DeviceStatusChange> senderThread;
 
     @Inject
     public IftttDeviceStatusService(IftttMakerWebhookClient webhookClient) {
         this.webhookClient = webhookClient;
-        deviceStatusProcessor = new QueueProcessingThread<>(DeviceStatus.class, this::trigger);
+        senderThread = new QueueProcessingThread<>(DeviceStatusChange.class, this::trigger);
     }
 
-    private void trigger(DeviceStatus deviceStatus) {
+    private void trigger(DeviceStatusChange newStatus) {
         webhookClient.trigger(
                 DEVICE_STATUS_EVENT,
-                deviceStatus.getDeviceId(),
-                Boolean.valueOf(deviceStatus.isConnected()).toString(),
+                newStatus.getDeviceId(),
+                Boolean.valueOf(newStatus.isConnected()).toString(),
                 null);
     }
 
+    /**
+     * On receiving a status change, queue it to be sent via IFTTT Webhook client.
+     *
+     * @param newStatus
+     */
     @Override
-    public void accept(DeviceStatus deviceStatus) {
-        deviceStatusProcessor.accept(deviceStatus);
+    public void accept(DeviceStatusChange newStatus) {
+        senderThread.accept(newStatus);
     }
 
     @Override
     protected void startUp() throws Exception {
-        deviceStatusProcessor.start();
+        senderThread.start();
     }
 
     @Override
     protected void shutDown() throws Exception {
-        deviceStatusProcessor.interrupt();
+        senderThread.interrupt();
     }
 }

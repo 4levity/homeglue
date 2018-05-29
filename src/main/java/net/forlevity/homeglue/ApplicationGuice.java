@@ -46,19 +46,21 @@ public class ApplicationGuice extends AbstractModule {
         // the application
         bind(HomeglueApplication.class);
 
-        // device
-        bind(new TypeLiteral<Consumer<DeviceStatus>>(){})
-                .to(new TypeLiteral<Exchange<DeviceStatus>>(){}).in(Scopes.SINGLETON);
-        Multibinder<Consumer<DeviceStatus>> statusSinkBinder =
-                Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<DeviceStatus>>(){});
+        // device status change: exchange
+        bind(new TypeLiteral<Consumer<DeviceStatusChange>>(){})
+                .to(new TypeLiteral<Exchange<DeviceStatusChange>>(){}).in(Scopes.SINGLETON);
+        Multibinder<Consumer<DeviceStatusChange>> statusSinkBinder =
+                Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<DeviceStatusChange>>(){});
+        // device status change: consumers
         statusSinkBinder.addBinding().to(DeviceStatusLogger.class);
         statusSinkBinder.addBinding().to(IftttDeviceStatusService.class);
 
-        // telemetry
+        // telemetry: exchange
         bind(new TypeLiteral<Consumer<PowerMeterData>>(){})
                 .to(new TypeLiteral<Exchange<PowerMeterData>>(){}).in(Scopes.SINGLETON);
         Multibinder<Consumer<PowerMeterData>> telemetrySinkBinder =
                 Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<PowerMeterData>>(){});
+        // telemetry: consumers
         telemetrySinkBinder.addBinding().to(TelemetryLogger.class);
 
         // upnp

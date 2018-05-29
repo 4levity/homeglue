@@ -46,7 +46,7 @@ public class AbstractDeviceManagerTest extends HomeglueTests {
         }
 
         public void testRegister(DeviceConnector dc) {
-            this.register(dc);
+            this.updateStatus(dc);
         }
     }
 }

@@ -18,18 +18,21 @@ public interface DeviceStatus {
     /**
      * Get the unique identifier of this device, which might be something like its MAC address or serial number.
      * If the device ID equals DeviceConnector.DEVICE_ID_UNKNOWN , the device's identity has not been determined.
+     *
      * @return device id
      */
     String getDeviceId();
 
     /**
      * True if the device is "probably online."
+     *
      * @return true if device is or was recently contactable
      */
     boolean isConnected();
 
     /**
      * Get metadata about device, such as make/model/serial or whatever else is available for that device.
+     *
      * @return copy of device metadata
      */
     Map<String,String> getDeviceDetails();

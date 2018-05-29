@@ -13,7 +13,7 @@ import com.google.inject.name.Named;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractUpnpDeviceManager;
 import net.forlevity.homeglue.device.PowerMeterConnector;
-import net.forlevity.homeglue.sink.DeviceStatus;
+import net.forlevity.homeglue.sink.DeviceStatusChange;
 import net.forlevity.homeglue.sink.PowerMeterData;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
@@ -48,10 +48,10 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
     @Inject
     WemoInsightManager(SsdpDiscoveryService ssdpDiscoveryService,
                        WemoInsightConnectorFactory connectorFactory,
-                       Consumer<DeviceStatus> deviceStatusSink,
+                       Consumer<DeviceStatusChange> deviceStatusChangeSink,
                        Consumer<PowerMeterData> telemetrySink,
                        @Named("wemo.poll.period.millis") int pollPeriodMillis) {
-        super(deviceStatusSink, ssdpDiscoveryService,
+        super(deviceStatusChangeSink, ssdpDiscoveryService,
                 service -> (SSDP_SERIALNUMBER.matcher(service.getSerialNumber()).matches()
                         && SSDP_LOCATION.matcher(service.getLocation()).matches()), 1);
         this.connectorFactory = connectorFactory;
@@ -86,7 +86,7 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
                 log.info("connected to Insight meter at {}:{}", ipAddress, port);
                 boolean firstDevice = insights.isEmpty();
                 insights.put(ipAddress, newConnector);
-                register(newConnector);
+                updateStatus(newConnector);
                 if (firstDevice) {
                     // as soon as the first device is found, start polling
                     startTimer();
@@ -140,7 +140,8 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
     }
 
     @Override
-    protected void shutDown() {
+    protected void shutDown() throws Exception {
         executor.shutdown();
+        super.shutDown();
     }
 }

@@ -11,7 +11,7 @@ import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractUpnpDeviceManager;
 import net.forlevity.homeglue.device.DeviceConnector;
-import net.forlevity.homeglue.sink.DeviceStatus;
+import net.forlevity.homeglue.sink.DeviceStatusChange;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 
@@ -36,8 +36,8 @@ public class GenericUpnpManager extends AbstractUpnpDeviceManager {
     @Inject
     GenericUpnpManager(SsdpDiscoveryService ssdpDiscoveryService,
                        GenericUpnpConnectorFactory genericUpnpConnectorFactory,
-                       Consumer<DeviceStatus> deviceStatusSink) {
-        super(deviceStatusSink, ssdpDiscoveryService, service -> true, Integer.MAX_VALUE);
+                       Consumer<DeviceStatusChange> deviceStatusChangeSink) {
+        super(deviceStatusChangeSink, ssdpDiscoveryService, service -> true, Integer.MAX_VALUE);
         this.genericUpnpConnectorFactory = genericUpnpConnectorFactory;
         // TODO: periodically update status of devices that have not connected recently
     }
@@ -53,7 +53,7 @@ public class GenericUpnpManager extends AbstractUpnpDeviceManager {
                 devicesByAddress.put(address, genericUpnpDevice);
                 log.info ("other UPnP devices at: {}", Arrays.toString(devicesByAddress.keySet().toArray()));
                 if (!genericUpnpDevice.getDeviceId().equals(DeviceConnector.DEVICE_ID_UNKNOWN)) {
-                    register(genericUpnpDevice); // register if identifiable
+                    updateStatus(genericUpnpDevice); // register if identifiable
                 }
             }
         } else {

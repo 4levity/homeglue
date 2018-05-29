@@ -15,13 +15,13 @@ import java.util.stream.Collectors;
 
 @Log4j2
 @Singleton
-public class DeviceStatusLogger implements Consumer<DeviceStatus> {
+public class DeviceStatusLogger implements Consumer<DeviceStatusChange> {
 
     @Override
-    public void accept(DeviceStatus deviceConnector) {
-        String deviceId = deviceConnector.getDeviceId();
-        Map<String, String> deviceDetails = deviceConnector.getDeviceDetails();
-        log.info("device {} : connected={}, {}", deviceId, deviceConnector.isConnected(),
+    public void accept(DeviceStatusChange newStatus) {
+        String deviceId = newStatus.getDeviceId();
+        Map<String, String> deviceDetails = newStatus.getDeviceDetails();
+        log.info("device {} : connected={}, {}", deviceId, newStatus.isConnected(),
                 deviceDetails.entrySet().stream().map(entry -> (entry.getKey() + "=" + entry.getValue()))
                         .collect(Collectors.joining(", ")));
     }

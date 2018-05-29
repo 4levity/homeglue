@@ -9,7 +9,7 @@ package net.forlevity.homeglue.device;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.sink.DeviceStatus;
+import net.forlevity.homeglue.sink.DeviceStatusChange;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 import net.forlevity.homeglue.util.QueueProcessingThread;
@@ -26,11 +26,11 @@ public abstract class AbstractUpnpDeviceManager extends AbstractDeviceManager
     private final QueueProcessingThread<SsdpServiceDefinition> queueProcessingThread =
             new QueueProcessingThread<>(SsdpServiceDefinition.class, this);
 
-    protected AbstractUpnpDeviceManager(Consumer<DeviceStatus> deviceStatusSink,
+    protected AbstractUpnpDeviceManager(Consumer<DeviceStatusChange> deviceStatusChangeSink,
                                         SsdpDiscoveryService ssdpDiscoveryService,
                                         Predicate<SsdpServiceDefinition> serviceMatcher,
                                         int priority) {
-        super(deviceStatusSink);
+        super(deviceStatusChangeSink);
         ssdpDiscoveryService.registerSsdp(serviceMatcher, queueProcessingThread::accept, priority);
     }
 
