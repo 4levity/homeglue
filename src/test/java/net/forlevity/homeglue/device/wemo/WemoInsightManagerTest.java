@@ -40,9 +40,9 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
         assertEquals(0, manager.getDevices().size());
 
         ssdp.runOnce(); // run SSDP search
-        assertEquals(2, manager.getDiscoveredServicesQueue().size());
+        assertEquals(2, manager.getQueueProcessingThread().getQueue().size());
         // two unique devices should have been found
-        manager.processDiscoveryQueue();
+        manager.getQueueProcessingThread().processQueue();
         assertEquals(2, manager.getDevices().size());
 
         // devices have been connected to simulators
@@ -71,8 +71,8 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
         assertEquals(12, macAddress.length());
         makeWemoManager(simulator);
         ssdp.runOnce();
-        assertEquals(1, manager.getDiscoveredServicesQueue().size());
-        manager.processDiscoveryQueue();
+        assertEquals(1, manager.getQueueProcessingThread().getQueue().size());
+        manager.getQueueProcessingThread().processQueue();
         assertEquals(1, manager.getDevices().size());
         WemoInsightConnector device = (WemoInsightConnector) manager.getDevices().iterator().next();
         assertEquals(macAddress, device.getDeviceId());
@@ -91,7 +91,7 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
 
         // now we rescan and device manager should pick up the new port
         ssdp.runOnce();
-        manager.processDiscoveryQueue();
+        manager.getQueueProcessingThread().processQueue();
         assertEquals(1, manager.getDevices().size());
         device = (WemoInsightConnector) manager.getDevices().iterator().next();
         assertEquals(3000, device.getPort());

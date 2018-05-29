@@ -30,16 +30,16 @@ public class GenericUpnpManagerTest extends SimulatedNetworkTests {
         device3.setServices(ImmutableList.of());
 
         ssdp.runOnce(); // run background search
-        assertEquals(4, manager.getDiscoveredServicesQueue().size());
-        manager.processDiscoveryQueue();
+        assertEquals(4, manager.getQueueProcessingThread().getQueue().size());
+        manager.getQueueProcessingThread().processQueue();
         // two unique devices should have been found
         assertEquals(2, manager.getDevices().size());
 
         // add another device and discover it
         device3.setServices(services3);
         ssdp.runOnce();
-        assertEquals(8, manager.getDiscoveredServicesQueue().size());
-        manager.processDiscoveryQueue();
+        assertEquals(8, manager.getQueueProcessingThread().getQueue().size());
+        manager.getQueueProcessingThread().processQueue();
         // one more unique device found
         assertEquals(3, manager.getDevices().size());
     }

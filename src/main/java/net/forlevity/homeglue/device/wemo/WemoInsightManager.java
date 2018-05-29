@@ -60,7 +60,7 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
     }
 
     @Override
-    protected void processDiscoveredService(SsdpServiceDefinition ssdpWemo) {
+    public void accept(SsdpServiceDefinition ssdpWemo) {
         Matcher location = SSDP_LOCATION.matcher(ssdpWemo.getLocation());
         if (location.matches()) {
             String ipAddress = location.group("ipAddress");

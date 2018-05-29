@@ -7,7 +7,7 @@
 package net.forlevity.homeglue.device;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import com.google.common.util.concurrent.AbstractIdleService;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.sink.DeviceStatus;
@@ -21,7 +21,7 @@ import java.util.function.Consumer;
  * Base class for DeviceManager implementations. Help maintain a list of devices.
  */
 @Log4j2
-public abstract class AbstractDeviceManager extends AbstractExecutionThreadService implements DeviceManager {
+public abstract class AbstractDeviceManager extends AbstractIdleService implements DeviceManager {
 
     private final Consumer<DeviceStatus> deviceStatusSink;
     private final Map<String, DeviceConnector> devices = new HashMap<>();

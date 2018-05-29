@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.DeviceManager;
 import net.forlevity.homeglue.persistence.PersistenceService;
+import net.forlevity.homeglue.sink.IftttDeviceStatusService;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 
 import java.util.ArrayList;
@@ -38,9 +39,11 @@ public class HomeglueApplication {
     public HomeglueApplication(
             PersistenceService persistenceService,
             SsdpDiscoveryService ssdpDiscoveryService,
+            IftttDeviceStatusService iftttDeviceStatusService,
             Set<DeviceManager> deviceManagers) {
         List<Service> services = new ArrayList<>();
         services.add(persistenceService);
+        services.add(iftttDeviceStatusService);
         services.add(ssdpDiscoveryService);
         services.addAll(deviceManagers);
         serviceManager = new ServiceManager(services);

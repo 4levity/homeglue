@@ -43,7 +43,7 @@ public class GenericUpnpManager extends AbstractUpnpDeviceManager {
     }
 
     @Override
-    protected void processDiscoveredService(SsdpServiceDefinition service) {
+    public void accept(SsdpServiceDefinition service) {
         InetAddress address = service.getRemoteIp();
         GenericUpnpConnector genericUpnpDevice = devicesByAddress.get(address);
         if (genericUpnpDevice == null) {

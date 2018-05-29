@@ -52,7 +52,7 @@ public class ApplicationGuice extends AbstractModule {
         Multibinder<Consumer<DeviceStatus>> statusSinkBinder =
                 Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<DeviceStatus>>(){});
         statusSinkBinder.addBinding().to(DeviceStatusLogger.class);
-        statusSinkBinder.addBinding().to(DeviceConnectionToIfttt.class);
+        statusSinkBinder.addBinding().to(IftttDeviceStatusService.class);
 
         // telemetry
         bind(new TypeLiteral<Consumer<PowerMeterData>>(){})

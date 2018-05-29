@@ -8,6 +8,9 @@ package net.forlevity.homeglue.sink;
 
 import java.util.Map;
 
+/**
+ * Interface for class that includes information about a device and its last known status.
+ */
 public interface DeviceStatus {
 
     String DEVICE_ID_UNKNOWN = "unknown";

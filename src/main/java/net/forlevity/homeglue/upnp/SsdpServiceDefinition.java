@@ -19,6 +19,7 @@ import java.net.InetAddress;
 @EqualsAndHashCode
 @ToString
 public class SsdpServiceDefinition {
+
     private final String serialNumber;
     private final String serviceType;
     private final String location;
