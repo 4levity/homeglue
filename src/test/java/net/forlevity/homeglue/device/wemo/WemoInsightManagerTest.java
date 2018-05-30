@@ -8,15 +8,15 @@ package net.forlevity.homeglue.device.wemo;
 
 import com.google.common.collect.ImmutableSet;
 import net.forlevity.homeglue.device.LastTelemetryCache;
+import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sim.SimulatedWemo;
 import net.forlevity.homeglue.sink.DeviceStatusLogger;
-import net.forlevity.homeglue.sink.Exchange;
-import net.forlevity.homeglue.sink.PowerMeterData;
 import net.forlevity.homeglue.sink.TelemetryLogger;
 import net.forlevity.homeglue.testing.SimulatedNetworkTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryServiceImpl;
+import net.forlevity.homeglue.util.FanoutExchange;
 import org.junit.Test;
 
 import java.time.Instant;
@@ -61,7 +61,7 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
         WemoInsightConnectorFactory factory = (hostAddress, port) -> new WemoInsightConnector(network, hostAddress, port);
         ssdp = new SsdpDiscoveryServiceImpl(network, 0, 0, 0, 0);
         telemetryCache = new LastTelemetryCache();
-        Consumer<PowerMeterData> exchange = new Exchange<>(ImmutableSet.of(telemetryCache, new TelemetryLogger()));
+        Consumer<PowerMeterData> exchange = new FanoutExchange<>(ImmutableSet.of(telemetryCache, new TelemetryLogger()));
         manager = new WemoInsightManager(mock(PersistenceService.class), ssdp, factory, new DeviceStatusLogger(), exchange, 2500);
     }
 

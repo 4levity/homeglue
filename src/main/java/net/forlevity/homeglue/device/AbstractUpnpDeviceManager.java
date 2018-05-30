@@ -10,10 +10,9 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.persistence.PersistenceService;
-import net.forlevity.homeglue.sink.DeviceStatusChange;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
-import net.forlevity.homeglue.util.QueueProcessingThread;
+import net.forlevity.homeglue.util.QueueWorkerThread;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -24,8 +23,8 @@ public abstract class AbstractUpnpDeviceManager extends AbstractDeviceManager
 
     @VisibleForTesting
     @Getter
-    private final QueueProcessingThread<SsdpServiceDefinition> discoveryProcessor =
-            new QueueProcessingThread<>(SsdpServiceDefinition.class, this);
+    private final QueueWorkerThread<SsdpServiceDefinition> discoveryProcessor =
+            new QueueWorkerThread<>(SsdpServiceDefinition.class, this);
 
     protected AbstractUpnpDeviceManager(PersistenceService persistenceService,
                                         Consumer<DeviceStatusChange> deviceStatusChangeSink,

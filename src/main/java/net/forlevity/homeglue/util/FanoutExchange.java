@@ -4,7 +4,7 @@
  * of the Apache License Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
  */
 
-package net.forlevity.homeglue.sink;
+package net.forlevity.homeglue.util;
 
 import com.google.inject.Inject;
 
@@ -14,15 +14,16 @@ import java.util.function.Consumer;
 
 /**
  * Defines a simple typed exchange where messages of some type are distributed to a list of consumers.
+ * Distribution is on handler thread, consumers are assumed to be fast.
  *
  * @param <T> message type
  */
-public class Exchange<T> implements Consumer<T> {
+public class FanoutExchange<T> implements Consumer<T> {
 
     private final Collection<Consumer<T>> sinks;
 
     @Inject
-    public Exchange(Set<Consumer<T>> sinks) {
+    public FanoutExchange(Set<Consumer<T>> sinks) {
         this.sinks = sinks;
     }
 

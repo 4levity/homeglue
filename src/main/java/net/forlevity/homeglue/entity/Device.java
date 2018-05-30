@@ -9,7 +9,7 @@ package net.forlevity.homeglue.entity;
 import com.google.common.collect.ImmutableMap;
 import lombok.*;
 import lombok.experimental.Accessors;
-import net.forlevity.homeglue.sink.DeviceStatus;
+import net.forlevity.homeglue.device.DeviceStatus;
 import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;

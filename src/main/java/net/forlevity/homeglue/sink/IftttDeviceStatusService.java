@@ -10,8 +10,9 @@ import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
+import net.forlevity.homeglue.device.DeviceStatusChange;
 import net.forlevity.homeglue.ifttt.IftttMakerWebhookClient;
-import net.forlevity.homeglue.util.QueueProcessingThread;
+import net.forlevity.homeglue.util.QueueWorkerThread;
 
 import java.util.function.Consumer;
 
@@ -25,12 +26,12 @@ public class IftttDeviceStatusService extends AbstractIdleService implements Con
     private static final String DEVICE_STATUS_EVENT = "homeglue_device_status";
 
     private final IftttMakerWebhookClient webhookClient;
-    private final QueueProcessingThread<DeviceStatusChange> senderThread;
+    private final QueueWorkerThread<DeviceStatusChange> senderThread;
 
     @Inject
     public IftttDeviceStatusService(IftttMakerWebhookClient webhookClient) {
         this.webhookClient = webhookClient;
-        senderThread = new QueueProcessingThread<>(DeviceStatusChange.class, this::trigger);
+        senderThread = new QueueWorkerThread<>(DeviceStatusChange.class, this::trigger);
     }
 
     private void trigger(DeviceStatusChange newStatus) {

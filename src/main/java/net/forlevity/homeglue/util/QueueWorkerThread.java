@@ -26,7 +26,7 @@ import java.util.function.Consumer;
  */
 @Log4j2
 @Accessors(chain = true)
-public class QueueProcessingThread<T> extends Thread implements Consumer<T> {
+public class QueueWorkerThread<T> extends Thread implements Consumer<T> {
 
     private static final int DEFAULT_QUEUE_SIZE_ALERT_THRESHOLD = 50;
     private static final int DEFAULT_MIN_SECS_BETWEEN_QUEUE_SIZE_ALERTS = 5;
@@ -59,7 +59,7 @@ public class QueueProcessingThread<T> extends Thread implements Consumer<T> {
      * @param processor processor to call on items
      */
     @SuppressWarnings("unchecked")
-    public QueueProcessingThread(Class<T> itemType, Consumer<T> processor) {
+    public QueueWorkerThread(Class<T> itemType, Consumer<T> processor) {
         this.itemType = itemType;
         this.queue = new LinkedBlockingQueue<>();
         this.processor = processor;
@@ -75,7 +75,7 @@ public class QueueProcessingThread<T> extends Thread implements Consumer<T> {
                 interrupt();
             }
             if (isInterrupted()) {
-                log.debug("interrupted, exiting {} queue processor", itemType.getSimpleName());
+                log.debug("interrupted, exiting {} queue worker", itemType.getSimpleName());
                 running = false;
             }
         }
@@ -99,7 +99,7 @@ public class QueueProcessingThread<T> extends Thread implements Consumer<T> {
         try {
             processor.accept(entry);
         } catch (RuntimeException e) {
-            log.error("unexpected exception in {} queue processor (continuing)", itemType.getSimpleName(), e);
+            log.error("unexpected exception in {} queue worker (continuing)", itemType.getSimpleName(), e);
         }
         return !queue.isEmpty() && !isInterrupted();
     }

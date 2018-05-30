@@ -11,8 +11,8 @@ import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractUpnpDeviceManager;
 import net.forlevity.homeglue.device.DeviceConnector;
+import net.forlevity.homeglue.device.DeviceStatusChange;
 import net.forlevity.homeglue.persistence.PersistenceService;
-import net.forlevity.homeglue.sink.DeviceStatusChange;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 

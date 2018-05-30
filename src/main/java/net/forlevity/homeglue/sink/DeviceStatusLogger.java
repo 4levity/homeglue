@@ -8,6 +8,7 @@ package net.forlevity.homeglue.sink;
 
 import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
+import net.forlevity.homeglue.device.DeviceStatusChange;
 
 import java.util.Map;
 import java.util.function.Consumer;

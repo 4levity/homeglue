@@ -15,9 +15,7 @@ import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.entity.Device;
 import net.forlevity.homeglue.persistence.PersistenceService;
-import net.forlevity.homeglue.sink.DeviceStatus;
-import net.forlevity.homeglue.sink.DeviceStatusChange;
-import net.forlevity.homeglue.util.QueueProcessingThread;
+import net.forlevity.homeglue.util.QueueWorkerThread;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -34,13 +32,13 @@ public abstract class AbstractDeviceManager extends AbstractIdleService implemen
     private final Map<String, DeviceConnector> devices = new HashMap<>();
     private final PersistenceService persistenceService;
     private final Consumer<DeviceStatusChange> deviceStatusChangeConsumer;
-    private final QueueProcessingThread<DeviceStatus> deviceStatusProcessor;
+    private final QueueWorkerThread<DeviceStatus> deviceStatusProcessor;
 
     protected AbstractDeviceManager(PersistenceService persistenceService,
                                     Consumer<DeviceStatusChange> deviceStatusChangeConsumer) {
         this.persistenceService = persistenceService;
         this.deviceStatusChangeConsumer = deviceStatusChangeConsumer;
-        this.deviceStatusProcessor = new QueueProcessingThread<>(DeviceStatus.class, this::processStatus);
+        this.deviceStatusProcessor = new QueueWorkerThread<>(DeviceStatus.class, this::processStatus);
     }
 
     @Override
@@ -57,7 +55,8 @@ public abstract class AbstractDeviceManager extends AbstractIdleService implemen
     /**
      * Subclass should call this method once on the first connection to a
      * device since the application started, and any time the connection
-     * status or other details changes.
+     * status or device details might have changed. Devices may re-submit
+     * unchanged status periodically but should limit the rate.
      *
      * @param device the device
      */

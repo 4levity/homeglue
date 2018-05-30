@@ -6,8 +6,6 @@
 
 package net.forlevity.homeglue.device;
 
-import net.forlevity.homeglue.sink.PowerMeterData;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;

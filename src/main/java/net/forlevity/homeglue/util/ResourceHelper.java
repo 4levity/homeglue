@@ -36,7 +36,7 @@ public class ResourceHelper {
     /**
      * Load one or more resource *.properties files by name. Files load in order (later items overwrite earlier).
      *
-     * @param resourceName name
+     * @param resourceNames names
      * @return properties
      */
     public static Properties resourceAsProperties(String... resourceNames) {
