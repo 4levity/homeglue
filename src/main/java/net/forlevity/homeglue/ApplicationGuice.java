@@ -49,18 +49,18 @@ public class ApplicationGuice extends AbstractModule {
         // device status change: exchange
         bind(new TypeLiteral<Consumer<DeviceStatusChange>>(){})
                 .to(new TypeLiteral<Exchange<DeviceStatusChange>>(){}).in(Scopes.SINGLETON);
+        // device status change: consumers
         Multibinder<Consumer<DeviceStatusChange>> statusSinkBinder =
                 Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<DeviceStatusChange>>(){});
-        // device status change: consumers
         statusSinkBinder.addBinding().to(DeviceStatusLogger.class);
         statusSinkBinder.addBinding().to(IftttDeviceStatusService.class);
 
         // telemetry: exchange
         bind(new TypeLiteral<Consumer<PowerMeterData>>(){})
                 .to(new TypeLiteral<Exchange<PowerMeterData>>(){}).in(Scopes.SINGLETON);
+        // telemetry: consumers
         Multibinder<Consumer<PowerMeterData>> telemetrySinkBinder =
                 Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<PowerMeterData>>(){});
-        // telemetry: consumers
         telemetrySinkBinder.addBinding().to(TelemetryLogger.class);
 
         // upnp

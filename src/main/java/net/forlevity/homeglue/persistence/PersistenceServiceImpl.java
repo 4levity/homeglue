@@ -28,6 +28,9 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 /**
@@ -39,9 +42,11 @@ public class PersistenceServiceImpl extends AbstractIdleService implements Persi
 
     private final Integer h2WebserverPort;
     private final Properties settings;
+    private final ReadWriteLock safeShutdown = new ReentrantReadWriteLock();
 
     private SessionFactory sessionFactory = null;
     private Server h2WebServer = null;
+    private boolean stopped = false;
 
     @Inject
     PersistenceServiceImpl(@Named("persistence.settings.resource") String persistenceSettingsResource) {
@@ -98,11 +103,16 @@ public class PersistenceServiceImpl extends AbstractIdleService implements Persi
 
     @VisibleForTesting
     void stop() {
-        if (h2WebServer != null && h2WebServer.isRunning(false)) {
-            h2WebServer.stop();
-            h2WebServer = null;
+        if (!stopped) {
+            stopped = true;
+            if (h2WebServer != null && h2WebServer.isRunning(false)) {
+                h2WebServer.stop();
+                h2WebServer = null;
+            }
+            safeShutdown.writeLock().lock(); // wait for in-flight transactions (never unlocks)
+            sessionFactory.close();
+            sessionFactory = null;
         }
-        sessionFactory = null;
     }
 
     @Override
@@ -110,15 +120,21 @@ public class PersistenceServiceImpl extends AbstractIdleService implements Persi
         if (sessionFactory == null) {
             throw new IllegalStateException("sessionFactory not initialized");
         }
-        Session session = sessionFactory.openSession();
-        session.beginTransaction();
+        Lock lock = safeShutdown.readLock();
+        lock.lock();
         RT result;
-        boolean completed = false;
         try {
-            result = operation.apply(session);
-            completed = true;
+            Session session = sessionFactory.openSession();
+            session.beginTransaction();
+            boolean completed = false;
+            try {
+                result = operation.apply(session);
+                completed = true;
+            } finally {
+                finish(completed, session);
+            }
         } finally {
-            finish(completed, session);
+            lock.unlock();
         }
         return result;
     }

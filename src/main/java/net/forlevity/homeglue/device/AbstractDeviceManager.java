@@ -13,8 +13,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
+import net.forlevity.homeglue.entity.Device;
+import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sink.DeviceStatus;
 import net.forlevity.homeglue.sink.DeviceStatusChange;
+import net.forlevity.homeglue.util.QueueProcessingThread;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,11 +32,26 @@ import java.util.function.Consumer;
 public abstract class AbstractDeviceManager extends AbstractIdleService implements DeviceManager {
 
     private final Map<String, DeviceConnector> devices = new HashMap<>();
-    private final Map<String, DeviceStatusCopy> statusCache = new HashMap<>();
+    private final PersistenceService persistenceService;
     private final Consumer<DeviceStatusChange> deviceStatusChangeConsumer;
+    private final QueueProcessingThread<DeviceStatus> deviceStatusProcessor;
 
-    protected AbstractDeviceManager(Consumer<DeviceStatusChange> deviceStatusChangeConsumer) {
+    protected AbstractDeviceManager(PersistenceService persistenceService,
+                                    Consumer<DeviceStatusChange> deviceStatusChangeConsumer) {
+        this.persistenceService = persistenceService;
         this.deviceStatusChangeConsumer = deviceStatusChangeConsumer;
+        this.deviceStatusProcessor = new QueueProcessingThread<>(DeviceStatus.class, this::processStatus);
+    }
+
+    @Override
+    protected void startUp() throws Exception {
+        persistenceService.awaitRunning();
+        deviceStatusProcessor.start();
+    }
+
+    @Override
+    protected void shutDown() throws Exception {
+        deviceStatusProcessor.interrupt();
     }
 
     /**
@@ -45,27 +63,7 @@ public abstract class AbstractDeviceManager extends AbstractIdleService implemen
      */
     protected final void updateStatus(DeviceConnector device) {
         updateDeviceMap(device);
-        processStatus(device);
-    }
-
-    @Synchronized("statusCache")
-    private void processStatus(DeviceStatus deviceStatus) {
-        String deviceId = deviceStatus.getDeviceId();
-        DeviceStatusCopy newStatus = new DeviceStatusCopy(deviceStatus);
-        DeviceStatus cached = statusCache.get(deviceId);
-        boolean changed = false;
-        if (cached == null) {
-            // TODO: check persistent storage
-            changed = true;
-        } else if (!cached.equals(newStatus)) {
-            changed = true;
-        }
-        if (changed) {
-            statusCache.put(deviceId, newStatus);
-            deviceStatusChangeConsumer.accept(newStatus);
-            // TODO: update persistent storage
-        }
-
+        deviceStatusProcessor.accept(device);
     }
 
     @Override
@@ -76,10 +74,45 @@ public abstract class AbstractDeviceManager extends AbstractIdleService implemen
 
     @Synchronized("devices")
     private void updateDeviceMap(DeviceConnector device) {
-        if (devices.containsKey(device.getDeviceId())) {
-            log.warn("more than one device registered with deviceId = {}", device.getDeviceId());
+        DeviceConnector existingDevice = devices.get(device.getDeviceId());
+        if (existingDevice != null && existingDevice != device) {
+            log.warn("there is more than one DeviceConnector instance with deviceId = {}", device.getDeviceId());
         }
         devices.put(device.getDeviceId(), device);
+    }
+
+    /**
+     * Runs on queue processing thread.
+     *
+     * @param reportedStatus status
+     */
+    private void processStatus(DeviceStatus reportedStatus) {
+        if (!isRunning()) {
+            return;
+        }
+        String deviceId = reportedStatus.getDeviceId();
+        DeviceStatusChange statusChange = persistenceService.exec(session -> {
+            Device device = session.bySimpleNaturalId(Device.class).load(deviceId);
+            boolean changed = false;
+            DeviceStatusChange result = null;
+            if (device == null) {
+                log.info("device first detection: {}", reportedStatus);
+                device = Device.from(reportedStatus);
+                changed = true;
+            } else if (!device.sameAs(reportedStatus)) {
+                device.setConnected(reportedStatus.isConnected());
+                device.setDeviceDetails(reportedStatus.getDeviceDetails());
+                changed = true;
+            }
+            if (changed) {
+                session.saveOrUpdate(device);
+                result = new DeviceStatusCopy(reportedStatus);
+            }
+            return result;
+        });
+        if (statusChange != null) {
+            deviceStatusChangeConsumer.accept(statusChange);
+        }
     }
 
     @Getter

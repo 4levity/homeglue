@@ -6,18 +6,23 @@
 
 package net.forlevity.homeglue.entity;
 
+import com.google.common.collect.ImmutableMap;
 import lombok.*;
 import lombok.experimental.Accessors;
+import net.forlevity.homeglue.sink.DeviceStatus;
 import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity
 @Table(name = "devices")
 @NoArgsConstructor
 @Accessors(chain = true)
 @ToString
-public class Device {
+@EqualsAndHashCode(of = {"deviceId"})
+public class Device implements DeviceStatus {
 
     @Id
     @GeneratedValue
@@ -27,8 +32,36 @@ public class Device {
     private Long id;
 
     @NaturalId(mutable = false)
-    @Column(name = "code", nullable = false, unique = true)
+    @Column(name = "device_id", nullable = false, unique = true)
     @Getter
     @Setter(AccessLevel.PRIVATE)
     private String deviceId;
+
+    @Column(name = "connected", nullable = false)
+    @Getter
+    @Setter
+    private boolean connected;
+
+    @ElementCollection
+    @MapKeyColumn(name="name")
+    @Column(name="value")
+    @CollectionTable(name="device_details", joinColumns=@JoinColumn(name="id"))
+    private Map<String, String> deviceDetails = new HashMap<>();
+
+    @Override
+    public Map<String, String> getDeviceDetails() {
+        return ImmutableMap.copyOf(deviceDetails);
+    }
+
+    public void setDeviceDetails(Map<String, String> deviceDetails) {
+        this.deviceDetails = new HashMap<>(deviceDetails);
+    }
+
+    public static Device from(DeviceStatus deviceStatus) {
+        Device device = new Device();
+        device.setDeviceId(deviceStatus.getDeviceId());
+        device.setConnected(deviceStatus.isConnected());
+        device.setDeviceDetails(deviceStatus.getDeviceDetails());
+        return device;
+    }
 }

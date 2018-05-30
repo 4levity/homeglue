@@ -9,6 +9,7 @@ package net.forlevity.homeglue.device;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sink.DeviceStatusChange;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
@@ -23,24 +24,27 @@ public abstract class AbstractUpnpDeviceManager extends AbstractDeviceManager
 
     @VisibleForTesting
     @Getter
-    private final QueueProcessingThread<SsdpServiceDefinition> queueProcessingThread =
+    private final QueueProcessingThread<SsdpServiceDefinition> discoveryProcessor =
             new QueueProcessingThread<>(SsdpServiceDefinition.class, this);
 
-    protected AbstractUpnpDeviceManager(Consumer<DeviceStatusChange> deviceStatusChangeSink,
+    protected AbstractUpnpDeviceManager(PersistenceService persistenceService,
+                                        Consumer<DeviceStatusChange> deviceStatusChangeSink,
                                         SsdpDiscoveryService ssdpDiscoveryService,
                                         Predicate<SsdpServiceDefinition> serviceMatcher,
                                         int priority) {
-        super(deviceStatusChangeSink);
-        ssdpDiscoveryService.registerSsdp(serviceMatcher, queueProcessingThread::accept, priority);
+        super(persistenceService, deviceStatusChangeSink);
+        ssdpDiscoveryService.registerSsdp(serviceMatcher, discoveryProcessor::accept, priority);
     }
 
     @Override
     protected void startUp() throws Exception {
-        queueProcessingThread.start();
+        super.startUp();
+        discoveryProcessor.start();
     }
 
     @Override
     protected void shutDown() throws Exception {
-        queueProcessingThread.interrupt();
+        discoveryProcessor.interrupt();
+        super.shutDown();
     }
 }

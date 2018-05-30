@@ -13,6 +13,7 @@ import com.google.inject.name.Named;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractUpnpDeviceManager;
 import net.forlevity.homeglue.device.PowerMeterConnector;
+import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sink.DeviceStatusChange;
 import net.forlevity.homeglue.sink.PowerMeterData;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
@@ -46,12 +47,13 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
     private final Object meterReadLock = new Object();
 
     @Inject
-    WemoInsightManager(SsdpDiscoveryService ssdpDiscoveryService,
+    WemoInsightManager(PersistenceService persistenceService,
+                       SsdpDiscoveryService ssdpDiscoveryService,
                        WemoInsightConnectorFactory connectorFactory,
                        Consumer<DeviceStatusChange> deviceStatusChangeSink,
                        Consumer<PowerMeterData> telemetrySink,
                        @Named("wemo.poll.period.millis") int pollPeriodMillis) {
-        super(deviceStatusChangeSink, ssdpDiscoveryService,
+        super(persistenceService, deviceStatusChangeSink, ssdpDiscoveryService,
                 service -> (SSDP_SERIALNUMBER.matcher(service.getSerialNumber()).matches()
                         && SSDP_LOCATION.matcher(service.getLocation()).matches()), 1);
         this.connectorFactory = connectorFactory;
@@ -104,7 +106,9 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
 
     private void startTimer() {
         poll(); // first poll blocking on discovery thread, then start timer
-        executor.scheduleAtFixedRate(this::poll, pollPeriodMillis, pollPeriodMillis, TimeUnit.MILLISECONDS);
+        if (isRunning()) {
+            executor.scheduleAtFixedRate(this::poll, pollPeriodMillis, pollPeriodMillis, TimeUnit.MILLISECONDS);
+        }
     }
 
     /**

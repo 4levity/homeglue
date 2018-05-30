@@ -8,6 +8,7 @@ package net.forlevity.homeglue.device.wemo;
 
 import com.google.common.collect.ImmutableSet;
 import net.forlevity.homeglue.device.LastTelemetryCache;
+import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sim.SimulatedWemo;
 import net.forlevity.homeglue.sink.DeviceStatusLogger;
@@ -22,6 +23,7 @@ import java.time.Instant;
 import java.util.function.Consumer;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 
 public class WemoInsightManagerTest extends SimulatedNetworkTests {
 
@@ -40,9 +42,9 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
         assertEquals(0, manager.getDevices().size());
 
         ssdp.runOnce(); // run SSDP search
-        assertEquals(2, manager.getQueueProcessingThread().getQueue().size());
+        assertEquals(2, manager.getDiscoveryProcessor().getQueue().size());
         // two unique devices should have been found
-        manager.getQueueProcessingThread().processQueue();
+        manager.getDiscoveryProcessor().processQueue();
         assertEquals(2, manager.getDevices().size());
 
         // devices have been connected to simulators
@@ -60,7 +62,7 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
         ssdp = new SsdpDiscoveryServiceImpl(network, 0, 0, 0, 0);
         telemetryCache = new LastTelemetryCache();
         Consumer<PowerMeterData> exchange = new Exchange<>(ImmutableSet.of(telemetryCache, new TelemetryLogger()));
-        manager = new WemoInsightManager(ssdp, factory, new DeviceStatusLogger(), exchange, 2500);
+        manager = new WemoInsightManager(mock(PersistenceService.class), ssdp, factory, new DeviceStatusLogger(), exchange, 2500);
     }
 
     @Test
@@ -71,8 +73,8 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
         assertEquals(12, macAddress.length());
         makeWemoManager(simulator);
         ssdp.runOnce();
-        assertEquals(1, manager.getQueueProcessingThread().getQueue().size());
-        manager.getQueueProcessingThread().processQueue();
+        assertEquals(1, manager.getDiscoveryProcessor().getQueue().size());
+        manager.getDiscoveryProcessor().processQueue();
         assertEquals(1, manager.getDevices().size());
         WemoInsightConnector device = (WemoInsightConnector) manager.getDevices().iterator().next();
         assertEquals(macAddress, device.getDeviceId());
@@ -91,7 +93,7 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
 
         // now we rescan and device manager should pick up the new port
         ssdp.runOnce();
-        manager.getQueueProcessingThread().processQueue();
+        manager.getDiscoveryProcessor().processQueue();
         assertEquals(1, manager.getDevices().size());
         device = (WemoInsightConnector) manager.getDevices().iterator().next();
         assertEquals(3000, device.getPort());

@@ -18,6 +18,7 @@ import net.forlevity.homeglue.device.DeviceManager;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sink.IftttDeviceStatusService;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
+import org.apache.logging.log4j.LogManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,7 @@ public class HomeglueApplication {
     @VisibleForTesting
     @Getter(AccessLevel.PACKAGE)
     private final ServiceManager serviceManager;
+    private volatile boolean stopped = false;
 
     @Inject
     public HomeglueApplication(
@@ -50,7 +52,7 @@ public class HomeglueApplication {
     }
 
     void start() {
-        Runtime.getRuntime().addShutdownHook(new Thread(HomeglueApplication.this::stop));
+        Runtime.getRuntime().addShutdownHook(new Thread(HomeglueApplication.this::shutdownHook));
         serviceManager.startAsync().awaitHealthy();
         String services = serviceManager.servicesByState().values().stream()
                 .map(service -> (service.getClass().getSimpleName() + "=" + service.state().toString()))
@@ -59,8 +61,16 @@ public class HomeglueApplication {
     }
 
     void stop() {
-        System.out.print(" shutting down...");
-        serviceManager.stopAsync().awaitStopped();
-        System.out.println(" shutdown complete.");
+        if (!stopped) {
+            stopped = true;
+            System.out.print(" shutting down...");
+            serviceManager.stopAsync().awaitStopped();
+            System.out.println(" shutdown complete.");
+        }
+    }
+
+    private void shutdownHook() {
+        stop();
+        LogManager.shutdown();
     }
 }

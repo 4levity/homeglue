@@ -8,6 +8,7 @@ package net.forlevity.homeglue.device.generic_upnp;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import lombok.ToString;
 import net.forlevity.homeglue.device.AbstractSoapDeviceConnector;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
@@ -19,6 +20,7 @@ import java.util.Set;
 /**
  * A generic UPnP device is a collection of 1+ services detected at a particular host address.
  */
+@ToString(of = {"hostAddress"}, callSuper = true)
 public class GenericUpnpConnector extends AbstractSoapDeviceConnector {
 
     private final InetAddress hostAddress;

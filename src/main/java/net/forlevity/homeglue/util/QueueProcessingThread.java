@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 @Accessors(chain = true)
 public class QueueProcessingThread<T> extends Thread implements Consumer<T> {
 
-    private static final int DEFAULT_QUEUE_SIZE_ALERT_THRESHOLD = 5;
+    private static final int DEFAULT_QUEUE_SIZE_ALERT_THRESHOLD = 50;
     private static final int DEFAULT_MIN_SECS_BETWEEN_QUEUE_SIZE_ALERTS = 5;
 
     @Getter
@@ -87,7 +87,8 @@ public class QueueProcessingThread<T> extends Thread implements Consumer<T> {
             int size = queue.size();
             Instant now = Instant.now();
             if (size > getQueueSizeAlertThreshold() && suppressQueueLengthAlertUntil.isBefore(now)) {
-                log.warn("queue length alert! {} > {}", size, DEFAULT_QUEUE_SIZE_ALERT_THRESHOLD);
+                log.warn("queue length alert for {}! {} > {}",
+                        itemType.getSimpleName(), size, DEFAULT_QUEUE_SIZE_ALERT_THRESHOLD);
                 suppressQueueLengthAlertUntil = now.plusSeconds(minSecondsBetweenQueueLengthAlerts);
             }
         }
