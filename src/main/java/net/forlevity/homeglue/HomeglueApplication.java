@@ -71,6 +71,7 @@ public class HomeglueApplication {
 
     private void shutdownHook() {
         stop();
+        // log4j2.yaml disables log4j shutdown hook, so that we can shut it down manually after everything's done
         LogManager.shutdown();
     }
 }

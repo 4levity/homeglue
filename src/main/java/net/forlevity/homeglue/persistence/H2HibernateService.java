@@ -24,21 +24,25 @@ import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
 import javax.persistence.Entity;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * PersistenceService implementation.
+ * PersistenceService implementation using H2 embedded.
  */
 @Log4j2
 @Singleton
-public class PersistenceServiceImpl extends AbstractIdleService implements PersistenceService {
+public class H2HibernateService extends AbstractIdleService implements PersistenceService {
 
     private final Integer h2WebserverPort;
     private final Properties settings;
@@ -49,7 +53,7 @@ public class PersistenceServiceImpl extends AbstractIdleService implements Persi
     private boolean stopped = false;
 
     @Inject
-    PersistenceServiceImpl(@Named("persistence.settings.resource") String persistenceSettingsResource) {
+    H2HibernateService(@Named("persistence.settings.resource") String persistenceSettingsResource) {
         settings = ResourceHelper.resourceAsProperties(persistenceSettingsResource);
         boolean h2WebserverEnable = Boolean.valueOf(settings.getProperty("h2.webserver.enable"));
         if (h2WebserverEnable) {
@@ -99,6 +103,8 @@ public class PersistenceServiceImpl extends AbstractIdleService implements Persi
         String classNames = entityClasses.stream().map(name -> classInfoMap.get(name).getClassRef().getSimpleName())
                 .collect(Collectors.joining(", "));
         log.info("Persistence mapped classes [{}] using {}", classNames, getJdbcUrl());
+
+
     }
 
     @VisibleForTesting
@@ -110,31 +116,40 @@ public class PersistenceServiceImpl extends AbstractIdleService implements Persi
                 h2WebServer = null;
             }
             safeShutdown.writeLock().lock(); // wait for in-flight transactions (never unlocks)
-            sessionFactory.close();
-            sessionFactory = null;
+            if (sessionFactory == null) {
+                log.error("stop() called but no sessionFactory exists");
+            } else {
+                sessionFactory.close();
+                sessionFactory = null;
+                h2Shutdown();
+            }
         }
     }
 
     @Override
-    public <RT> RT exec(net.forlevity.homeglue.persistence.Transaction<RT> operation) {
+    public <RT> RT exec(Function<Session, RT> operation) {
         if (sessionFactory == null) {
             throw new IllegalStateException("sessionFactory not initialized");
         }
         Lock lock = safeShutdown.readLock();
         lock.lock();
-        RT result;
         try {
-            Session session = sessionFactory.openSession();
-            session.beginTransaction();
-            boolean completed = false;
-            try {
-                result = operation.apply(session);
-                completed = true;
-            } finally {
-                finish(completed, session);
-            }
+            return unlockedExec(operation);
         } finally {
             lock.unlock();
+        }
+    }
+
+    private <RT> RT unlockedExec(Function<Session, RT> operation) {
+        RT result;
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+        boolean completed = false;
+        try {
+            result = operation.apply(session);
+            completed = true;
+        } finally {
+            finish(completed, session);
         }
         return result;
     }
@@ -179,5 +194,35 @@ public class PersistenceServiceImpl extends AbstractIdleService implements Persi
             session.doWork(connection -> url[0] = connection.getMetaData().getURL());
             return url[0];
         });
+    }
+
+    private void h2Shutdown() {
+        String dbUrl = settings.getProperty("hibernate.connection.url");
+        if (!dbUrl.toUpperCase().contains("DB_CLOSE_ON_EXIT=FALSE")) {
+            return; // we only need to do something if using H2 embedded with manual shutdown needed
+        }
+        String username = settings.getProperty("hibernate.connection.username");
+        String password = settings.getProperty("hibernate.connection.password");
+        Connection connection;
+        try {
+            connection = DriverManager.getConnection(dbUrl, username, password);
+        } catch (SQLException e) {
+            log.error("failed to connect to H2 to initiate clean shutdown!", e);
+            return;
+        }
+        Statement statement;
+        try {
+            statement = connection.createStatement();
+            statement.executeUpdate("SHUTDOWN");
+        } catch (SQLException e) {
+            log.error("failed to execute SHUTDOWN statement for clean H2 shutdown", e);
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                log.error("failed to close connection");
+            }
+        }
+        log.debug("H2 shutdown successful");
     }
 }

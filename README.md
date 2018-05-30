@@ -2,6 +2,7 @@
 
 Discover and connect to Belkin WeMo Insight plug power meters and retrieve data from them. 
 Also identifies other UPnP devices on the LAN, in order to monitor whether they are on or off.
+Integrates with IFTTT, and possibly other free cloud services in the future.
 
 See future development plans below. Issues and pull requests are welcome via GitHub. 
 
@@ -19,7 +20,7 @@ Known working:
 
 * Runs on Raspberry Pi (any model) or any other Linux/OS X/Windows PC with Java 8 and 256 MB RAM
 
-* Works with IFTTT Maker Webhooks
+* Works with IFTTT Maker Webhooks to report device status (more to come)
 
 ### Build + Use ###
 
@@ -53,14 +54,19 @@ products. 4Levity and Homeglue is not in any way affiliated with Belkin.
 ### Future plans ###
 
 * more tests 
+  * cover status change and storage
   * IOExceptions at various points
   * malformed XML at various points
-* store data (local SQL db, CSV file, AWS DynamoDB or other free cloud db)
+* support flexible appliance "on" detection by power thresholds (distinct from switch closed)
+* support opening/closing WeMo switch
+* local REST API for device data and control
+* do more with IFTTT webhooks - multiple events, incoming hooks for device controls
+* automatically notify me and turn off my coffee maker\* if left on\*\*
+* detect on/off status of generic UPnP devices
+* store raw telemetry data (local SQL db, CSV file, Google Sheets, AWS DynamoDB or other free cloud db)
 * handle read errors/offline devices
-* support turning switch on/off
-* automatically turn off my coffee maker\* if left on\*\*
 * auto versioning (major/branch/build)
-* user interface
+* user interface, configuration in database
 * publish packaged app from Travis CI
 * support other home metering and automation devices
 * style and static analysis checks

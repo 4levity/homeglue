@@ -17,8 +17,8 @@ import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.http.SimpleHttpClientImpl;
 import net.forlevity.homeglue.ifttt.IftttMakerWebhookClient;
 import net.forlevity.homeglue.ifttt.IftttMakerWebhookClientImpl;
+import net.forlevity.homeglue.persistence.H2HibernateService;
 import net.forlevity.homeglue.persistence.PersistenceService;
-import net.forlevity.homeglue.persistence.PersistenceServiceImpl;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sink.*;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
@@ -67,7 +67,7 @@ public class ApplicationGuice extends AbstractModule {
         bind(SsdpDiscoveryService.class).to(SsdpDiscoveryServiceImpl.class);
 
         // local data storage
-        bind(PersistenceService.class).to(PersistenceServiceImpl.class);
+        bind(PersistenceService.class).to(H2HibernateService.class);
 
         // ifttt
         bind(IftttMakerWebhookClient.class).to(IftttMakerWebhookClientImpl.class);

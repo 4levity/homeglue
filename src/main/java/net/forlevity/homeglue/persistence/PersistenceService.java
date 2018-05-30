@@ -8,11 +8,14 @@ package net.forlevity.homeglue.persistence;
 
 import com.google.common.util.concurrent.Service;
 import com.google.inject.ImplementedBy;
+import org.hibernate.Session;
+
+import java.util.function.Function;
 
 /**
  * PersistenceService service to execute work units in a managed Hibernate session.
  */
-@ImplementedBy(PersistenceServiceImpl.class)
+@ImplementedBy(H2HibernateService.class)
 public interface PersistenceService extends Service {
 
     /**
@@ -25,5 +28,5 @@ public interface PersistenceService extends Service {
      * @param <RT> return type of work unit
      * @return result of work
      */
-    <RT> RT exec(net.forlevity.homeglue.persistence.Transaction<RT> operation);
+    <RT> RT exec(Function<Session, RT> operation);
 }
