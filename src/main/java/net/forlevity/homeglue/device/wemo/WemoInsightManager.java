@@ -12,7 +12,6 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractUpnpDeviceManager;
-import net.forlevity.homeglue.device.PowerMeterConnector;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sink.DeviceStatusChange;
 import net.forlevity.homeglue.sink.PowerMeterData;
@@ -61,6 +60,11 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
         this.pollPeriodMillis = pollPeriodMillis;
     }
 
+    /**
+     * Handle incoming WeMo Insight devices discovered from UPnP/SSDP service.
+     *
+     * @param ssdpWemo discovered device
+     */
     @Override
     public void accept(SsdpServiceDefinition ssdpWemo) {
         Matcher location = SSDP_LOCATION.matcher(ssdpWemo.getLocation());
@@ -127,18 +131,18 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
         return polled[0];
     }
 
-    private boolean poll(PowerMeterConnector meter) {
+    private boolean poll(WemoInsightConnector wemo) {
         PowerMeterData read = null;
         try {
-            read = meter.read();
+            read = wemo.read();
         } catch(RuntimeException e) {
-            log.error("unexpected exception during poll of {} (continuing)", meter, e);
+            log.error("unexpected exception during poll of {} (continuing)", wemo, e);
         }
         // TODO: handle failure to read meter
         try {
-            telemetrySink.accept(read == null ? new PowerMeterData(meter.getDeviceId(), null) : read);
+            telemetrySink.accept(read == null ? new PowerMeterData(wemo.getDeviceId(), null) : read);
         } catch(RuntimeException e) {
-            log.error("unexpected exception during storage of telemetry for {} (continuing)", meter, e);
+            log.error("unexpected exception during storage of telemetry for {} (continuing)", wemo, e);
         }
         return read != null;
     }

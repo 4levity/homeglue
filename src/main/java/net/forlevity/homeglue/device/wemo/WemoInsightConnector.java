@@ -15,7 +15,6 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractSoapDeviceConnector;
-import net.forlevity.homeglue.device.PowerMeterConnector;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.sink.PowerMeterData;
 import org.w3c.dom.Document;
@@ -28,7 +27,7 @@ import java.io.IOException;
 @Log4j2
 @ToString(of = {"hostAddress"}, callSuper = true)
 @EqualsAndHashCode(of = {"hostAddress", "port"}, callSuper = false)
-public class WemoInsightConnector extends AbstractSoapDeviceConnector implements PowerMeterConnector {
+public class WemoInsightConnector extends AbstractSoapDeviceConnector {
 
     private static final String INSIGHT_SERVICE_URN = "urn:Belkin:service:insight:1";
     private final String hostAddress;
@@ -85,8 +84,7 @@ public class WemoInsightConnector extends AbstractSoapDeviceConnector implements
         return success;
     }
 
-    @Override
-    public PowerMeterData read() {
+    PowerMeterData read() {
         PowerMeterData result = null;
         Document doc = execInsightSoapRequest("GetInsightParams");
         if (doc != null) {
