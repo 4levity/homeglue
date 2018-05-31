@@ -22,7 +22,7 @@ import java.util.Map;
 @Accessors(chain = true)
 @ToString
 @EqualsAndHashCode(of = {"deviceId"})
-public class Device implements DeviceStatus {
+public class Device {
 
     @Id
     @GeneratedValue
@@ -48,7 +48,6 @@ public class Device implements DeviceStatus {
     @CollectionTable(name="device_details", joinColumns=@JoinColumn(name="id"))
     private Map<String, String> deviceDetails = new HashMap<>();
 
-    @Override
     public Map<String, String> getDeviceDetails() {
         return ImmutableMap.copyOf(deviceDetails);
     }

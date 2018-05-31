@@ -59,7 +59,7 @@ public class GenericUpnpManagerService extends QueueWorkerService<SsdpServiceDef
                 devices.put(hostAddress, genericUpnpDevice);
                 log.info ("other UPnP devices at: {}", Arrays.toString(devices.keySet().toArray()));
                 if (!genericUpnpDevice.getDeviceId().equals(DeviceConnector.DEVICE_ID_UNKNOWN)) {
-                    deviceStatusSink.accept(genericUpnpDevice); // register if identifiable
+                    deviceStatusSink.accept(new DeviceStatus(genericUpnpDevice)); // register if identifiable
                 }
             }
         } else {

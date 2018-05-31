@@ -9,7 +9,7 @@ package net.forlevity.homeglue.device;
 /**
  * Represents a connection to a device like a meter/switch/appliance/etc.
  */
-public interface DeviceConnector extends DeviceStatus {
+public interface DeviceConnector extends DeviceInfo {
 
     /**
      * Attempt to make a connection to the device and retrieve metadata about it.

@@ -47,6 +47,7 @@ public class GenericUpnpConnector implements DeviceConnector {
 
     @Override
     public Map<String, String> getDeviceDetails() {
+        // TODO: expose UPnP service information
         return ImmutableMap.of();
     }
 

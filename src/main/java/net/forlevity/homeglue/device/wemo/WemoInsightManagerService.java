@@ -97,7 +97,7 @@ public class WemoInsightManagerService extends QueueWorkerService<SsdpServiceDef
                 log.info("connected to Insight meter at {}:{}", ipAddress, port);
                 boolean firstDevice = devices.isEmpty();
                 devices.put(ipAddress, newConnector);
-                deviceStatusSink.accept(newConnector);
+                deviceStatusSink.accept(new DeviceStatus(newConnector));
                 if (firstDevice) {
                     // as soon as the first device is found, start polling
                     startTimer();
