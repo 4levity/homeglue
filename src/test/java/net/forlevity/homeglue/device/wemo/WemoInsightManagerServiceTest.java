@@ -15,7 +15,7 @@ import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sim.SimulatedWemo;
 import net.forlevity.homeglue.sink.TelemetryLogger;
 import net.forlevity.homeglue.testing.SimulatedNetworkTests;
-import net.forlevity.homeglue.upnp.SsdpDiscoveryServiceImpl;
+import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.util.FanoutExchange;
 import org.junit.Test;
 
@@ -29,7 +29,7 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
 
     SimulatedNetwork network;
     WemoInsightManagerService manager;
-    SsdpDiscoveryServiceImpl ssdp;
+    SsdpDiscoveryService ssdp;
     LastTelemetryCache telemetryCache;
 
     @Test
@@ -60,7 +60,7 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
         network = makeTestNetwork(wemos);
         SoapHelper soapHelper = new SoapHelper(network);
         WemoInsightConnectorFactory factory = (hostAddress, port) -> new WemoInsightConnector(soapHelper, hostAddress, port);
-        ssdp = new SsdpDiscoveryServiceImpl(network, 0, 0, 0, 0);
+        ssdp = new SsdpDiscoveryService(network, 0, 0, 0, 0);
         telemetryCache = new LastTelemetryCache();
         Consumer<PowerMeterData> exchange = new FanoutExchange<>(ImmutableSet.of(telemetryCache, new TelemetryLogger()));
         manager = new WemoInsightManagerService(ssdp, factory, status -> log.info("{}", status), exchange, 2500);

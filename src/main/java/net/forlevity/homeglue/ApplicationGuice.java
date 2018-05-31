@@ -24,7 +24,6 @@ import net.forlevity.homeglue.sink.DeviceEventLogger;
 import net.forlevity.homeglue.sink.IftttDeviceEventService;
 import net.forlevity.homeglue.sink.TelemetryLogger;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
-import net.forlevity.homeglue.upnp.SsdpDiscoveryServiceImpl;
 import net.forlevity.homeglue.upnp.SsdpSearcher;
 import net.forlevity.homeglue.upnp.SsdpSearcherImpl;
 import net.forlevity.homeglue.util.FanoutExchange;
@@ -70,7 +69,7 @@ public class ApplicationGuice extends AbstractModule {
         telemetrySinkBinder.addBinding().to(TelemetryLogger.class);
 
         // upnp
-        bind(SsdpDiscoveryService.class).to(SsdpDiscoveryServiceImpl.class);
+        bind(SsdpDiscoveryService.class);
 
         // local data storage
         bind(PersistenceService.class).to(H2HibernateService.class);

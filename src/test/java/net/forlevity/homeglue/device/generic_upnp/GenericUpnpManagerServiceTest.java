@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.testing.SimulatedNetworkTests;
-import net.forlevity.homeglue.upnp.SsdpDiscoveryServiceImpl;
+import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -22,7 +22,7 @@ public class GenericUpnpManagerServiceTest extends SimulatedNetworkTests {
     public void genericUpnpManagerServiceTest() throws InterruptedException {
         SimulatedNetwork network = makeTestNetwork();
         GenericUpnpConnectorFactory factory = GenericUpnpConnector::new;
-        SsdpDiscoveryServiceImpl ssdp = new SsdpDiscoveryServiceImpl(network, 0, 0, 0, 0);
+        SsdpDiscoveryService ssdp = new SsdpDiscoveryService(network, 0, 0, 0, 0);
         GenericUpnpManagerService manager = new GenericUpnpManagerService(ssdp, factory, status -> log.info("{}", status));
 
         // disable SSDP service discovery on one of our devices
