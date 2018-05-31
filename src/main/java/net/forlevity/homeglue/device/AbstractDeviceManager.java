@@ -7,19 +7,14 @@
 package net.forlevity.homeglue.device;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.AbstractIdleService;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.entity.Device;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.util.QueueWorkerThread;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -31,14 +26,14 @@ public abstract class AbstractDeviceManager extends AbstractIdleService implemen
 
     private final Map<String, DeviceConnector> devices = new HashMap<>();
     private final PersistenceService persistenceService;
-    private final Consumer<DeviceStatusChange> deviceStatusChangeConsumer;
-    private final QueueWorkerThread<DeviceStatus> deviceStatusProcessor;
+    private final Consumer<DeviceEvent> deviceEventConsumer;
+    private final QueueWorkerThread<DeviceConnector> deviceStatusProcessor;
 
     protected AbstractDeviceManager(PersistenceService persistenceService,
-                                    Consumer<DeviceStatusChange> deviceStatusChangeConsumer) {
+                                    Consumer<DeviceEvent> deviceEventConsumer) {
         this.persistenceService = persistenceService;
-        this.deviceStatusChangeConsumer = deviceStatusChangeConsumer;
-        this.deviceStatusProcessor = new QueueWorkerThread<>(DeviceStatus.class, this::processStatus);
+        this.deviceEventConsumer = deviceEventConsumer;
+        this.deviceStatusProcessor = new QueueWorkerThread<>(DeviceConnector.class, this::processStatus);
     }
 
     @Override
@@ -60,7 +55,7 @@ public abstract class AbstractDeviceManager extends AbstractIdleService implemen
      *
      * @param device the device
      */
-    protected final void updateStatus(DeviceConnector device) {
+    protected final void reportStatus(DeviceConnector device) {
         updateDeviceMap(device);
         deviceStatusProcessor.accept(device);
     }
@@ -83,49 +78,33 @@ public abstract class AbstractDeviceManager extends AbstractIdleService implemen
     /**
      * Runs on queue processing thread.
      *
-     * @param reportedStatus status
+     * @param newDeviceStatus device status
      */
-    private void processStatus(DeviceStatus reportedStatus) {
-        if (!isRunning()) {
-            return;
-        }
-        String deviceId = reportedStatus.getDeviceId();
-        DeviceStatusChange statusChange = persistenceService.exec(session -> {
+    private void processStatus(DeviceStatus newDeviceStatus) {
+        String deviceId = newDeviceStatus.getDeviceId();
+        List<DeviceEvent> newEvents = persistenceService.exec(session -> {
             Device device = session.bySimpleNaturalId(Device.class).load(deviceId);
-            boolean changed = false;
-            DeviceStatusChange result = null;
+            List<DeviceEvent> events = new ArrayList<>();
             if (device == null) {
-                log.info("device first detection: {}", reportedStatus);
-                device = Device.from(reportedStatus);
-                changed = true;
-            } else if (!device.sameAs(reportedStatus)) {
-                device.setConnected(reportedStatus.isConnected());
-                device.setDeviceDetails(reportedStatus.getDeviceDetails());
-                changed = true;
+                log.info("device first detection: {}", device);
+                device = Device.from(newDeviceStatus);
+                events.add(new DeviceEvent(deviceId, DeviceEvent.NEW_DEVICE, device.getDeviceDetails()));
+            } else {
+                if (device.isConnected() != newDeviceStatus.isConnected()) {
+                    device.setConnected(newDeviceStatus.isConnected());
+                    String event = device.isConnected() ? DeviceEvent.CONNECTED : DeviceEvent.CONNECTION_LOST;
+                    events.add(new DeviceEvent(deviceId, event));
+                }
+                if (!device.getDeviceDetails().equals(newDeviceStatus.getDeviceDetails())) {
+                    device.setDeviceDetails(newDeviceStatus.getDeviceDetails());
+                    events.add(new DeviceEvent(deviceId, DeviceEvent.DETAILS_CHANGED, device.getDeviceDetails()));
+                }
             }
-            if (changed) {
+            if (events.size() > 0) {
                 session.saveOrUpdate(device);
-                result = new DeviceStatusCopy(reportedStatus);
             }
-            return result;
+            return events;
         });
-        if (statusChange != null) {
-            deviceStatusChangeConsumer.accept(statusChange);
-        }
-    }
-
-    @Getter
-    @EqualsAndHashCode
-    private static class DeviceStatusCopy implements DeviceStatusChange {
-
-        String deviceId;
-        boolean connected;
-        Map<String, String> deviceDetails;
-
-        DeviceStatusCopy(DeviceStatus deviceStatus) {
-            this.deviceId = deviceStatus.getDeviceId();
-            this.connected = deviceStatus.isConnected();
-            this.deviceDetails = ImmutableMap.copyOf(deviceStatus.getDeviceDetails());
-        }
+        newEvents.forEach(deviceEventConsumer::accept);
     }
 }

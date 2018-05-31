@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
-import net.forlevity.homeglue.sink.DeviceStatusLogger;
+import net.forlevity.homeglue.sink.DeviceEventLogger;
 import net.forlevity.homeglue.testing.SimulatedNetworkTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryServiceImpl;
 import org.junit.Test;
@@ -26,7 +26,7 @@ public class GenericUpnpManagerTest extends SimulatedNetworkTests {
         SimulatedNetwork network = makeTestNetwork();
         GenericUpnpConnectorFactory factory = (hostAddress) -> new GenericUpnpConnector(network, hostAddress);
         SsdpDiscoveryServiceImpl ssdp = new SsdpDiscoveryServiceImpl(network, 0, 0, 0, 0);
-        GenericUpnpManager manager = new GenericUpnpManager(mock(PersistenceService.class), ssdp, factory, new DeviceStatusLogger());
+        GenericUpnpManager manager = new GenericUpnpManager(mock(PersistenceService.class), ssdp, factory, new DeviceEventLogger());
 
         // disable SSDP service discovery on one of our devices
         device3.setServices(ImmutableList.of());

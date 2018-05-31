@@ -12,8 +12,8 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 import lombok.AllArgsConstructor;
+import net.forlevity.homeglue.device.DeviceEvent;
 import net.forlevity.homeglue.device.DeviceManagementGuice;
-import net.forlevity.homeglue.device.DeviceStatusChange;
 import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.http.SimpleHttpClientImpl;
@@ -22,7 +22,7 @@ import net.forlevity.homeglue.ifttt.IftttMakerWebhookClientImpl;
 import net.forlevity.homeglue.persistence.H2HibernateService;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
-import net.forlevity.homeglue.sink.DeviceStatusLogger;
+import net.forlevity.homeglue.sink.DeviceEventLogger;
 import net.forlevity.homeglue.sink.IftttDeviceStatusService;
 import net.forlevity.homeglue.sink.TelemetryLogger;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
@@ -52,12 +52,12 @@ public class ApplicationGuice extends AbstractModule {
         bind(HomeglueApplication.class);
 
         // device status change: exchange
-        bind(new TypeLiteral<Consumer<DeviceStatusChange>>(){})
-                .to(new TypeLiteral<FanoutExchange<DeviceStatusChange>>(){}).in(Scopes.SINGLETON);
+        bind(new TypeLiteral<Consumer<DeviceEvent>>(){})
+                .to(new TypeLiteral<FanoutExchange<DeviceEvent>>(){}).in(Scopes.SINGLETON);
         // device status change: consumers
-        Multibinder<Consumer<DeviceStatusChange>> statusSinkBinder =
-                Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<DeviceStatusChange>>(){});
-        statusSinkBinder.addBinding().to(DeviceStatusLogger.class);
+        Multibinder<Consumer<DeviceEvent>> statusSinkBinder =
+                Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<DeviceEvent>>(){});
+        statusSinkBinder.addBinding().to(DeviceEventLogger.class);
         statusSinkBinder.addBinding().to(IftttDeviceStatusService.class);
 
         // telemetry: exchange

@@ -12,7 +12,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.AbstractUpnpDeviceManager;
-import net.forlevity.homeglue.device.DeviceStatusChange;
+import net.forlevity.homeglue.device.DeviceEvent;
 import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
@@ -38,7 +38,7 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
             "http://(?<ipAddress>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}):(?<port>[0-9]{4,5})/setup.xml");
 
     private final WemoInsightConnectorFactory connectorFactory;
-    private final Consumer<PowerMeterData> telemetrySink;
+    private final Consumer<PowerMeterData> powerMeterDataSink;
     private final ConcurrentHashMap<String, WemoInsightConnector> insights = new ConcurrentHashMap<>();
     private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
     private final long pollPeriodMillis;
@@ -49,14 +49,14 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
     WemoInsightManager(PersistenceService persistenceService,
                        SsdpDiscoveryService ssdpDiscoveryService,
                        WemoInsightConnectorFactory connectorFactory,
-                       Consumer<DeviceStatusChange> deviceStatusChangeSink,
-                       Consumer<PowerMeterData> telemetrySink,
+                       Consumer<DeviceEvent> deviceEventSink,
+                       Consumer<PowerMeterData> powerMeterDataSink,
                        @Named("wemo.poll.period.millis") int pollPeriodMillis) {
-        super(persistenceService, deviceStatusChangeSink, ssdpDiscoveryService,
+        super(persistenceService, deviceEventSink, ssdpDiscoveryService,
                 service -> (SSDP_SERIALNUMBER.matcher(service.getSerialNumber()).matches()
                         && SSDP_LOCATION.matcher(service.getLocation()).matches()), 1);
         this.connectorFactory = connectorFactory;
-        this.telemetrySink = telemetrySink;
+        this.powerMeterDataSink = powerMeterDataSink;
         this.pollPeriodMillis = pollPeriodMillis;
     }
 
@@ -92,7 +92,7 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
                 log.info("connected to Insight meter at {}:{}", ipAddress, port);
                 boolean firstDevice = insights.isEmpty();
                 insights.put(ipAddress, newConnector);
-                updateStatus(newConnector);
+                reportStatus(newConnector);
                 if (firstDevice) {
                     // as soon as the first device is found, start polling
                     startTimer();
@@ -140,7 +140,7 @@ public class WemoInsightManager extends AbstractUpnpDeviceManager {
         }
         // TODO: handle failure to read meter
         try {
-            telemetrySink.accept(read == null ? new PowerMeterData(wemo.getDeviceId(), null) : read);
+            powerMeterDataSink.accept(read == null ? new PowerMeterData(wemo.getDeviceId(), null) : read);
         } catch(RuntimeException e) {
             log.error("unexpected exception during storage of telemetry for {} (continuing)", wemo, e);
         }

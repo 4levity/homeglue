@@ -36,16 +36,4 @@ public interface DeviceStatus {
      * @return copy of device metadata
      */
     Map<String,String> getDeviceDetails();
-
-    /**
-     * Returns true if this device status represents effectively the same information as another one.
-     *
-     * @param other other DeviceStatus representation
-     * @return true if the same as this
-     */
-    default boolean sameAs(DeviceStatus other) {
-        return getDeviceId().equals(other.getDeviceId())
-                && (isConnected() == other.isConnected())
-                && getDeviceDetails().equals(other.getDeviceDetails());
-    }
 }

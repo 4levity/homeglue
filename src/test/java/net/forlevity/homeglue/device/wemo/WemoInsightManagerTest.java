@@ -12,7 +12,7 @@ import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sim.SimulatedWemo;
-import net.forlevity.homeglue.sink.DeviceStatusLogger;
+import net.forlevity.homeglue.sink.DeviceEventLogger;
 import net.forlevity.homeglue.sink.TelemetryLogger;
 import net.forlevity.homeglue.testing.SimulatedNetworkTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryServiceImpl;
@@ -62,7 +62,7 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
         ssdp = new SsdpDiscoveryServiceImpl(network, 0, 0, 0, 0);
         telemetryCache = new LastTelemetryCache();
         Consumer<PowerMeterData> exchange = new FanoutExchange<>(ImmutableSet.of(telemetryCache, new TelemetryLogger()));
-        manager = new WemoInsightManager(mock(PersistenceService.class), ssdp, factory, new DeviceStatusLogger(), exchange, 2500);
+        manager = new WemoInsightManager(mock(PersistenceService.class), ssdp, factory, new DeviceEventLogger(), exchange, 2500);
     }
 
     @Test

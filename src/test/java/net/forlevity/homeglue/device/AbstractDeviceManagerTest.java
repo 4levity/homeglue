@@ -1,7 +1,7 @@
 package net.forlevity.homeglue.device;
 
 import net.forlevity.homeglue.persistence.PersistenceService;
-import net.forlevity.homeglue.sink.DeviceStatusLogger;
+import net.forlevity.homeglue.sink.DeviceEventLogger;
 import net.forlevity.homeglue.testing.HomeglueTests;
 import org.junit.Test;
 
@@ -35,11 +35,11 @@ public class AbstractDeviceManagerTest extends HomeglueTests {
     private static class TestDeviceManager extends AbstractDeviceManager {
 
         protected TestDeviceManager() {
-            super(mock(PersistenceService.class), new DeviceStatusLogger());
+            super(mock(PersistenceService.class), new DeviceEventLogger());
         }
 
         public void testRegister(DeviceConnector dc) {
-            this.updateStatus(dc);
+            this.reportStatus(dc);
         }
     }
 }

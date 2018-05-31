@@ -46,7 +46,7 @@ public class IftttMakerWebhookClientImpl implements IftttMakerWebhookClient {
             String url = String.format("https://maker.ifttt.com/trigger/%s/with/key/%s", event, key);
             String payload;
             if (value1 == null && value2 == null && value3 == null) {
-                payload = null;
+                payload = "";
             } else {
                 payload = Json.toJson(new WebhookPostBody(value1, value2, value3));
             }

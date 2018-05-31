@@ -27,11 +27,11 @@ public abstract class AbstractUpnpDeviceManager extends AbstractDeviceManager
             new QueueWorkerThread<>(SsdpServiceDefinition.class, this);
 
     protected AbstractUpnpDeviceManager(PersistenceService persistenceService,
-                                        Consumer<DeviceStatusChange> deviceStatusChangeSink,
+                                        Consumer<DeviceEvent> deviceEventSink,
                                         SsdpDiscoveryService ssdpDiscoveryService,
                                         Predicate<SsdpServiceDefinition> serviceMatcher,
                                         int priority) {
-        super(persistenceService, deviceStatusChangeSink);
+        super(persistenceService, deviceEventSink);
         ssdpDiscoveryService.registerSsdp(serviceMatcher, discoveryProcessor::accept, priority);
     }
 
