@@ -6,51 +6,33 @@
 
 package net.forlevity.homeglue.sink;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.DeviceEvent;
 import net.forlevity.homeglue.ifttt.IftttMakerWebhookClient;
-import net.forlevity.homeglue.util.QueueWorker;
-import net.forlevity.homeglue.util.RunnableExecutionThreadService;
+import net.forlevity.homeglue.util.QueueWorkerService;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * Send device status updates to IFTTT maker service.
  */
 @Log4j2
 @Singleton
-public class IftttDeviceEventService extends RunnableExecutionThreadService implements Consumer<DeviceEvent> {
+public class IftttDeviceEventService extends QueueWorkerService<DeviceEvent> {
 
     private final IftttMakerWebhookClient iftttWebhookClient;
-    private final QueueWorker<DeviceEvent> webhookCaller;
 
     @Inject
     public IftttDeviceEventService(IftttMakerWebhookClient iftttWebhookClient) {
+        super(DeviceEvent.class);
         this.iftttWebhookClient = iftttWebhookClient;
-        webhookCaller = new QueueWorker<>(DeviceEvent.class, this::trigger);
     }
 
     @Override
-    public void accept(DeviceEvent item) {
-        webhookCaller.accept(item);
-    }
-
-    @VisibleForTesting
-    public void processQueue() throws InterruptedException {
-        webhookCaller.processQueue();
-    }
-
-    @Override
-    protected void runUntilInterrupted() {
-        webhookCaller.run();
-    }
-
-    private void trigger(DeviceEvent deviceEvent) {
+    protected void handle(DeviceEvent deviceEvent) {
         IftttMakerWebhookClient.Event iftttEvent = convert(deviceEvent);
         log.info("sending IFTTT webhook: {}", deviceEvent);
         iftttWebhookClient.trigger(iftttEvent);

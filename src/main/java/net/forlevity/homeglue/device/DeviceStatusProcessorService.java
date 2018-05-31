@@ -6,14 +6,12 @@
 
 package net.forlevity.homeglue.device;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.entity.Device;
 import net.forlevity.homeglue.persistence.PersistenceService;
-import net.forlevity.homeglue.util.QueueWorker;
-import net.forlevity.homeglue.util.RunnableExecutionThreadService;
+import net.forlevity.homeglue.util.QueueWorkerService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,33 +19,17 @@ import java.util.function.Consumer;
 
 @Log4j2
 @Singleton
-public class DeviceStatusProcessorService extends RunnableExecutionThreadService implements Consumer<DeviceStatus> {
+public class DeviceStatusProcessorService extends QueueWorkerService<DeviceStatus> {
 
     private final PersistenceService persistenceService;
     private final Consumer<DeviceEvent> deviceEventConsumer;
-    private final QueueWorker<DeviceStatus> deviceStatusWorker;
 
     @Inject
     public DeviceStatusProcessorService(PersistenceService persistenceService,
                                         Consumer<DeviceEvent> deviceEventConsumer) {
+        super(DeviceStatus.class);
         this.persistenceService = persistenceService;
         this.deviceEventConsumer = deviceEventConsumer;
-        deviceStatusWorker = new QueueWorker<>(DeviceStatus.class, this::processStatus);
-    }
-
-    @Override
-    protected void runUntilInterrupted() {
-        deviceStatusWorker.run();
-    }
-
-    @Override
-    public void accept(DeviceStatus item) {
-        deviceStatusWorker.accept(item);
-    }
-
-    @VisibleForTesting
-    public void processQueue() throws InterruptedException {
-        deviceStatusWorker.processQueue();
     }
 
     /**
@@ -56,7 +38,8 @@ public class DeviceStatusProcessorService extends RunnableExecutionThreadService
      *
      * @param newDeviceStatus device status
      */
-    private void processStatus(DeviceStatus newDeviceStatus) {
+    @Override
+    protected void handle(DeviceStatus newDeviceStatus) {
         String deviceId = newDeviceStatus.getDeviceId();
         List<DeviceEvent> newEvents = persistenceService.exec(session -> {
             Device device = session.bySimpleNaturalId(Device.class).load(deviceId);
