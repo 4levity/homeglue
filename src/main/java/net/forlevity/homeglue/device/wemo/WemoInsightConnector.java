@@ -14,13 +14,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.device.AbstractDeviceConnector;
+import net.forlevity.homeglue.device.DeviceConnector;
 import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.device.SoapHelper;
 import net.forlevity.homeglue.util.Xml;
 import org.w3c.dom.Document;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Implementation of DeviceConnector that connects to and reads meter data from a Belkin WeMo Insight plug meter.
@@ -28,12 +29,15 @@ import java.io.IOException;
 @Log4j2
 @ToString(of = {"hostAddress"}, callSuper = true)
 @EqualsAndHashCode(of = {"hostAddress", "port"}, callSuper = false)
-public class WemoInsightConnector extends AbstractDeviceConnector {
+public class WemoInsightConnector implements DeviceConnector {
 
     private static final String INSIGHT_SERVICE_URN = "urn:Belkin:service:insight:1";
 
-    private final SoapHelper soap;
-    private final String hostAddress;
+    @Getter
+    private String deviceId = DEVICE_ID_UNKNOWN;
+
+    @Getter
+    Map<String, String> deviceDetails = ImmutableMap.of();
 
     @Getter
     @Setter // port can change, device manager may update
@@ -41,6 +45,9 @@ public class WemoInsightConnector extends AbstractDeviceConnector {
 
     @Getter
     private boolean connected = false;
+
+    private final SoapHelper soap;
+    private final String hostAddress;
 
     @Inject
     WemoInsightConnector(SoapHelper soapHelper,
@@ -78,12 +85,12 @@ public class WemoInsightConnector extends AbstractDeviceConnector {
         if (macAddress == null) {
             log.warn("xml did not contain device macAddress");
         } else {
-            this.setDeviceId(macAddress); // use MAC address as device ID
-            this.setDeviceDetails(ImmutableMap.of(
+            this.deviceId = macAddress;
+            this.deviceDetails = ImmutableMap.of(
                     "model", xml.nodeText(doc, "/root/device/modelDescription"),
                     "serialNumber", xml.nodeText(doc, "/root/device/serialNumber"),
                     "name", xml.nodeText(doc, "/root/device/friendlyName"),
-                    "firmwareVersion", xml.nodeText(doc, "/root/device/firmwareVersion") ));
+                    "firmwareVersion", xml.nodeText(doc, "/root/device/firmwareVersion") );
             success = true;
         }
         return success;

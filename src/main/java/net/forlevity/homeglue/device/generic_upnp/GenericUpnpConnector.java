@@ -6,30 +6,33 @@
 
 package net.forlevity.homeglue.device.generic_upnp;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import lombok.Getter;
 import lombok.ToString;
-import net.forlevity.homeglue.device.AbstractDeviceConnector;
+import net.forlevity.homeglue.device.DeviceConnector;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 
-import java.net.InetAddress;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * A generic UPnP device is a collection of 1+ services detected at a particular host address.
  */
-@ToString(of = {"hostAddress"}, callSuper = true)
-public class GenericUpnpConnector extends AbstractDeviceConnector {
+@ToString(of = {"deviceId"})
+public class GenericUpnpConnector implements DeviceConnector {
 
-    private final InetAddress hostAddress;
+    @Getter
+    private final String deviceId;
+
     private final Set<SsdpServiceDefinition> ssdpServices = new HashSet<>();
 
     @Inject
     GenericUpnpConnector(@Assisted SsdpServiceDefinition firstService) {
-        this.hostAddress = firstService.getRemoteIp();
+        this.deviceId = firstService.getRemoteIp().getHostAddress();
         this.ssdpServices.add(firstService);
-        setDeviceId(firstService.getRemoteIp().getHostAddress());
     }
 
     @Override
@@ -40,6 +43,11 @@ public class GenericUpnpConnector extends AbstractDeviceConnector {
     @Override
     public boolean isConnected() {
         return true;
+    }
+
+    @Override
+    public Map<String, String> getDeviceDetails() {
+        return ImmutableMap.of();
     }
 
     /**
