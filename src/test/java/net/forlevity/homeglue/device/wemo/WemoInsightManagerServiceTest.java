@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableSet;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.LastTelemetryCache;
 import net.forlevity.homeglue.device.PowerMeterData;
+import net.forlevity.homeglue.device.SoapHelper;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sim.SimulatedWemo;
 import net.forlevity.homeglue.sink.TelemetryLogger;
@@ -24,10 +25,10 @@ import java.util.function.Consumer;
 import static org.junit.Assert.*;
 
 @Log4j2
-public class WemoInsightManagerTest extends SimulatedNetworkTests {
+public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
 
     SimulatedNetwork network;
-    WemoInsightManager manager;
+    WemoInsightManagerService manager;
     SsdpDiscoveryServiceImpl ssdp;
     LastTelemetryCache telemetryCache;
 
@@ -47,7 +48,7 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
         assertEquals(2, manager.getDevices().size());
 
         // devices have been connected to simulators
-        manager.getDevices().forEach(device -> {
+        manager.getDevices().values().forEach(device -> {
             assertEquals("Belkin Insight 1.0", device.getDeviceDetails().get("model"));
             assertNotNull(device.getDeviceDetails().get("name"));
             assertNotNull(device.getDeviceDetails().get("firmwareVersion"));
@@ -57,15 +58,15 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
 
     private void makeWemoManager(SimulatedWemo... wemos) {
         network = makeTestNetwork(wemos);
-        WemoInsightConnectorFactory factory = (hostAddress, port) -> new WemoInsightConnector(network, hostAddress, port);
+        SoapHelper soapHelper = new SoapHelper(network);
+        WemoInsightConnectorFactory factory = (hostAddress, port) -> new WemoInsightConnector(soapHelper, hostAddress, port);
         ssdp = new SsdpDiscoveryServiceImpl(network, 0, 0, 0, 0);
         telemetryCache = new LastTelemetryCache();
         Consumer<PowerMeterData> exchange = new FanoutExchange<>(ImmutableSet.of(telemetryCache, new TelemetryLogger()));
-        manager = new WemoInsightManager(ssdp, factory, status -> log.info("{}", status), exchange, 2500);
+        manager = new WemoInsightManagerService(ssdp, factory, status -> log.info("{}", status), exchange, 2500);
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void changeWemoInsightPortNumber() throws InterruptedException {
         SimulatedWemo simulator = new SimulatedWemo(remoteIp4, 2000, "net/forlevity/homeglue/sim/insight1_setup.xml");
         String macAddress = simulator.getMacAddress();
@@ -75,7 +76,7 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
         assertEquals(1, manager.getQueue().size());
         manager.processQueue();
         assertEquals(1, manager.getDevices().size());
-        WemoInsightConnector device = (WemoInsightConnector) manager.getDevices().iterator().next();
+        WemoInsightConnector device = manager.getDevices().values().iterator().next();
         assertEquals(macAddress, device.getDeviceId());
         assertEquals(2000, device.getPort());
         Instant lastTelemetryTime = telemetryCache.lastPowerMeterData.get(macAddress).getTimestamp();
@@ -94,7 +95,7 @@ public class WemoInsightManagerTest extends SimulatedNetworkTests {
         ssdp.runOnce();
         manager.processQueue();
         assertEquals(1, manager.getDevices().size());
-        device = (WemoInsightConnector) manager.getDevices().iterator().next();
+        device = manager.getDevices().values().iterator().next();
         assertEquals(3000, device.getPort());
 
         // poll was triggered by port change, so within a couple ms it has also polled the device successfully again

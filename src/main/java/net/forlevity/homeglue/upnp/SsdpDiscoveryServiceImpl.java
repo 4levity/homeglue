@@ -56,11 +56,11 @@ public class SsdpDiscoveryServiceImpl extends AbstractIdleService implements Ssd
     }
 
     @Override
-    public void registerSsdp(Predicate<SsdpServiceDefinition> predicate,
-                             Consumer<SsdpServiceDefinition> consumer,
+    public void registerSsdp(Predicate<SsdpServiceDefinition> serviceMatch,
+                             Consumer<SsdpServiceDefinition> serviceConsumer,
                              int priority) {
         synchronized (registrations) {
-            registrations.add(new Registration(priority, predicate, consumer));
+            registrations.add(new Registration(priority, serviceMatch, serviceConsumer));
             // registration list is sorted in priority order, highest priority (lowest number) first
             Collections.sort(registrations, Comparator.comparingInt(o -> o.priority));
         }

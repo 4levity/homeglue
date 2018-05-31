@@ -7,7 +7,7 @@
 package net.forlevity.homeglue.device;
 
 import com.google.common.collect.ImmutableMap;
-import lombok.AccessLevel;
+import com.google.inject.Inject;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.http.SimpleHttpClient;
@@ -19,17 +19,19 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * Base class to assist in building a device connector that issues SOAP requests to its device and parses XML results.
+ * Helper for issuing SOAP requests and parsing XML results.
  */
 @Log4j2
-public abstract class AbstractSoapDeviceConnector extends AbstractDeviceConnector {
+public class SoapHelper {
 
-    @Getter(AccessLevel.PROTECTED)
+    @Getter
     private final SimpleHttpClient httpClient;
 
-    protected final Xml xml = new Xml();
+    @Getter
+    private final Xml xml = new Xml();
 
-    protected AbstractSoapDeviceConnector(SimpleHttpClient httpClient) {
+    @Inject
+    public SoapHelper(SimpleHttpClient httpClient) {
         this.httpClient = httpClient;
     }
 
@@ -41,7 +43,7 @@ public abstract class AbstractSoapDeviceConnector extends AbstractDeviceConnecto
      * @param action SOAP action
      * @return DOM or null if request failed
      */
-    protected Document execSoapRequest(String url, String urn, String action) {
+    public Document execSoapRequest(String url, String urn, String action) {
         String payload = String.format("<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
                 "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
                     "<s:Body>" +

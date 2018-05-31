@@ -16,14 +16,14 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 @Log4j2
-public class GenericUpnpManagerTest extends SimulatedNetworkTests {
+public class GenericUpnpManagerServiceTest extends SimulatedNetworkTests {
     
     @Test
     public void genericUpnpManagerServiceTest() throws InterruptedException {
         SimulatedNetwork network = makeTestNetwork();
-        GenericUpnpConnectorFactory factory = (hostAddress) -> new GenericUpnpConnector(network, hostAddress);
+        GenericUpnpConnectorFactory factory = GenericUpnpConnector::new;
         SsdpDiscoveryServiceImpl ssdp = new SsdpDiscoveryServiceImpl(network, 0, 0, 0, 0);
-        GenericUpnpManager manager = new GenericUpnpManager(ssdp, factory, status -> log.info("{}", status));
+        GenericUpnpManagerService manager = new GenericUpnpManagerService(ssdp, factory, status -> log.info("{}", status));
 
         // disable SSDP service discovery on one of our devices
         device3.setServices(ImmutableList.of());

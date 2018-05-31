@@ -9,8 +9,7 @@ package net.forlevity.homeglue.device.generic_upnp;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import lombok.ToString;
-import net.forlevity.homeglue.device.AbstractSoapDeviceConnector;
-import net.forlevity.homeglue.http.SimpleHttpClient;
+import net.forlevity.homeglue.device.AbstractDeviceConnector;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 
 import java.net.InetAddress;
@@ -21,15 +20,13 @@ import java.util.Set;
  * A generic UPnP device is a collection of 1+ services detected at a particular host address.
  */
 @ToString(of = {"hostAddress"}, callSuper = true)
-public class GenericUpnpConnector extends AbstractSoapDeviceConnector {
+public class GenericUpnpConnector extends AbstractDeviceConnector {
 
     private final InetAddress hostAddress;
     private final Set<SsdpServiceDefinition> ssdpServices = new HashSet<>();
 
     @Inject
-    GenericUpnpConnector(SimpleHttpClient httpClient,
-                         @Assisted SsdpServiceDefinition firstService) {
-        super(httpClient);
+    GenericUpnpConnector(@Assisted SsdpServiceDefinition firstService) {
         this.hostAddress = firstService.getRemoteIp();
         this.ssdpServices.add(firstService);
         setDeviceId(firstService.getRemoteIp().getHostAddress());
@@ -47,6 +44,7 @@ public class GenericUpnpConnector extends AbstractSoapDeviceConnector {
 
     /**
      * Manager calls this to add a detected service at this address.
+     *
      * @param service service info
      * @return true if this service was NOT already in the list
      */

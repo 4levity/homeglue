@@ -14,9 +14,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.device.AbstractSoapDeviceConnector;
+import net.forlevity.homeglue.device.AbstractDeviceConnector;
 import net.forlevity.homeglue.device.PowerMeterData;
-import net.forlevity.homeglue.http.SimpleHttpClient;
+import net.forlevity.homeglue.device.SoapHelper;
+import net.forlevity.homeglue.util.Xml;
 import org.w3c.dom.Document;
 
 import java.io.IOException;
@@ -27,9 +28,11 @@ import java.io.IOException;
 @Log4j2
 @ToString(of = {"hostAddress"}, callSuper = true)
 @EqualsAndHashCode(of = {"hostAddress", "port"}, callSuper = false)
-public class WemoInsightConnector extends AbstractSoapDeviceConnector {
+public class WemoInsightConnector extends AbstractDeviceConnector {
 
     private static final String INSIGHT_SERVICE_URN = "urn:Belkin:service:insight:1";
+
+    private final SoapHelper soap;
     private final String hostAddress;
 
     @Getter
@@ -40,12 +43,13 @@ public class WemoInsightConnector extends AbstractSoapDeviceConnector {
     private boolean connected = false;
 
     @Inject
-    WemoInsightConnector(SimpleHttpClient httpClient,
-                                @Assisted String hostAddress,
-                                @Assisted int port) {
-        super(httpClient);
+    WemoInsightConnector(SoapHelper soapHelper,
+                         @Assisted String hostAddress,
+                         @Assisted int port) {
+
         this.hostAddress = hostAddress;
         this.port = port;
+        this.soap = soapHelper;
     }
 
     @Override
@@ -53,7 +57,7 @@ public class WemoInsightConnector extends AbstractSoapDeviceConnector {
         String location = String.format("http://%s:%d/setup.xml", hostAddress, port);
         log.debug("trying to connect to wemo at {} ...", location);
         try {
-            String result = getHttpClient().get(location);
+            String result = soap.getHttpClient().get(location);
             connected = parseWemoSetup(result);
         } catch (IOException e) {
             log.warn("failed to get {} : {} {}", location, e.getClass().getSimpleName(), e.getMessage());
@@ -67,6 +71,7 @@ public class WemoInsightConnector extends AbstractSoapDeviceConnector {
      * @return true if successfully parsed setup.xml
      */
     private boolean parseWemoSetup(String setupXml) {
+        Xml xml = soap.getXml();
         Document doc = xml.parse(setupXml);
         boolean success = false;
         String macAddress = xml.nodeText(doc, "/root/device/macAddress");
@@ -88,7 +93,7 @@ public class WemoInsightConnector extends AbstractSoapDeviceConnector {
         PowerMeterData result = null;
         Document doc = execInsightSoapRequest("GetInsightParams");
         if (doc != null) {
-            String insightParams = xml.nodeText(doc, "//InsightParams");
+            String insightParams = soap.getXml().nodeText(doc, "//InsightParams");
             if (insightParams != null) {
                 String[] params = insightParams.split("\\|");
                 double milliwatts = Double.valueOf(params[7]);
@@ -105,6 +110,6 @@ public class WemoInsightConnector extends AbstractSoapDeviceConnector {
 
     private Document execInsightSoapRequest(String action) {
         String url = String.format("http://%s:%d/upnp/control/insight1", hostAddress, port);
-        return execSoapRequest(url, INSIGHT_SERVICE_URN, action);
+        return soap.execSoapRequest(url, INSIGHT_SERVICE_URN, action);
     }
 }

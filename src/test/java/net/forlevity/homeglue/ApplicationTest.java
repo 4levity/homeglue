@@ -8,8 +8,8 @@ package net.forlevity.homeglue;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import net.forlevity.homeglue.device.generic_upnp.GenericUpnpManager;
-import net.forlevity.homeglue.device.wemo.WemoInsightManager;
+import net.forlevity.homeglue.device.generic_upnp.GenericUpnpManagerService;
+import net.forlevity.homeglue.device.wemo.WemoInsightManagerService;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.testing.HomeglueTests;
@@ -32,14 +32,14 @@ public class ApplicationTest extends HomeglueTests {
         HomeglueApplication application = injector.getInstance(HomeglueApplication.class);
         application.start();
         assertTrue(application.getServiceManager().isHealthy());
-        assertTrue(injector.getInstance(WemoInsightManager.class).isRunning());
-        assertTrue(injector.getInstance(GenericUpnpManager.class).isRunning());
+        assertTrue(injector.getInstance(WemoInsightManagerService.class).isRunning());
+        assertTrue(injector.getInstance(GenericUpnpManagerService.class).isRunning());
         assertTrue(injector.getInstance(SsdpDiscoveryService.class).isRunning());
         assertTrue(injector.getInstance(SimpleHttpClient.class) instanceof SimulatedNetwork);
         assertTrue(injector.getInstance(SsdpSearcher.class) instanceof SimulatedNetwork);
         application.stop();
-        assertFalse(injector.getInstance(WemoInsightManager.class).isRunning());
-        assertFalse(injector.getInstance(GenericUpnpManager.class).isRunning());
+        assertFalse(injector.getInstance(WemoInsightManagerService.class).isRunning());
+        assertFalse(injector.getInstance(GenericUpnpManagerService.class).isRunning());
         assertFalse(injector.getInstance(SsdpDiscoveryService.class).isRunning());
     }
 }

@@ -22,13 +22,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class AbstractSoapDeviceConnectorTest extends HomeglueTests {
+public class SoapHelperTest extends HomeglueTests {
 
     final Xml xml = new Xml();
 
     @Test
     public void testXmlParsing() {
-        TestSoapDeviceConnector connector = new TestSoapDeviceConnector();
+        SoapHelper soapHelper = new SoapHelper(mock(SimpleHttpClient.class));
         String xmlText = ResourceHelper.resourceAsString("net/forlevity/homeglue/sim/insight1_setup.xml");
         Document document = xml.parse(xmlText);
         assertNotNull(document);
@@ -39,14 +39,14 @@ public class AbstractSoapDeviceConnectorTest extends HomeglueTests {
     @Test
     @SuppressWarnings("unchecked")
     public void testSoapRequest() throws IOException {
-        TestSoapDeviceConnector connector = new TestSoapDeviceConnector();
-        SimpleHttpClient mockHttp = connector.httpClient();
+        SimpleHttpClient mockHttp = mock(SimpleHttpClient.class);
         String url = "http://somewhere";
         String urn = "urn:something";
         String action = "DoNothing";
         when(mockHttp.post(any(),any(),any(),any()))
                 .thenReturn(ResourceHelper.resourceAsString("net/forlevity/homeglue/sim/insightparams_response.xml"));
-        Document document = connector.doExecSoapRequest(url, urn, action);
+        SoapHelper soapHelper = new SoapHelper(mockHttp);
+        Document document = soapHelper.execSoapRequest(url, urn, action);
 
         ArgumentCaptor<String> xmlRequest = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Map<String,String>> requestHeaders = ArgumentCaptor.forClass(Map.class);
@@ -55,30 +55,5 @@ public class AbstractSoapDeviceConnectorTest extends HomeglueTests {
         assertEquals(1, requestDoc.getElementsByTagName("u:DoNothing").getLength());
         assertEquals(String.format("\"%s#%s\"", urn, action), requestHeaders.getValue().get("SOAPAction"));
         assertEquals(11, xml.nodeText(document, "//InsightParams").split("\\|").length);
-    }
-
-    private static class TestSoapDeviceConnector extends AbstractSoapDeviceConnector {
-
-        protected TestSoapDeviceConnector() {
-            super(mock(SimpleHttpClient.class));
-        }
-
-        @Override
-        public boolean connect() {
-            return false;
-        }
-
-        @Override
-        public boolean isConnected() {
-            return false;
-        }
-
-        public SimpleHttpClient httpClient() {
-            return getHttpClient();
-        }
-
-        public Document doExecSoapRequest(String url, String urn, String action) {
-            return execSoapRequest(url, urn, action);
-        }
     }
 }

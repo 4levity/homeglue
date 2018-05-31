@@ -14,7 +14,6 @@ import com.google.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.device.DeviceManager;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sink.IftttDeviceEventService;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
@@ -42,7 +41,7 @@ public class HomeglueApplication {
             PersistenceService persistenceService,
             SsdpDiscoveryService ssdpDiscoveryService,
             IftttDeviceEventService iftttDeviceEventService,
-            Set<DeviceManager> deviceManagers) {
+            Set<Service> deviceManagers) {
         List<Service> services = new ArrayList<>();
         services.add(persistenceService);
         services.add(iftttDeviceEventService);

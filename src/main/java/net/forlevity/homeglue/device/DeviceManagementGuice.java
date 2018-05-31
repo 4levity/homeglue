@@ -6,13 +6,14 @@
 
 package net.forlevity.homeglue.device;
 
+import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
 import net.forlevity.homeglue.device.generic_upnp.GenericUpnpConnectorFactory;
-import net.forlevity.homeglue.device.generic_upnp.GenericUpnpManager;
+import net.forlevity.homeglue.device.generic_upnp.GenericUpnpManagerService;
 import net.forlevity.homeglue.device.wemo.WemoInsightConnectorFactory;
-import net.forlevity.homeglue.device.wemo.WemoInsightManager;
+import net.forlevity.homeglue.device.wemo.WemoInsightManagerService;
 
 /**
  * Child module for device managers and connectors.
@@ -22,10 +23,10 @@ public class DeviceManagementGuice extends AbstractModule {
     @Override
     protected void configure() {
 
-        // add all device managers
-        Multibinder<DeviceManager> deviceManagerBinder = Multibinder.newSetBinder(binder(), DeviceManager.class);
-        deviceManagerBinder.addBinding().to(WemoInsightManager.class);
-        deviceManagerBinder.addBinding().to(GenericUpnpManager.class);
+        // add all device managers and connectors
+        Multibinder<Service> deviceManagerBinder = Multibinder.newSetBinder(binder(), Service.class);
+        deviceManagerBinder.addBinding().to(WemoInsightManagerService.class);
+        deviceManagerBinder.addBinding().to(GenericUpnpManagerService.class);
 
         // assisted injection for connectors
         install(new FactoryModuleBuilder().build(WemoInsightConnectorFactory.class));

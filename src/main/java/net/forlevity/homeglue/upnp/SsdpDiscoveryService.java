@@ -14,21 +14,21 @@ import java.util.function.Predicate;
 
 /**
  * Application service that periodically SSDP scans the network for UPnP services. Users of SsdpDiscoveryService may
- * register interest in particuar UPnP services and get notifications (via queue) on matching service discovery.
+ * register interest in particuar UPnP services and get notified on matching service discovery.
  */
 @ImplementedBy(SsdpDiscoveryServiceImpl.class)
 public interface SsdpDiscoveryService extends Service {
 
     /**
      * Request to asynchronously receive information about a particular service whenever it is discovered by SSDP.
-     * If two registrations would both match the same service, the notification will go to whichever queue was
+     * If two registrations would both match the same service, the notification will go to whichever consumer was
      * registered with a LOWER priority number. Multiple notifications are often sent for the same service.
      *
      * @param serviceMatch test for service match
-     * @param newServices queue where matching services will be offered
+     * @param serviceConsumer consumer for matching services
      * @param priority what order to process this registration, compared to other registrations
      */
     void registerSsdp(Predicate<SsdpServiceDefinition> serviceMatch,
-                      Consumer<SsdpServiceDefinition> newServices,
+                      Consumer<SsdpServiceDefinition> serviceConsumer,
                       int priority);
 }

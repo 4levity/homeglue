@@ -7,7 +7,6 @@
 package net.forlevity.homeglue.http;
 
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
@@ -18,7 +17,6 @@ import java.util.Map;
 /**
  * Standard implementation for SimpleHttpClient.
  */
-@Singleton
 public class SimpleHttpClientImpl implements SimpleHttpClient {
 
     private final int connectTimeoutMillis;

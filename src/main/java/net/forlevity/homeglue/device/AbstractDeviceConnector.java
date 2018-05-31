@@ -9,7 +9,6 @@ package net.forlevity.homeglue.device;
 import com.google.common.collect.ImmutableMap;
 import lombok.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -22,22 +21,21 @@ public abstract class AbstractDeviceConnector implements DeviceConnector {
     @Setter(AccessLevel.PROTECTED)
     private String deviceId = DEVICE_ID_UNKNOWN;
 
-    private Map<String, String> deviceDetails = new HashMap<>();
+    private Map<String, String> deviceDetails = ImmutableMap.of();
     private final Object deviceDetailsLock = new Object();
 
     @Override
     @Synchronized("deviceDetailsLock")
     public Map<String, String> getDeviceDetails() {
-        return ImmutableMap.copyOf(deviceDetails);
+        return deviceDetails;
     }
 
     /**
      * Subclass should call this whenever metadata about a device is retrieved. May call repeatedly for the same data.
-     * @param key metadata key
-     * @param value metadata value, or null to remove/unset
+     * @param deviceDetails map
      */
     @Synchronized("deviceDetailsLock")
     protected void setDeviceDetails(Map<String, String> deviceDetails) {
-        this.deviceDetails = deviceDetails;
+        this.deviceDetails = ImmutableMap.copyOf(deviceDetails);
     }
 }
