@@ -16,8 +16,17 @@ import java.util.Collection;
 public interface DeviceManager extends Service {
 
     /**
-     * Return list of devices managed by this manager.
+     * Return list of devices managed by this manager. Caller should not alter device instance!
+     *
      * @return devices
      */
     Collection<DeviceConnector> getDevices();
+
+    /**
+     * Get a device by its deviceId. Caller should not alter device instance!
+     *
+     * @param deviceId deviceId
+     * @return device or null
+     */
+    DeviceConnector getDevice(String deviceId);
 }

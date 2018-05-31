@@ -8,15 +8,12 @@ package net.forlevity.homeglue.device.generic_upnp;
 
 import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
-import net.forlevity.homeglue.sink.DeviceEventLogger;
 import net.forlevity.homeglue.testing.SimulatedNetworkTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryServiceImpl;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
 
 @Log4j2
 public class GenericUpnpManagerTest extends SimulatedNetworkTests {
@@ -26,22 +23,22 @@ public class GenericUpnpManagerTest extends SimulatedNetworkTests {
         SimulatedNetwork network = makeTestNetwork();
         GenericUpnpConnectorFactory factory = (hostAddress) -> new GenericUpnpConnector(network, hostAddress);
         SsdpDiscoveryServiceImpl ssdp = new SsdpDiscoveryServiceImpl(network, 0, 0, 0, 0);
-        GenericUpnpManager manager = new GenericUpnpManager(mock(PersistenceService.class), ssdp, factory, new DeviceEventLogger());
+        GenericUpnpManager manager = new GenericUpnpManager(ssdp, factory, status -> log.info("{}", status));
 
         // disable SSDP service discovery on one of our devices
         device3.setServices(ImmutableList.of());
 
         ssdp.runOnce(); // run background search
-        assertEquals(4, manager.getDiscoveryProcessor().getQueue().size());
-        manager.getDiscoveryProcessor().processQueue();
+        assertEquals(4, manager.getQueue().size());
+        manager.processQueue();
         // two unique devices should have been found
         assertEquals(2, manager.getDevices().size());
 
         // add another device and discover it
         device3.setServices(services3);
         ssdp.runOnce();
-        assertEquals(8, manager.getDiscoveryProcessor().getQueue().size());
-        manager.getDiscoveryProcessor().processQueue();
+        assertEquals(8, manager.getQueue().size());
+        manager.processQueue();
         // one more unique device found
         assertEquals(3, manager.getDevices().size());
     }

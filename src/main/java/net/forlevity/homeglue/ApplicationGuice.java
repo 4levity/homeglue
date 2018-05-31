@@ -12,9 +12,7 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 import lombok.AllArgsConstructor;
-import net.forlevity.homeglue.device.DeviceEvent;
-import net.forlevity.homeglue.device.DeviceManagementGuice;
-import net.forlevity.homeglue.device.PowerMeterData;
+import net.forlevity.homeglue.device.*;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.http.SimpleHttpClientImpl;
 import net.forlevity.homeglue.ifttt.IftttMakerWebhookClient;
@@ -23,7 +21,7 @@ import net.forlevity.homeglue.persistence.H2HibernateService;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sink.DeviceEventLogger;
-import net.forlevity.homeglue.sink.IftttDeviceStatusService;
+import net.forlevity.homeglue.sink.IftttDeviceEventService;
 import net.forlevity.homeglue.sink.TelemetryLogger;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryServiceImpl;
@@ -51,14 +49,17 @@ public class ApplicationGuice extends AbstractModule {
         // the application
         bind(HomeglueApplication.class);
 
-        // device status change: exchange
+        // device status processor
+        bind(new TypeLiteral<Consumer<DeviceStatus>>(){}).to(DeviceStatusProcessorService.class);
+
+        // device events: exchange
         bind(new TypeLiteral<Consumer<DeviceEvent>>(){})
                 .to(new TypeLiteral<FanoutExchange<DeviceEvent>>(){}).in(Scopes.SINGLETON);
-        // device status change: consumers
-        Multibinder<Consumer<DeviceEvent>> statusSinkBinder =
+        // device events: consumers
+        Multibinder<Consumer<DeviceEvent>> eventSinkBinder =
                 Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<DeviceEvent>>(){});
-        statusSinkBinder.addBinding().to(DeviceEventLogger.class);
-        statusSinkBinder.addBinding().to(IftttDeviceStatusService.class);
+        eventSinkBinder.addBinding().to(DeviceEventLogger.class);
+        eventSinkBinder.addBinding().to(IftttDeviceEventService.class);
 
         // telemetry: exchange
         bind(new TypeLiteral<Consumer<PowerMeterData>>(){})

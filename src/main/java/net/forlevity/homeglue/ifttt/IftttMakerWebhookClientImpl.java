@@ -64,4 +64,9 @@ public class IftttMakerWebhookClientImpl implements IftttMakerWebhookClient {
     public void trigger(String event) {
         trigger(event, null, null, null);
     }
+
+    @Override
+    public void trigger(Event event) {
+        trigger(event.event, event.value1, event.value2, event.value3);
+    }
 }

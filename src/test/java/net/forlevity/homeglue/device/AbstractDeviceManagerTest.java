@@ -1,7 +1,6 @@
 package net.forlevity.homeglue.device;
 
-import net.forlevity.homeglue.persistence.PersistenceService;
-import net.forlevity.homeglue.sink.DeviceEventLogger;
+import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.testing.HomeglueTests;
 import org.junit.Test;
 
@@ -10,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@Log4j2
 public class AbstractDeviceManagerTest extends HomeglueTests {
 
     @Test
@@ -35,7 +35,7 @@ public class AbstractDeviceManagerTest extends HomeglueTests {
     private static class TestDeviceManager extends AbstractDeviceManager {
 
         protected TestDeviceManager() {
-            super(mock(PersistenceService.class), new DeviceEventLogger());
+            super(status -> log.info("{}", status));
         }
 
         public void testRegister(DeviceConnector dc) {

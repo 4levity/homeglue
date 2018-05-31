@@ -7,13 +7,12 @@
 package net.forlevity.homeglue.device;
 
 import com.google.common.annotations.VisibleForTesting;
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
-import net.forlevity.homeglue.util.QueueWorkerThread;
+import net.forlevity.homeglue.util.QueueWorker;
 
+import java.util.concurrent.BlockingQueue;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -21,29 +20,42 @@ import java.util.function.Predicate;
 public abstract class AbstractUpnpDeviceManager extends AbstractDeviceManager
         implements Consumer<SsdpServiceDefinition> {
 
-    @VisibleForTesting
-    @Getter
-    private final QueueWorkerThread<SsdpServiceDefinition> discoveryProcessor =
-            new QueueWorkerThread<>(SsdpServiceDefinition.class, this);
+    private final QueueWorker<SsdpServiceDefinition> discoveryProcessor;
 
-    protected AbstractUpnpDeviceManager(PersistenceService persistenceService,
-                                        Consumer<DeviceEvent> deviceEventSink,
+    protected AbstractUpnpDeviceManager(Consumer<DeviceStatus> deviceStatusSink,
                                         SsdpDiscoveryService ssdpDiscoveryService,
                                         Predicate<SsdpServiceDefinition> serviceMatcher,
                                         int priority) {
-        super(persistenceService, deviceEventSink);
+        super(deviceStatusSink);
+        discoveryProcessor = new QueueWorker<>(SsdpServiceDefinition.class, this::notifyServiceDiscovered);
         ssdpDiscoveryService.registerSsdp(serviceMatcher, discoveryProcessor::accept, priority);
     }
 
     @Override
-    protected void startUp() throws Exception {
-        super.startUp();
-        discoveryProcessor.start();
+    protected void runUntilInterrupted() {
+        discoveryProcessor.run();
     }
 
     @Override
-    protected void shutDown() throws Exception {
-        discoveryProcessor.interrupt();
-        super.shutDown();
+    public void accept(SsdpServiceDefinition item) {
+        discoveryProcessor.accept(item);
     }
+
+    @VisibleForTesting
+    public void processQueue() throws InterruptedException {
+        discoveryProcessor.processQueue();
+    }
+
+    @VisibleForTesting
+    public BlockingQueue<SsdpServiceDefinition> getQueue() {
+        return discoveryProcessor.getQueue();
+    }
+
+    /**
+     * Subclass implements this to process incoming service definitions.
+     * May be called many times for the same service.
+     *
+     * @param serviceDefinition service
+     */
+    protected abstract void notifyServiceDiscovered(SsdpServiceDefinition serviceDefinition);
 }

@@ -7,6 +7,8 @@
 package net.forlevity.homeglue.ifttt;
 
 import com.google.inject.ImplementedBy;
+import lombok.AllArgsConstructor;
+import lombok.ToString;
 
 /**
  * Interface to trigget IFTTT Maker Webhooks. See https://ifttt.com/maker_webhooks .
@@ -30,4 +32,20 @@ public interface IftttMakerWebhookClient {
      * @param event event
      */
     void trigger(String event);
+
+    /**
+     * Trigger an event with an IftttMakerWebHookClient.Event object.
+     *
+     * @param event event
+     */
+    void trigger(Event event);
+
+    @AllArgsConstructor
+    @ToString
+    class Event {
+        String event;
+        String value1;
+        String value2;
+        String value3;
+    }
 }
