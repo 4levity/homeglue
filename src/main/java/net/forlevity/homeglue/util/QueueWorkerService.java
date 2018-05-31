@@ -19,8 +19,32 @@ public class QueueWorkerService<T> extends AbstractExecutionThreadService implem
     private final QueueWorker<T> worker;
     private Thread executionThread = null;
 
+    /**
+     * Create a new QueueWorkerService. Dequeued items are handled by the given consumer.
+     *
+     * @param itemType type
+     * @param serialConsumer consumer
+     */
+    public QueueWorkerService(Class<T> itemType, Consumer<T> serialConsumer) {
+        worker = new QueueWorker<>(itemType, serialConsumer);
+    }
+
+    /**
+     * Create a new QueueWorkerService. Subclass also overrides handle() to process dequeued items.
+     *
+     * @param itemType type
+     */
     protected QueueWorkerService(Class<T> itemType) {
-        worker = new QueueWorker<T>(itemType, this::handle);
+        worker = new QueueWorker<>(itemType, this::handle);
+    }
+
+    /**
+     * Subclass overrides this to process an item if using the protected constructor.
+     *
+     * @param item item
+     */
+    protected void handle(T item) {
+        log.warn("{} default handler for {}", getClass().getSimpleName(), item);
     }
 
     /**
@@ -52,15 +76,6 @@ public class QueueWorkerService<T> extends AbstractExecutionThreadService implem
         } else {
             log.warn("shutdown triggered when execution thread was not yet running");
         }
-    }
-
-    /**
-     * Subclass implements this to process an item. Default implementation logs.
-     *
-     * @param item item
-     */
-    protected void handle(T item) {
-        log.info("item: {}", item);
     }
 
     @VisibleForTesting

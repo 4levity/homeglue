@@ -13,13 +13,14 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * A simple (easily mockable) HTTP client for doing simple things with web services.
+ * A simple HTTP client interface for doing simple things with web services. Also useful for simulated network.
  */
 @ImplementedBy(SimpleHttpClientImpl.class)
 public interface SimpleHttpClient {
 
     /**
      * GET with default settings.
+     *
      * @param url the url e.g. "https://github.com/"
      * @return response body as string (regardless of HTTP status code)
      * @throws IOException on network problems
@@ -28,6 +29,7 @@ public interface SimpleHttpClient {
 
     /**
      * POST to a web service.
+     *
      * @param url the url
      * @param headers additional headers, or null for none
      * @param payload payload to send

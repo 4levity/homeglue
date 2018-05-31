@@ -11,7 +11,7 @@ import com.google.inject.ImplementedBy;
 import java.util.function.Consumer;
 
 /**
- * Interface wrapping resourcepool.io ssdp-client.
+ * Interface wrapping resourcepool.io ssdp-client, or virtual network devices.
  */
 @ImplementedBy(SsdpSearcherImpl.class)
 public interface SsdpSearcher {
