@@ -13,6 +13,12 @@ import lombok.extern.log4j.Log4j2;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Consumer;
 
+/**
+ * Guava Service wrapper for QueueWorker. If items are consumed before service is started,
+ * they will not be processed until it does.
+ *
+ * @param <T> type of object in queue
+ */
 @Log4j2
 public class QueueWorkerService<T> extends AbstractExecutionThreadService implements Consumer<T> {
 

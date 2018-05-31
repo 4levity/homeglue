@@ -42,7 +42,10 @@ public class QueueWorker<T> implements Runnable, Consumer<T> {
     @Setter
     private long minSecondsBetweenQueueLengthAlerts = DEFAULT_MIN_SECS_BETWEEN_QUEUE_SIZE_ALERTS;
 
+    @VisibleForTesting
+    @Getter
     private final BlockingQueue<T> queue;
+
     private final Consumer<T> processor;
     private final Class<T> itemType;
     private Instant suppressQueueLengthAlertUntil = Instant.now();
@@ -81,20 +84,8 @@ public class QueueWorker<T> implements Runnable, Consumer<T> {
 
     @VisibleForTesting
     public void processQueue() throws InterruptedException {
-        while (processSingleQueueEntry()) {
-            int size = queue.size();
-            Instant now = Instant.now();
-            if (size > getQueueSizeAlertThreshold() && suppressQueueLengthAlertUntil.isBefore(now)) {
-                log.warn("queue length alert for {}! {} > {}",
-                        itemType.getSimpleName(), size, DEFAULT_QUEUE_SIZE_ALERT_THRESHOLD);
-                suppressQueueLengthAlertUntil = now.plusSeconds(minSecondsBetweenQueueLengthAlerts);
-            }
-        }
-    }
-
-    @VisibleForTesting
-    public BlockingQueue<T> getQueue() {
-        return queue;
+        while (processSingleQueueEntry())
+            ;
     }
 
     private boolean processSingleQueueEntry() throws InterruptedException {
@@ -110,5 +101,14 @@ public class QueueWorker<T> implements Runnable, Consumer<T> {
     @Override
     public void accept(T item) {
         queue.offer(item);
+
+        // warn if queue is growing large
+        int size = queue.size();
+        Instant now = Instant.now();
+        if (size > getQueueSizeAlertThreshold() && suppressQueueLengthAlertUntil.isBefore(now)) {
+            log.warn("queue length alert for {}! {} > {}",
+                    itemType.getSimpleName(), size, DEFAULT_QUEUE_SIZE_ALERT_THRESHOLD);
+            suppressQueueLengthAlertUntil = now.plusSeconds(minSecondsBetweenQueueLengthAlerts);
+        }
     }
 }
