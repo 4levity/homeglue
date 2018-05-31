@@ -9,7 +9,7 @@ package net.forlevity.homeglue.entity;
 import com.google.common.collect.ImmutableMap;
 import lombok.*;
 import lombok.experimental.Accessors;
-import net.forlevity.homeglue.device.DeviceStatus;
+import net.forlevity.homeglue.device.DeviceState;
 import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
@@ -56,11 +56,11 @@ public class Device {
         this.deviceDetails = new HashMap<>(deviceDetails);
     }
 
-    public static Device from(DeviceStatus deviceStatus) {
+    public static Device from(DeviceState deviceState) {
         Device device = new Device();
-        device.setDeviceId(deviceStatus.getDeviceId());
-        device.setConnected(deviceStatus.isConnected());
-        device.setDeviceDetails(deviceStatus.getDeviceDetails());
+        device.setDeviceId(deviceState.getDeviceId());
+        device.setConnected(deviceState.isConnected());
+        device.setDeviceDetails(deviceState.getDeviceDetails());
         return device;
     }
 }

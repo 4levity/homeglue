@@ -11,7 +11,7 @@ import com.google.inject.Singleton;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.DeviceConnector;
-import net.forlevity.homeglue.device.DeviceStatus;
+import net.forlevity.homeglue.device.DeviceState;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 import net.forlevity.homeglue.util.QueueWorkerService;
@@ -34,16 +34,16 @@ public class GenericUpnpManagerService extends QueueWorkerService<SsdpServiceDef
 
     @Getter
     private final Map<String, GenericUpnpConnector> devices = new HashMap<>();
-    private final Consumer<DeviceStatus> deviceStatusSink;
+    private final Consumer<DeviceState> deviceStateConsumer;
 
     @Inject
     GenericUpnpManagerService(SsdpDiscoveryService ssdpDiscoveryService,
                               GenericUpnpConnectorFactory genericUpnpConnectorFactory,
-                              Consumer<DeviceStatus> deviceStatusSink) {
+                              Consumer<DeviceState> deviceStateConsumer) {
         super(SsdpServiceDefinition.class);
         ssdpDiscoveryService.registerSsdp(service -> true, this, Integer.MAX_VALUE);
         this.genericUpnpConnectorFactory = genericUpnpConnectorFactory;
-        this.deviceStatusSink = deviceStatusSink;
+        this.deviceStateConsumer = deviceStateConsumer;
         // TODO: periodically update status of devices that have not been re-discovered recently
     }
 
@@ -59,7 +59,7 @@ public class GenericUpnpManagerService extends QueueWorkerService<SsdpServiceDef
                 devices.put(hostAddress, genericUpnpDevice);
                 log.info ("other UPnP devices at: {}", Arrays.toString(devices.keySet().toArray()));
                 if (!genericUpnpDevice.getDeviceId().equals(DeviceConnector.DEVICE_ID_UNKNOWN)) {
-                    deviceStatusSink.accept(new DeviceStatus(genericUpnpDevice)); // register if identifiable
+                    deviceStateConsumer.accept(new DeviceState(genericUpnpDevice)); // register if identifiable
                 }
             }
         } else {

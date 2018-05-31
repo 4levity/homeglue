@@ -12,7 +12,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.device.DeviceStatus;
+import net.forlevity.homeglue.device.DeviceState;
 import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
@@ -42,7 +42,7 @@ public class WemoInsightManagerService extends QueueWorkerService<SsdpServiceDef
     private final Map<String, WemoInsightConnector> devices = new ConcurrentHashMap<>();
 
     private final WemoInsightConnectorFactory connectorFactory;
-    private final Consumer<DeviceStatus> deviceStatusSink;
+    private final Consumer<DeviceState> deviceStateConsumer;
     private final Consumer<PowerMeterData> powerMeterDataSink;
     private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
     private final long pollPeriodMillis;
@@ -52,7 +52,7 @@ public class WemoInsightManagerService extends QueueWorkerService<SsdpServiceDef
     @Inject
     WemoInsightManagerService(SsdpDiscoveryService ssdpDiscoveryService,
                               WemoInsightConnectorFactory connectorFactory,
-                              Consumer<DeviceStatus> deviceStatusSink,
+                              Consumer<DeviceState> deviceStateConsumer,
                               Consumer<PowerMeterData> powerMeterDataSink,
                               @Named("wemo.poll.period.millis") int pollPeriodMillis) {
         super(SsdpServiceDefinition.class);
@@ -60,7 +60,7 @@ public class WemoInsightManagerService extends QueueWorkerService<SsdpServiceDef
                 service -> (SSDP_SERIALNUMBER.matcher(service.getSerialNumber()).matches()
                         && SSDP_LOCATION.matcher(service.getLocation()).matches()), this,1);
         this.connectorFactory = connectorFactory;
-        this.deviceStatusSink = deviceStatusSink;
+        this.deviceStateConsumer = deviceStateConsumer;
         this.powerMeterDataSink = powerMeterDataSink;
         this.pollPeriodMillis = pollPeriodMillis;
     }
@@ -97,7 +97,7 @@ public class WemoInsightManagerService extends QueueWorkerService<SsdpServiceDef
                 log.info("connected to Insight meter at {}:{}", ipAddress, port);
                 boolean firstDevice = devices.isEmpty();
                 devices.put(ipAddress, newConnector);
-                deviceStatusSink.accept(new DeviceStatus(newConnector));
+                deviceStateConsumer.accept(new DeviceState(newConnector));
                 if (firstDevice) {
                     // as soon as the first device is found, start polling
                     startTimer();

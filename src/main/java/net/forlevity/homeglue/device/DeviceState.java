@@ -13,10 +13,10 @@ import java.time.Instant;
 import java.util.Map;
 
 /**
- * Status of a device at a point in time.
+ * State of a device at a point in time.
  */
 @Getter
-public class DeviceStatus implements DeviceInfo {
+public class DeviceState implements DeviceInfo {
 
     private final Instant timestamp = Instant.now();
 
@@ -24,13 +24,13 @@ public class DeviceStatus implements DeviceInfo {
     private final boolean connected;
     private final Map<String, String> deviceDetails;
 
-    DeviceStatus(String deviceId, boolean connected, Map<String, String> deviceDetails) {
+    DeviceState(String deviceId, boolean connected, Map<String, String> deviceDetails) {
         this.deviceId = deviceId;
         this.connected = connected;
         this.deviceDetails = ImmutableMap.copyOf(deviceDetails);
     }
 
-    public DeviceStatus(DeviceInfo toCopy) {
+    public DeviceState(DeviceInfo toCopy) {
         this(toCopy.getDeviceId(), toCopy.isConnected(), toCopy.getDeviceDetails());
     }
 }

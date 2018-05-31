@@ -48,7 +48,7 @@ public class ApplicationGuice extends AbstractModule {
         bind(HomeglueApplication.class);
 
         // device status processor
-        bind(new TypeLiteral<Consumer<DeviceStatus>>(){}).to(DeviceStatusProcessorService.class);
+        bind(new TypeLiteral<Consumer<DeviceState>>(){}).to(DeviceStateProcessorService.class);
 
         // device events: exchange
         bind(new TypeLiteral<Consumer<DeviceEvent>>(){})

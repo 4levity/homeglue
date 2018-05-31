@@ -19,15 +19,15 @@ import java.util.function.Consumer;
 
 @Log4j2
 @Singleton
-public class DeviceStatusProcessorService extends QueueWorkerService<DeviceStatus> {
+public class DeviceStateProcessorService extends QueueWorkerService<DeviceState> {
 
     private final PersistenceService persistenceService;
     private final Consumer<DeviceEvent> deviceEventConsumer;
 
     @Inject
-    public DeviceStatusProcessorService(PersistenceService persistenceService,
-                                        Consumer<DeviceEvent> deviceEventConsumer) {
-        super(DeviceStatus.class);
+    public DeviceStateProcessorService(PersistenceService persistenceService,
+                                       Consumer<DeviceEvent> deviceEventConsumer) {
+        super(DeviceState.class);
         this.persistenceService = persistenceService;
         this.deviceEventConsumer = deviceEventConsumer;
     }
@@ -36,26 +36,26 @@ public class DeviceStatusProcessorService extends QueueWorkerService<DeviceStatu
      * Process device status. If any changes, generate events and update database.
      * Note this runs serially on queue processing thread.
      *
-     * @param newDeviceStatus device status
+     * @param newDeviceState device status
      */
     @Override
-    protected void handle(DeviceStatus newDeviceStatus) {
-        String deviceId = newDeviceStatus.getDeviceId();
+    protected void handle(DeviceState newDeviceState) {
+        String deviceId = newDeviceState.getDeviceId();
         List<DeviceEvent> newEvents = persistenceService.exec(session -> {
             Device device = session.bySimpleNaturalId(Device.class).load(deviceId);
             List<DeviceEvent> events = new ArrayList<>();
             if (device == null) {
-                log.info("device first detection: {}", newDeviceStatus);
-                device = Device.from(newDeviceStatus);
+                log.info("device first detection: {}", newDeviceState);
+                device = Device.from(newDeviceState);
                 events.add(new DeviceEvent(deviceId, DeviceEvent.NEW_DEVICE, device.getDeviceDetails()));
             } else {
-                if (device.isConnected() != newDeviceStatus.isConnected()) {
-                    device.setConnected(newDeviceStatus.isConnected());
+                if (device.isConnected() != newDeviceState.isConnected()) {
+                    device.setConnected(newDeviceState.isConnected());
                     String event = device.isConnected() ? DeviceEvent.CONNECTED : DeviceEvent.CONNECTION_LOST;
                     events.add(new DeviceEvent(deviceId, event));
                 }
-                if (!device.getDeviceDetails().equals(newDeviceStatus.getDeviceDetails())) {
-                    device.setDeviceDetails(newDeviceStatus.getDeviceDetails());
+                if (!device.getDeviceDetails().equals(newDeviceState.getDeviceDetails())) {
+                    device.setDeviceDetails(newDeviceState.getDeviceDetails());
                     events.add(new DeviceEvent(deviceId, DeviceEvent.DETAILS_CHANGED, device.getDeviceDetails()));
                 }
             }
