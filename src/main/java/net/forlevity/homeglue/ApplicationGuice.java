@@ -16,7 +16,6 @@ import net.forlevity.homeglue.device.*;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.http.SimpleHttpClientImpl;
 import net.forlevity.homeglue.ifttt.IftttMakerWebhookClient;
-import net.forlevity.homeglue.ifttt.IftttMakerWebhookClientImpl;
 import net.forlevity.homeglue.persistence.H2HibernateService;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
@@ -75,7 +74,7 @@ public class ApplicationGuice extends AbstractModule {
         bind(PersistenceService.class).to(H2HibernateService.class);
 
         // ifttt
-        bind(IftttMakerWebhookClient.class).to(IftttMakerWebhookClientImpl.class);
+        bind(IftttMakerWebhookClient.class);
 
         // use simulation instead of real devices?
         if (Boolean.valueOf(namedConfigurationProperties.get("network.simulated").toString())) {
