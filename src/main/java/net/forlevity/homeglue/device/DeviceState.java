@@ -7,7 +7,8 @@
 package net.forlevity.homeglue.device;
 
 import com.google.common.collect.ImmutableMap;
-import lombok.Getter;
+import lombok.*;
+import lombok.experimental.Accessors;
 
 import java.time.Instant;
 import java.util.Map;
@@ -16,13 +17,21 @@ import java.util.Map;
  * State of a device at a point in time.
  */
 @Getter
+@Accessors(chain = true)
+@ToString
+@EqualsAndHashCode(of = { "deviceId", "connected", "deviceDetails", "instantaneousWatts" } )
 public class DeviceState implements DeviceInfo {
 
     private final Instant timestamp = Instant.now();
 
+    @NonNull
     private final String deviceId;
     private final boolean connected;
+    @NonNull
     private final Map<String, String> deviceDetails;
+
+    @Setter
+    private Double instantaneousWatts = null;
 
     DeviceState(String deviceId, boolean connected, Map<String, String> deviceDetails) {
         this.deviceId = deviceId;
@@ -32,5 +41,6 @@ public class DeviceState implements DeviceInfo {
 
     public DeviceState(DeviceInfo toCopy) {
         this(toCopy.getDeviceId(), toCopy.isConnected(), toCopy.getDeviceDetails());
+        setInstantaneousWatts(toCopy.getInstantaneousWatts());
     }
 }

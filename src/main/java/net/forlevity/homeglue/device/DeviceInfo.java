@@ -36,4 +36,14 @@ interface DeviceInfo {
      * @return copy of device metadata
      */
     Map<String,String> getDeviceDetails();
+
+    /**
+     * If the device is a meter, get watts that are being consumed by loads. If measuring generated energy,
+     * the number should be negative.
+     *
+     * @return watts
+     */
+    default Double getInstantaneousWatts() {
+        return null;
+    }
 }

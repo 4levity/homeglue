@@ -96,8 +96,8 @@ public class WemoInsightConnector implements DeviceConnector {
         return success;
     }
 
-    PowerMeterData read() {
-        PowerMeterData result = null;
+    Double read() {
+        Double result = null;
         Document doc = execInsightSoapRequest("GetInsightParams");
         if (doc != null) {
             String insightParams = soap.getXml().nodeText(doc, "//InsightParams");
@@ -105,7 +105,7 @@ public class WemoInsightConnector implements DeviceConnector {
                 String[] params = insightParams.split("\\|");
                 double milliwatts = Double.valueOf(params[7]);
                 log.debug("InsightParams={} / instantaneous power={} mw", insightParams, params[7], milliwatts);
-                result = new PowerMeterData(getDeviceId(), milliwatts / 1000.0);
+                result = milliwatts / 1000.0;
             } else {
                 log.warn("didn't get InsightParams from response");
             }

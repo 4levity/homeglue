@@ -32,6 +32,11 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
         this.deviceEventConsumer = deviceEventConsumer;
     }
 
+    @Override
+    protected void startUp() throws Exception {
+        persistenceService.awaitRunning();
+    }
+
     /**
      * Process device status. If any changes, generate events and update database.
      * Note this runs serially on queue processing thread.
@@ -42,6 +47,8 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
     protected void handle(DeviceState newDeviceState) {
         String deviceId = newDeviceState.getDeviceId();
         List<DeviceEvent> newEvents = persistenceService.exec(session -> {
+
+            // check for new device, connection state changed, details changed
             Device device = session.bySimpleNaturalId(Device.class).load(deviceId);
             List<DeviceEvent> events = new ArrayList<>();
             if (device == null) {
@@ -64,6 +71,7 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
             }
             return events;
         });
+        log.info("DeviceState: {}", newDeviceState);
         newEvents.forEach(deviceEventConsumer);
     }
 }

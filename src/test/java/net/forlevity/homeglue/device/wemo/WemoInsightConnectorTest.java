@@ -53,7 +53,7 @@ public class WemoInsightConnectorTest extends HomeglueTests {
         ArgumentCaptor<Map<String,String>> headers = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<ContentType> contentType = ArgumentCaptor.forClass(ContentType.class);
-        PowerMeterData data = connector.read();
+        PowerMeterData data = new PowerMeterData(connector.getDeviceId(), connector.read());
         log.info("wemo driver read: {}", data);
         assertEquals(4.155, data.getInstantaneousWatts(), 0.001);
         // timestamp within 100ms of now:
