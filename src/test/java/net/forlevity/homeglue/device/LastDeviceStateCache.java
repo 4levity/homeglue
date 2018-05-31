@@ -10,16 +10,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-public class LastTelemetryCache implements Consumer<PowerMeterData> {
+public class LastDeviceStateCache implements Consumer<DeviceState> {
 
-    public final Map<String, PowerMeterData> lastPowerMeterData = new ConcurrentHashMap<>();
+    public final Map<String, DeviceState> lastDeviceState = new ConcurrentHashMap<>();
 
     @Override
-    public void accept(PowerMeterData data) {
-        if (data.getInstantaneousWatts() != null) {
-            this.lastPowerMeterData.put(data.getDeviceId(), data);
-        } else {
-            this.lastPowerMeterData.remove(data.getDeviceId());
-        }
+    public void accept(DeviceState data) {
+        this.lastDeviceState.put(data.getDeviceId(), data);
     }
 }

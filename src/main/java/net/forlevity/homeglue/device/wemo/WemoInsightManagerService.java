@@ -13,7 +13,6 @@ import com.google.inject.name.Named;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.DeviceState;
-import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 import net.forlevity.homeglue.util.QueueWorkerService;
@@ -43,7 +42,6 @@ public class WemoInsightManagerService extends QueueWorkerService<SsdpServiceDef
 
     private final WemoInsightConnectorFactory connectorFactory;
     private final Consumer<DeviceState> deviceStateConsumer;
-    private final Consumer<PowerMeterData> powerMeterDataSink;
     private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
     private final long pollPeriodMillis;
 
@@ -53,7 +51,6 @@ public class WemoInsightManagerService extends QueueWorkerService<SsdpServiceDef
     WemoInsightManagerService(SsdpDiscoveryService ssdpDiscoveryService,
                               WemoInsightConnectorFactory connectorFactory,
                               Consumer<DeviceState> deviceStateConsumer,
-                              Consumer<PowerMeterData> powerMeterDataSink,
                               @Named("wemo.poll.period.millis") int pollPeriodMillis) {
         super(SsdpServiceDefinition.class);
         ssdpDiscoveryService.registerSsdp(
@@ -61,7 +58,6 @@ public class WemoInsightManagerService extends QueueWorkerService<SsdpServiceDef
                         && SSDP_LOCATION.matcher(service.getLocation()).matches()), this,1);
         this.connectorFactory = connectorFactory;
         this.deviceStateConsumer = deviceStateConsumer;
-        this.powerMeterDataSink = powerMeterDataSink;
         this.pollPeriodMillis = pollPeriodMillis;
     }
 
@@ -148,7 +144,6 @@ public class WemoInsightManagerService extends QueueWorkerService<SsdpServiceDef
             if (watts != null) {
                 deviceStateConsumer.accept(new DeviceState(wemo).setInstantaneousWatts(watts));
             }
-            powerMeterDataSink.accept(watts == null ? new PowerMeterData(wemo.getDeviceId(), null) : new PowerMeterData(wemo.getDeviceId(), watts));
         } catch(RuntimeException e) {
             log.error("unexpected exception during storage of telemetry for {} (continuing)", wemo, e);
         }

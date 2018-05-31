@@ -19,19 +19,22 @@ import java.util.Map;
 @Getter
 @Accessors(chain = true)
 @ToString
-@EqualsAndHashCode(of = { "deviceId", "connected", "deviceDetails", "instantaneousWatts" } )
+@EqualsAndHashCode(of = { "deviceId", "connected", "instantaneousWatts", "deviceDetails" } )
 public class DeviceState implements DeviceInfo {
 
     private final Instant timestamp = Instant.now();
 
     @NonNull
     private final String deviceId;
+
     private final boolean connected;
-    @NonNull
-    private final Map<String, String> deviceDetails;
 
     @Setter
     private Double instantaneousWatts = null;
+
+    @NonNull
+    private final Map<String, String> deviceDetails;
+
 
     DeviceState(String deviceId, boolean connected, Map<String, String> deviceDetails) {
         this.deviceId = deviceId;

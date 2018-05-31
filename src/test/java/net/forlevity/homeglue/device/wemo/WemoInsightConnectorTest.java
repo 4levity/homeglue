@@ -7,7 +7,6 @@
 package net.forlevity.homeglue.device.wemo;
 
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.device.SoapHelper;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.testing.HomeglueTests;
@@ -17,7 +16,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -53,11 +51,9 @@ public class WemoInsightConnectorTest extends HomeglueTests {
         ArgumentCaptor<Map<String,String>> headers = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<ContentType> contentType = ArgumentCaptor.forClass(ContentType.class);
-        PowerMeterData data = new PowerMeterData(connector.getDeviceId(), connector.read());
+        Double data = connector.read();
         log.info("wemo driver read: {}", data);
-        assertEquals(4.155, data.getInstantaneousWatts(), 0.001);
-        // timestamp within 100ms of now:
-        assertEquals(Instant.now().toEpochMilli() / 100.0, data.getTimestamp().toEpochMilli() / 100.0, 1.0);
+        assertEquals(4.155, data, 0.001);
         verify(httpClient).post(url.capture(), headers.capture(), payload.capture(), contentType.capture());
         assertEquals(String.format("http://%s:%d/upnp/control/insight1",hostAddress,port), url.getValue());
         assertEquals("\"urn:Belkin:service:insight:1#GetInsightParams\"", headers.getValue().get("SOAPAction"));

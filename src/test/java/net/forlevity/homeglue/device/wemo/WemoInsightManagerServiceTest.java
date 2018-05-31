@@ -6,23 +6,23 @@
 
 package net.forlevity.homeglue.device.wemo;
 
-import com.google.common.collect.ImmutableSet;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.device.LastTelemetryCache;
-import net.forlevity.homeglue.device.PowerMeterData;
+import net.forlevity.homeglue.device.LastDeviceStateCache;
 import net.forlevity.homeglue.device.SoapHelper;
+import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sim.SimulatedWemo;
-import net.forlevity.homeglue.sink.TelemetryLogger;
 import net.forlevity.homeglue.testing.SimulatedNetworkTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
-import net.forlevity.homeglue.util.FanoutExchange;
 import org.junit.Test;
 
 import java.time.Instant;
-import java.util.function.Consumer;
+import java.util.ArrayList;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @Log4j2
 public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
@@ -30,7 +30,7 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
     SimulatedNetwork network;
     WemoInsightManagerService manager;
     SsdpDiscoveryService ssdp;
-    LastTelemetryCache telemetryCache;
+    LastDeviceStateCache telemetryCache;
 
     @Test
     public void testWemoInsightManager() throws InterruptedException {
@@ -61,9 +61,10 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
         SoapHelper soapHelper = new SoapHelper(network);
         WemoInsightConnectorFactory factory = (hostAddress, port) -> new WemoInsightConnector(soapHelper, hostAddress, port);
         ssdp = new SsdpDiscoveryService(network, 0, 0, 0, 0);
-        telemetryCache = new LastTelemetryCache();
-        Consumer<PowerMeterData> exchange = new FanoutExchange<>(ImmutableSet.of(telemetryCache, new TelemetryLogger()));
-        manager = new WemoInsightManagerService(ssdp, factory, status -> log.info("{}", status), exchange, 2500);
+        telemetryCache = new LastDeviceStateCache();
+        PersistenceService persistence = mock(PersistenceService.class);
+        when(persistence.exec(any())).thenReturn(new ArrayList<>());
+        manager = new WemoInsightManagerService(ssdp, factory, telemetryCache, 2500);
     }
 
     @Test
@@ -79,11 +80,11 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
         WemoInsightConnector device = manager.getDevices().values().iterator().next();
         assertEquals(macAddress, device.getDeviceId());
         assertEquals(2000, device.getPort());
-        Instant lastTelemetryTime = telemetryCache.lastPowerMeterData.get(macAddress).getTimestamp();
+        Instant lastTelemetryTime = telemetryCache.lastDeviceState.get(macAddress).getTimestamp();
 
         // timestamp changes because successful poll
         assertEquals(1, manager.poll());
-        Instant newTelemetryTime = telemetryCache.lastPowerMeterData.get(macAddress).getTimestamp();
+        Instant newTelemetryTime = telemetryCache.lastDeviceState.get(macAddress).getTimestamp();
         assertNotEquals(lastTelemetryTime, newTelemetryTime);
         lastTelemetryTime = newTelemetryTime;
 
@@ -100,7 +101,7 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
 
         // poll was triggered by port change, so within a couple ms it has also polled the device successfully again
         Thread.sleep(50);
-        newTelemetryTime = telemetryCache.lastPowerMeterData.get(macAddress).getTimestamp();
+        newTelemetryTime = telemetryCache.lastDeviceState.get(macAddress).getTimestamp();
         assertNotEquals(lastTelemetryTime, newTelemetryTime);
     }
 }

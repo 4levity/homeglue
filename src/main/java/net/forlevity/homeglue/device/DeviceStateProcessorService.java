@@ -71,7 +71,9 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
             }
             return events;
         });
-        log.info("DeviceState: {}", newDeviceState);
+        if (newDeviceState.getInstantaneousWatts() != null) {
+            log.info("Read power meter: {}", newDeviceState);
+        }
         newEvents.forEach(deviceEventConsumer);
     }
 }

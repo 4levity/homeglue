@@ -12,7 +12,10 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 import lombok.AllArgsConstructor;
-import net.forlevity.homeglue.device.*;
+import net.forlevity.homeglue.device.DeviceEvent;
+import net.forlevity.homeglue.device.DeviceManagementGuice;
+import net.forlevity.homeglue.device.DeviceState;
+import net.forlevity.homeglue.device.DeviceStateProcessorService;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.http.SimpleHttpClientImpl;
 import net.forlevity.homeglue.ifttt.IftttMakerWebhookClient;
@@ -21,7 +24,6 @@ import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sink.DeviceEventLogger;
 import net.forlevity.homeglue.sink.IftttDeviceEventService;
-import net.forlevity.homeglue.sink.TelemetryLogger;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpSearcher;
 import net.forlevity.homeglue.upnp.SsdpSearcherImpl;
@@ -58,14 +60,6 @@ public class ApplicationGuice extends AbstractModule {
                 Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<DeviceEvent>>(){});
         eventSinkBinder.addBinding().to(DeviceEventLogger.class);
         eventSinkBinder.addBinding().to(IftttDeviceEventService.class);
-
-        // telemetry: exchange
-        bind(new TypeLiteral<Consumer<PowerMeterData>>(){})
-                .to(new TypeLiteral<FanoutExchange<PowerMeterData>>(){}).in(Scopes.SINGLETON);
-        // telemetry: consumers
-        Multibinder<Consumer<PowerMeterData>> telemetrySinkBinder =
-                Multibinder.newSetBinder(binder(), new TypeLiteral<Consumer<PowerMeterData>>(){});
-        telemetrySinkBinder.addBinding().to(TelemetryLogger.class);
 
         // upnp
         bind(SsdpDiscoveryService.class);

@@ -15,7 +15,6 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.DeviceConnector;
-import net.forlevity.homeglue.device.PowerMeterData;
 import net.forlevity.homeglue.device.SoapHelper;
 import net.forlevity.homeglue.util.Xml;
 import org.w3c.dom.Document;
