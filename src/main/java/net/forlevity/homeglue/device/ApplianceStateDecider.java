@@ -18,6 +18,13 @@ import net.forlevity.homeglue.entity.ApplianceDetector;
 @Log4j2
 public class ApplianceStateDecider {
 
+    /**
+     * Determine whether an appliance is on, given its meter's latest power meter reading.
+     *
+     * @param applianceDetector device appliance detector configuration (must be inflated or session active)
+     * @param watts latest watts
+     * @return true if appliance is on
+     */
     public boolean applianceOn(ApplianceDetector applianceDetector, Double watts) {
         if (applianceDetector.getOffDelaySecs() > 0) {
             log.warn("off delay set at device {}, not implemented", applianceDetector.getDevice().getDeviceId());

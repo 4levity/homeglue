@@ -38,7 +38,7 @@ public class HomeglueApplication {
 
     @VisibleForTesting
     @Getter
-    private volatile boolean stopped = false;
+    private volatile boolean stopped = true;
 
     @Inject
     public HomeglueApplication(
@@ -57,6 +57,7 @@ public class HomeglueApplication {
     }
 
     public void start() {
+        stopped = false;
         Runtime.getRuntime().addShutdownHook(new Thread(HomeglueApplication.this::shutdownHook));
         serviceManager.startAsync().awaitHealthy();
         String services = serviceManager.servicesByState().values().stream()

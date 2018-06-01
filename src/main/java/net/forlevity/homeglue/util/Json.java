@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 
+import java.io.IOException;
+
 /**
  * Static holder for global reusable Jackson ObjectMapper and convenience methods to generate/parse JSON.
  */
@@ -33,6 +35,17 @@ public class Json {
             return JACKSON.writeValueAsString(object);
         } catch (JsonProcessingException e) {
             log.error("failed to serialize object of type {}", object.getClass().getSimpleName());
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <T> T fromJson(String text, Class<T> clazz) {
+        Preconditions.checkNotNull(clazz);
+        Preconditions.checkNotNull(text);
+        try {
+            return JACKSON.readValue(text, clazz);
+        } catch (IOException e) {
+            log.error("failed to deserialize object of type {}", clazz.getCanonicalName());
             throw new RuntimeException(e);
         }
     }

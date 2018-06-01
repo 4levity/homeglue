@@ -19,21 +19,26 @@ import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpSearcher;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ApplicationTest extends IntegrationTests {
 
     @Test
     public void startStopApplication() {
+        newService(WemoInsightManagerService.class);
+        newService(GenericUpnpManagerService.class);
+        newService(PersistenceService.class);
+        newService(DeviceStateProcessorService.class);
+        newService(SsdpDiscoveryService.class);
+        newService(IftttDeviceEventService.class);
         application.start();
         assertTrue(application.getServiceManager().isHealthy());
-        checkService(WemoInsightManagerService.class);
-        checkService(GenericUpnpManagerService.class);
-        checkService(PersistenceService.class);
-        checkService(DeviceStateProcessorService.class);
-        checkService(SsdpDiscoveryService.class);
-        checkService(IftttDeviceEventService.class);
+        runningService(WemoInsightManagerService.class);
+        runningService(GenericUpnpManagerService.class);
+        runningService(PersistenceService.class);
+        runningService(DeviceStateProcessorService.class);
+        runningService(SsdpDiscoveryService.class);
+        runningService(IftttDeviceEventService.class);
         assertTrue(injector.getInstance(SimpleHttpClient.class) instanceof SimulatedNetwork);
         assertTrue(injector.getInstance(SsdpSearcher.class) instanceof SimulatedNetwork);
         application.stop();
@@ -42,7 +47,16 @@ public class ApplicationTest extends IntegrationTests {
         assertFalse(injector.getInstance(SsdpDiscoveryService.class).isRunning());
     }
 
-    private void checkService(Class<? extends Service> serviceClass) {
+    private void newService(Class<? extends Service> serviceClass) {
+        assertEquals(Service.State.NEW, injector.getInstance(serviceClass).state());
+    }
+
+    @Test
+    public void repeatStartStopTest() {
+        startStopApplication(); // starting/stopping twice checks that test framework cleans up
+    }
+
+    private void runningService(Class<? extends Service> serviceClass) {
         // this checks that the service started, and also that it is a singleton
         // (if not, we'd get a new instance that wouldn't be running)
         assertTrue(injector.getInstance(serviceClass).isRunning());

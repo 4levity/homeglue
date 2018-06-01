@@ -40,14 +40,13 @@ public class DeviceState implements DeviceInfo {
     @NonNull
     private final Map<String, String> deviceDetails;
 
-
-    DeviceState(String deviceId, boolean connected, Map<String, String> deviceDetails) {
+    public DeviceState(String deviceId, boolean connected, Map<String, String> deviceDetails) {
         this.deviceId = deviceId;
         this.connected = connected;
         this.deviceDetails = ImmutableMap.copyOf(deviceDetails);
     }
 
-    DeviceState(String deviceId, boolean connected) {
+    public DeviceState(String deviceId, boolean connected) {
         this(deviceId, connected, ImmutableMap.of());
     }
 
