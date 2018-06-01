@@ -21,11 +21,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/**
+ * Fake persistence service - executes work units but uses a fake session to do it. Supports resolving id or naturalId
+ * to arbitrary objects. Not all Session methods supported, some just always return null.
+ */
 @Accessors(chain = true)
 public class FakePersistence extends AbstractIdleService implements PersistenceService {
 
     @Getter
     private final Session session;
+
     @Setter
     private Function<Serializable, Object> resolver = clazz -> null;
 
@@ -38,6 +43,7 @@ public class FakePersistence extends AbstractIdleService implements PersistenceS
         when(simpleNaturalIdLoadAccess.load(any()))
                 .thenAnswer(invocation -> resolver.apply(invocation.getArgument(0)));
         when(session.bySimpleNaturalId((Class<Object>) any())).thenReturn(simpleNaturalIdLoadAccess);
+        // TODO: mock other methods as needed
     }
 
     @Override

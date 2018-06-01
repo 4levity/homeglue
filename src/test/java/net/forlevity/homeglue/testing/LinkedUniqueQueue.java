@@ -34,5 +34,5 @@ public class LinkedUniqueQueue<T> extends LinkedBlockingQueue<T> {
         return item;
     }
 
-    // TODO: implement or throw UnsupportedOperationException on all other queue add/remove methods
+    // TODO: delegate instead of extending, support all BlockingQueue interface
 }
