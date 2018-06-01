@@ -19,6 +19,7 @@ import net.forlevity.homeglue.util.ResourceHelper;
 import org.h2.tools.Server;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -74,18 +75,14 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
     }
 
     @VisibleForTesting
-    void start() {
+    void start() throws SQLException {
         if (sessionFactory != null) {
             throw new IllegalStateException("service is already running");
         }
         if (h2WebserverPort != null) {
-            try {
-                h2WebServer = Server.createWebServer("-webPort", h2WebserverPort.toString());
-                h2WebServer.start();
-                log.info("H2 db web interface at http://localhost:{}/ (local access only)", h2WebserverPort);
-            } catch (SQLException e) {
-                log.warn("failed to start H2 db webserver at http://localhost:{}/", h2WebserverPort, e);
-            }
+            h2WebServer = Server.createWebServer("-webPort", h2WebserverPort.toString());
+            h2WebServer.start();
+            log.info("H2 db web interface at http://localhost:{}/ (local access only)", h2WebserverPort);
         }
         StandardServiceRegistry registry = new StandardServiceRegistryBuilder().applySettings(settings).build();
         MetadataSources metadata = new MetadataSources(registry);
@@ -154,7 +151,7 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
 
     private void finish(boolean completed, Session session) {
         boolean rollback = !completed;
-        org.hibernate.Transaction transaction = null;
+        Transaction transaction = null;
         try {
             transaction = session.getTransaction();
             if (transaction == null || !transaction.isActive()) {
