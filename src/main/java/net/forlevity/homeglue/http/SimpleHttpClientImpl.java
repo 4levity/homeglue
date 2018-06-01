@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * Standard implementation for SimpleHttpClient.
+ * Standard implementation of SimpleHttpClient.
  */
 public class SimpleHttpClientImpl implements SimpleHttpClient {
 

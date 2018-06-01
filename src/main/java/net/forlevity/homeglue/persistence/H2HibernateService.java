@@ -75,7 +75,7 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
 
     @VisibleForTesting
     void start() {
-        if (isRunning()) {
+        if (sessionFactory != null) {
             throw new IllegalStateException("service is already running");
         }
         if (h2WebserverPort != null) {
@@ -103,8 +103,6 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
         String classNames = entityClasses.stream().map(name -> classInfoMap.get(name).getClassRef().getSimpleName())
                 .collect(Collectors.joining(", "));
         log.info("Persistence mapped classes [{}] using {}", classNames, getJdbcUrl());
-
-
     }
 
     @VisibleForTesting
