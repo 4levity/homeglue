@@ -42,10 +42,13 @@ public class Device {
     @Setter
     private boolean connected;
 
-    @OneToOne(mappedBy = "device", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY,
-            optional = true)
+    @OneToOne(mappedBy = "device", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Getter
     private Relay relay;
+
+    @OneToOne(mappedBy = "device", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Getter
+    private ApplianceDetector applianceDetector;
 
     @ElementCollection
     @MapKeyColumn(name="name")
@@ -67,19 +70,35 @@ public class Device {
     }
 
     /**
-     * Set the relay object for this device (child object).
+     * Set the relay child object for this device.
      *
      * @param relay relay
      */
     public void setRelay(Relay relay) {
         if (relay == null) {
             if (this.relay != null) {
-                setRelay(relay);
+                this.relay.setDevice(null);
             }
         } else {
             relay.setDevice(this);
         }
         this.relay = relay;
+    }
+
+    /**
+     * Set the applianceDetector child object for this device.
+     *
+     * @param applianceDetector applianceDetector
+     */
+    public void setApplianceDetector(ApplianceDetector applianceDetector) {
+        if (applianceDetector == null) {
+            if (this.applianceDetector != null) {
+                this.applianceDetector.setDevice(null);
+            }
+        } else {
+            applianceDetector.setDevice(this);
+        }
+        this.applianceDetector = applianceDetector;
     }
 
     public static Device from(DeviceState deviceState) {

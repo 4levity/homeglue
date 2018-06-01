@@ -35,6 +35,9 @@ public class HomeglueApplication {
     @VisibleForTesting
     @Getter(AccessLevel.PACKAGE)
     private final ServiceManager serviceManager;
+
+    @VisibleForTesting
+    @Getter
     private volatile boolean stopped = false;
 
     @Inject
@@ -53,7 +56,7 @@ public class HomeglueApplication {
         serviceManager = new ServiceManager(services);
     }
 
-    void start() {
+    public void start() {
         Runtime.getRuntime().addShutdownHook(new Thread(HomeglueApplication.this::shutdownHook));
         serviceManager.startAsync().awaitHealthy();
         String services = serviceManager.servicesByState().values().stream()
@@ -62,7 +65,7 @@ public class HomeglueApplication {
         log.info("application started services: {}", services);
     }
 
-    void stop() {
+    public void stop() {
         if (!stopped) {
             stopped = true;
             System.out.print(" shutting down...");

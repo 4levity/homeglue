@@ -47,6 +47,10 @@ public class DeviceState implements DeviceInfo {
         this.deviceDetails = ImmutableMap.copyOf(deviceDetails);
     }
 
+    DeviceState(String deviceId, boolean connected) {
+        this(deviceId, connected, ImmutableMap.of());
+    }
+
     public DeviceState(DeviceInfo toCopy) {
         this(toCopy.getDeviceId(), toCopy.isConnected(), toCopy.getDeviceDetails());
         setInstantaneousWatts(toCopy.getInstantaneousWatts());
