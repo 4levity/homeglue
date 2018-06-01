@@ -10,6 +10,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.entity.Device;
+import net.forlevity.homeglue.entity.Relay;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.util.QueueWorkerService;
 
@@ -49,8 +50,8 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
         List<DeviceEvent> newEvents = persistenceService.exec(session -> {
 
             // check for new device, connection state changed, details changed
-            Device device = session.bySimpleNaturalId(Device.class).load(deviceId);
             List<DeviceEvent> events = new ArrayList<>();
+            Device device = session.bySimpleNaturalId(Device.class).load(deviceId);
             if (device == null) {
                 log.info("device first detection: {}", newDeviceState);
                 device = Device.from(newDeviceState);
@@ -66,7 +67,29 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
                     events.add(new DeviceEvent(deviceId, DeviceEvent.DETAILS_CHANGED, device.getDeviceDetails()));
                 }
             }
-            if (events.size() > 0) {
+
+            // check for relay state change
+            boolean forceSave = false;
+            if (newDeviceState.getRelayClosed() != null) {
+                boolean closed = newDeviceState.getRelayClosed();
+                Relay relay = device.getRelay();
+                if (relay == null) {
+                    log.debug("relay discovered on device {}", deviceId);
+                    relay = new Relay();
+                    relay.setClosed(closed);
+                    device.setRelay(relay);
+                    // no event
+                    forceSave = true;
+                } else {
+                    if (relay.isClosed() != closed) {
+                        relay.setClosed(closed);
+                        String event = closed ? DeviceEvent.RELAY_CLOSED : DeviceEvent.RELAY_OPEN;
+                        events.add(new DeviceEvent(deviceId, event));
+                    }
+                }
+            }
+
+            if (events.size() > 0 || forceSave) {
                 session.saveOrUpdate(device);
             }
             return events;

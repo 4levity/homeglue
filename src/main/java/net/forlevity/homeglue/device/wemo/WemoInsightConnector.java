@@ -15,6 +15,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.DeviceConnector;
+import net.forlevity.homeglue.device.DeviceState;
 import net.forlevity.homeglue.device.SoapHelper;
 import net.forlevity.homeglue.util.Xml;
 import org.w3c.dom.Document;
@@ -95,23 +96,27 @@ public class WemoInsightConnector implements DeviceConnector {
         return success;
     }
 
-    Double read() {
-        Double result = null;
+    DeviceState read() {
+        Double watts = null;
+        Boolean switchClosed = null;
         Document doc = execInsightSoapRequest("GetInsightParams");
         if (doc != null) {
             String insightParams = soap.getXml().nodeText(doc, "//InsightParams");
             if (insightParams != null) {
                 String[] params = insightParams.split("\\|");
+                switchClosed = !params[0].equals("0");
                 double milliwatts = Double.valueOf(params[7]);
                 log.debug("InsightParams={} / instantaneous power={} mw", insightParams, params[7], milliwatts);
-                result = milliwatts / 1000.0;
+                watts = milliwatts / 1000.0;
             } else {
                 log.warn("didn't get InsightParams from response");
             }
         } else {
             log.debug("failed to execute SOAP request for GetInsightParams");
         }
-        return result;
+        return watts == null ? null : new DeviceState(this)
+                .setInstantaneousWatts(watts)
+                .setRelayClosed(switchClosed);
     }
 
     private Document execInsightSoapRequest(String action) {

@@ -133,21 +133,21 @@ public class WemoInsightManagerService extends QueueWorkerService<SsdpServiceDef
     }
 
     private boolean poll(WemoInsightConnector wemo) {
-        Double watts = null;
+        DeviceState deviceState = null;
         try {
-            watts = wemo.read();
+            deviceState = wemo.read();
         } catch(RuntimeException e) {
             log.error("unexpected exception during poll of {} (continuing)", wemo, e);
         }
         // TODO: handle failure to read meter
         try {
-            if (watts != null) {
-                deviceStateConsumer.accept(new DeviceState(wemo).setInstantaneousWatts(watts));
+            if (deviceState != null) {
+                deviceStateConsumer.accept(deviceState);
             }
         } catch(RuntimeException e) {
             log.error("unexpected exception during storage of telemetry for {} (continuing)", wemo, e);
         }
-        return watts != null;
+        return deviceState != null;
     }
 
     @Override

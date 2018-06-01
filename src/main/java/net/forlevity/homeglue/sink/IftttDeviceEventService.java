@@ -34,7 +34,7 @@ public class IftttDeviceEventService extends QueueWorkerService<DeviceEvent> {
     @Override
     protected void handle(DeviceEvent deviceEvent) {
         IftttMakerWebhookClient.Event iftttEvent = convert(deviceEvent);
-        log.info("sending IFTTT webhook: {}", deviceEvent);
+        log.info("sending IFTTT webhook: {}", iftttEvent);
         iftttWebhookClient.trigger(iftttEvent);
     }
 

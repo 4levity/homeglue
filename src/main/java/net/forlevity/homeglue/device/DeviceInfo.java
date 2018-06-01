@@ -41,9 +41,19 @@ interface DeviceInfo {
      * If the device is a meter, get watts that are being consumed by loads. If measuring generated energy,
      * the number should be negative.
      *
-     * @return watts
+     * @return watts, or null if not available
      */
     default Double getInstantaneousWatts() {
+        return null;
+    }
+
+    /**
+     * If the device has a switch or relay, return true if the switch is closed (on) and false if it is
+     * open (off).
+     *
+     * @return switch closed state, or null if not available
+     */
+    default Boolean getRelayClosed() {
         return null;
     }
 }

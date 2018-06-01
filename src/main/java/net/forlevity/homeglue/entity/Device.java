@@ -42,6 +42,11 @@ public class Device {
     @Setter
     private boolean connected;
 
+    @OneToOne(mappedBy = "device", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY,
+            optional = true)
+    @Getter
+    private Relay relay;
+
     @ElementCollection
     @MapKeyColumn(name="name")
     @Column(name="value")
@@ -52,8 +57,29 @@ public class Device {
         return ImmutableMap.copyOf(deviceDetails);
     }
 
+    /**
+     * Set the device details.
+     *
+     * @param deviceDetails details
+     */
     public void setDeviceDetails(Map<String, String> deviceDetails) {
         this.deviceDetails = new HashMap<>(deviceDetails);
+    }
+
+    /**
+     * Set the relay object for this device (child object).
+     *
+     * @param relay relay
+     */
+    public void setRelay(Relay relay) {
+        if (relay == null) {
+            if (this.relay != null) {
+                setRelay(relay);
+            }
+        } else {
+            relay.setDevice(this);
+        }
+        this.relay = relay;
     }
 
     public static Device from(DeviceState deviceState) {

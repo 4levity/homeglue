@@ -7,6 +7,7 @@
 package net.forlevity.homeglue.device.wemo;
 
 import lombok.extern.log4j.Log4j2;
+import net.forlevity.homeglue.device.DeviceState;
 import net.forlevity.homeglue.device.SoapHelper;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.testing.HomeglueTests;
@@ -51,9 +52,9 @@ public class WemoInsightConnectorTest extends HomeglueTests {
         ArgumentCaptor<Map<String,String>> headers = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<String> payload = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<ContentType> contentType = ArgumentCaptor.forClass(ContentType.class);
-        Double data = connector.read();
-        log.info("wemo driver read: {}", data);
-        assertEquals(4.155, data, 0.001);
+        DeviceState state = connector.read();
+        log.info("wemo driver read: {}", state);
+        assertEquals(4.155, state.getInstantaneousWatts(), 0.001);
         verify(httpClient).post(url.capture(), headers.capture(), payload.capture(), contentType.capture());
         assertEquals(String.format("http://%s:%d/upnp/control/insight1",hostAddress,port), url.getValue());
         assertEquals("\"urn:Belkin:service:insight:1#GetInsightParams\"", headers.getValue().get("SOAPAction"));

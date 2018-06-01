@@ -20,8 +20,8 @@ public class DeviceEvent {
     // some built-in events
     public static final String CONNECTED = "connected";
     public static final String CONNECTION_LOST = "connection_lost";
-    public static final String SWITCH_ON = "switch_on";
-    public static final String SWITCH_OFF = "switch_off";
+    public static final String RELAY_CLOSED = "relay_closed";
+    public static final String RELAY_OPEN = "relay_open";
     public static final String APPLIANCE_ON = "appliance_on";
     public static final String APPLIANCE_OFF = "appliance_off";
     public static final String DETAILS_CHANGED = "details_changed";
