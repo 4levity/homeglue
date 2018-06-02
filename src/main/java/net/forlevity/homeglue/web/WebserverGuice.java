@@ -6,15 +6,27 @@
 
 package net.forlevity.homeglue.web;
 
+import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
+import lombok.AllArgsConstructor;
 import org.jboss.resteasy.plugins.guice.ext.RequestScopeModule;
 
+import javax.ws.rs.ext.Provider;
+import java.util.List;
+
+@AllArgsConstructor
 public class WebserverGuice extends RequestScopeModule {
+
+    private final String resourcePackage;
 
     @Override
     protected void configure() {
         super.configure();
         bind(WebserverService.class);
         bind(ObjectMapperProvider.class);
-        bind(RootResource.class);
+
+        ScanResult scanResult = new FastClasspathScanner(resourcePackage).scan();
+        List<String> resources = scanResult.getNamesOfClassesWithAnnotation(Provider.class);
+        resources.forEach(className -> bind(scanResult.getClassNameToClassInfo().get(className).getClassRef()));
     }
 }

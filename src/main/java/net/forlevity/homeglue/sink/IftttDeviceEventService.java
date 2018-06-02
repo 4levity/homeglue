@@ -27,7 +27,7 @@ public class IftttDeviceEventService extends QueueWorkerService<DeviceEvent> {
 
     @Inject
     public IftttDeviceEventService(IftttMakerWebhookClient iftttWebhookClient) {
-        super(DeviceEvent.class);
+        super(DeviceEvent.class, null);
         this.iftttWebhookClient = iftttWebhookClient;
     }
 

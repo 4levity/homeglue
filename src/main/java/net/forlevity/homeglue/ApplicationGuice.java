@@ -7,12 +7,13 @@
 package net.forlevity.homeglue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.inject.AbstractModule;
-import com.google.inject.Scopes;
-import com.google.inject.TypeLiteral;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.inject.*;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 import lombok.AllArgsConstructor;
+import net.forlevity.homeglue.api.ApiGuice;
 import net.forlevity.homeglue.device.DeviceEvent;
 import net.forlevity.homeglue.device.DeviceManagementGuice;
 import net.forlevity.homeglue.device.DeviceState;
@@ -30,7 +31,9 @@ import net.forlevity.homeglue.upnp.SsdpSearcher;
 import net.forlevity.homeglue.upnp.SsdpSearcherImpl;
 import net.forlevity.homeglue.util.FanoutExchange;
 import net.forlevity.homeglue.util.Json;
+import net.forlevity.homeglue.util.ServiceDependencies;
 import net.forlevity.homeglue.web.WebserverGuice;
+import net.forlevity.homeglue.web.WebserverService;
 
 import java.util.Properties;
 import java.util.function.Consumer;
@@ -76,10 +79,12 @@ public class ApplicationGuice extends AbstractModule {
         // local data storage
         bind(PersistenceService.class).to(H2HibernateService.class);
 
-        // ifttt
+        // ifttt glue
         bind(IftttMakerWebhookClient.class);
+        bind(IftttDeviceEventService.class);
 
-        // use simulation instead of real devices?
+
+        // use simulated network instead of real devices?
         if (Boolean.valueOf(namedConfigurationProperties.get("network.simulated").toString())) {
             bind(SsdpSearcher.class).to(SimulatedNetwork.class);
             bind(SimpleHttpClient.class).to(SimulatedNetwork.class);
@@ -88,8 +93,18 @@ public class ApplicationGuice extends AbstractModule {
             bind(SimpleHttpClient.class).to(SimpleHttpClientImpl.class);
         }
 
-        // device manager child module
+        // child modules
         install(new DeviceManagementGuice());
-        install(new WebserverGuice());
+        install(new WebserverGuice("net.forlevity.homeglue.api"));
+        install(new ApiGuice());
+    }
+
+    @Provides
+    @Singleton
+    public ServiceDependencies serviceDependencies(PersistenceService persistenceService) {
+        return new ServiceDependencies(ImmutableMap.of(
+                WebserverService.class, ImmutableList.of(persistenceService),
+                DeviceStateProcessorService.class, ImmutableList.of(persistenceService)
+        ));
     }
 }

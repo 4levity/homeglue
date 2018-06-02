@@ -139,18 +139,21 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
         RT result;
         Session session = sessionFactory.openSession();
         session.beginTransaction();
+        Throwable thrown = null;
         boolean completed = false;
         try {
             result = operation.apply(session);
-            completed = true;
+        } catch (Throwable e) {
+            thrown = e;
+            throw e;
         } finally {
-            finish(completed, session);
+            finish(thrown, session);
         }
         return result;
     }
 
-    private void finish(boolean completed, Session session) {
-        boolean rollback = !completed;
+    private void finish(Throwable thrown, Session session) {
+        boolean rollback = thrown != null;
         Transaction transaction = null;
         try {
             transaction = session.getTransaction();
@@ -158,7 +161,8 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
                 throw new IllegalStateException("finish() called with no active Transaction");
             }
             if (rollback) {
-                log.warn("errors occurred during transaction, rolling back");
+                log.info("thrown during transaction: {} {}",
+                        thrown.getClass().getSimpleName(), thrown.getMessage());
                 // rollback will occur in finally block
             } else {
                 try {

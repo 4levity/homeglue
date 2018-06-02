@@ -23,7 +23,7 @@ public class GenericUpnpManagerServiceTest extends SimulatedNetworkTests {
         SimulatedNetwork network = makeTestNetwork();
         GenericUpnpConnectorFactory factory = GenericUpnpConnector::new;
         SsdpDiscoveryService ssdp = new SsdpDiscoveryService(network, 0, 0, 0, 0);
-        GenericUpnpManagerService manager = new GenericUpnpManagerService(ssdp, factory, status -> log.info("{}", status));
+        GenericUpnpManagerService manager = new GenericUpnpManagerService(null, ssdp, factory, status -> log.info("{}", status));
 
         // disable SSDP service discovery on one of our devices
         device3.setServices(ImmutableList.of());

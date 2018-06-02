@@ -64,7 +64,7 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
         telemetryCache = new LastDeviceStateCache();
         PersistenceService persistence = mock(PersistenceService.class);
         when(persistence.exec(any())).thenReturn(new ArrayList<>());
-        manager = new WemoInsightManagerService(ssdp, factory, telemetryCache, 2500);
+        manager = new WemoInsightManagerService(null, ssdp, factory, telemetryCache, 2500);
     }
 
     @Test

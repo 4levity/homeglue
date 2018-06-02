@@ -9,7 +9,9 @@ package net.forlevity.homeglue.web;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import net.forlevity.homeglue.persistence.PersistenceService;
+import com.google.inject.name.Named;
+import lombok.extern.log4j.Log4j2;
+import net.forlevity.homeglue.util.ServiceDependencies;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -23,18 +25,22 @@ import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 import java.net.URI;
 
 @Singleton
+@Log4j2
 public class WebserverService extends AbstractIdleService {
 
     private final GuiceResteasyBootstrapServletContextListener guiceContextListener;
-    private final PersistenceService persistence;
+    private final ServiceDependencies dependencies;
+    private final int port;
 
     private Server server;
 
     @Inject
     public WebserverService(GuiceResteasyBootstrapServletContextListener guiceContextListener,
-                            PersistenceService persistence) {
+                            ServiceDependencies dependencies,
+                            @Named("webserver.port") int port) {
         this.guiceContextListener = guiceContextListener;
-        this.persistence = persistence;
+        this.dependencies = dependencies;
+        this.port = port;
     }
 
     @Override
@@ -51,8 +57,6 @@ public class WebserverService extends AbstractIdleService {
         resteasyServlet.setInitOrder(0);
         ServletContextHandler resteasyHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
         resteasyHandler.addEventListener(guiceContextListener);
-        //servletHandler.addFilter(new FilterHolder(injector.getInstance(HelloFilter.class)), "/*", null);
-        //servletHandler.addFilter(LogFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
         resteasyHandler.setContextPath("/api");
         resteasyHandler.addServlet(resteasyServlet, "/*");
 
@@ -61,15 +65,12 @@ public class WebserverService extends AbstractIdleService {
         handlers.setHandlers(new Handler[]{ resteasyHandler, htmlHandler });
 
         // start server
-        server = new Server(8080);
+        server = new Server(port);
         server.setHandler(handlers);
-        waitForOtherServices();
+        dependencies.waitForDependencies(this);
         server.start();
-    }
 
-    private void waitForOtherServices() {
-        // wait for dependencies needed by any resources!
-        persistence.awaitRunning();
+        log.info("webserver is running at http://localhost:{}/ (accessible over network!)", port);
     }
 
     @Override

@@ -6,8 +6,6 @@
 
 package net.forlevity.homeglue.entity;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.common.collect.ImmutableMap;
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -24,8 +22,6 @@ import java.util.Map;
 @Accessors(chain = true)
 @ToString
 @EqualsAndHashCode(of = {"deviceId"})
-@JsonAutoDetect
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Device {
 
     @Id
@@ -40,6 +36,7 @@ public class Device {
     @Getter
     @Setter(AccessLevel.PRIVATE)
     private String deviceId;
+    public static String _deviceId = "deviceId";
 
     @Column(name = "connected", nullable = false)
     @Getter
@@ -58,19 +55,19 @@ public class Device {
     @MapKeyColumn(name="name")
     @Column(name="value")
     @CollectionTable(name="device_details", joinColumns=@JoinColumn(name="id"))
-    private Map<String, String> deviceDetails = new HashMap<>();
+    private Map<String, String> details = new HashMap<>();
 
-    public Map<String, String> getDeviceDetails() {
-        return ImmutableMap.copyOf(deviceDetails);
+    public Map<String, String> getDetails() {
+        return ImmutableMap.copyOf(details);
     }
 
     /**
      * Set the device details.
      *
-     * @param deviceDetails details
+     * @param details details
      */
-    public void setDeviceDetails(Map<String, String> deviceDetails) {
-        this.deviceDetails = new HashMap<>(deviceDetails);
+    public void setDetails(Map<String, String> details) {
+        this.details = new HashMap<>(details);
     }
 
     /**
@@ -109,7 +106,7 @@ public class Device {
         Device device = new Device();
         device.setDeviceId(deviceState.getDeviceId());
         device.setConnected(deviceState.isConnected());
-        device.setDeviceDetails(deviceState.getDeviceDetails());
+        device.setDetails(deviceState.getDeviceDetails());
         return device;
     }
 }

@@ -16,6 +16,7 @@ import net.forlevity.homeglue.device.DeviceState;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 import net.forlevity.homeglue.util.QueueWorkerService;
+import net.forlevity.homeglue.util.ServiceDependencies;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,11 +49,12 @@ public class WemoInsightManagerService extends QueueWorkerService<SsdpServiceDef
     private final Object meterReadLock = new Object();
 
     @Inject
-    WemoInsightManagerService(SsdpDiscoveryService ssdpDiscoveryService,
+    WemoInsightManagerService(ServiceDependencies dependencies,
+                              SsdpDiscoveryService ssdpDiscoveryService,
                               WemoInsightConnectorFactory connectorFactory,
                               Consumer<DeviceState> deviceStateConsumer,
                               @Named("wemo.poll.period.millis") int pollPeriodMillis) {
-        super(SsdpServiceDefinition.class);
+        super(SsdpServiceDefinition.class, dependencies);
         ssdpDiscoveryService.registerSsdp(
                 service -> (SSDP_SERIALNUMBER.matcher(service.getSerialNumber()).matches()
                         && SSDP_LOCATION.matcher(service.getLocation()).matches()), this,1);

@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 public class QueueWorkerService<T> extends AbstractExecutionThreadService implements Consumer<T> {
 
     private final QueueWorker<T> worker;
+    private final ServiceDependencies dependencies;
     private Thread executionThread = null;
 
     /**
@@ -30,18 +31,22 @@ public class QueueWorkerService<T> extends AbstractExecutionThreadService implem
      *
      * @param itemType type
      * @param serialConsumer consumer
+     * @param dependencies service dependencies, or null
      */
-    public QueueWorkerService(Class<T> itemType, Consumer<T> serialConsumer) {
-        worker = new QueueWorker<>(itemType, serialConsumer);
+    public QueueWorkerService(Class<T> itemType, Consumer<T> serialConsumer, ServiceDependencies dependencies) {
+        this.worker = new QueueWorker<>(itemType, serialConsumer);
+        this.dependencies = dependencies;
     }
 
     /**
      * Create a new QueueWorkerService. Subclass also overrides handle() to process dequeued items.
      *
      * @param itemType type
+     * @param dependencies service dependencies, or null
      */
-    protected QueueWorkerService(Class<T> itemType) {
-        worker = new QueueWorker<>(itemType, this::handle);
+    protected QueueWorkerService(Class<T> itemType, ServiceDependencies dependencies) {
+        this.worker = new QueueWorker<>(itemType, this::handle);
+        this.dependencies = dependencies;
     }
 
     /**
@@ -59,6 +64,9 @@ public class QueueWorkerService<T> extends AbstractExecutionThreadService implem
     @Override
     protected final void run() {
         executionThread = Thread.currentThread();
+        if (dependencies != null) {
+            dependencies.waitForDependencies(this);
+        }
         worker.run();
     }
 

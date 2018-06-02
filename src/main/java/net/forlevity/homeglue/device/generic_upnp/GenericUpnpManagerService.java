@@ -15,6 +15,7 @@ import net.forlevity.homeglue.device.DeviceState;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 import net.forlevity.homeglue.util.QueueWorkerService;
+import net.forlevity.homeglue.util.ServiceDependencies;
 
 import java.net.InetAddress;
 import java.util.Arrays;
@@ -37,10 +38,11 @@ public class GenericUpnpManagerService extends QueueWorkerService<SsdpServiceDef
     private final Consumer<DeviceState> deviceStateConsumer;
 
     @Inject
-    GenericUpnpManagerService(SsdpDiscoveryService ssdpDiscoveryService,
+    GenericUpnpManagerService(ServiceDependencies dependencies,
+                              SsdpDiscoveryService ssdpDiscoveryService,
                               GenericUpnpConnectorFactory genericUpnpConnectorFactory,
                               Consumer<DeviceState> deviceStateConsumer) {
-        super(SsdpServiceDefinition.class);
+        super(SsdpServiceDefinition.class, dependencies);
         ssdpDiscoveryService.registerSsdp(service -> true, this, Integer.MAX_VALUE);
         this.genericUpnpConnectorFactory = genericUpnpConnectorFactory;
         this.deviceStateConsumer = deviceStateConsumer;
