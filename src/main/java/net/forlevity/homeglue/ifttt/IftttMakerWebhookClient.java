@@ -10,6 +10,7 @@ import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.http.SimpleHttpClient;
@@ -24,8 +25,6 @@ import java.io.IOException;
 @Log4j2
 public class IftttMakerWebhookClient {
 
-    private boolean notifiedDisabled = false;
-
     private final SimpleHttpClient httpClient;
     private final Json json;
     private final String key;
@@ -35,6 +34,13 @@ public class IftttMakerWebhookClient {
         this.httpClient = httpClient;
         this.json = json;
         this.key = key;
+        if (!isEnabled()) {
+            log.info("IFTTT disabled, to enable put \"ifttt.webhooks.key=xxxxx\" in configuration file");
+        }
+    }
+
+    public boolean isEnabled() {
+        return !Strings.isNullOrEmpty(key);
     }
 
     /**
@@ -46,12 +52,7 @@ public class IftttMakerWebhookClient {
      * @param value3 value or null
      */
     public synchronized void trigger(String event, String value1, String value2, String value3) {
-        if (Strings.isNullOrEmpty(key)) {
-            if (!notifiedDisabled) {
-                log.info("IFTTT disabled, to enable put \"ifttt.webhooks.key=xxxxx\" in configuration file");
-                notifiedDisabled = true; // only log this message once
-            }
-        } else {
+        if (isEnabled()) {
             String url = String.format("https://maker.ifttt.com/trigger/%s/with/key/%s", event, key);
             String payload;
             if (value1 == null && value2 == null && value3 == null) {

@@ -1,16 +1,28 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+    }
+}
+
 plugins {
     id 'java'
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '2.0.4'
 }
+
+// set mainClassName before applying shadow plugin, workaround for https://github.com/johnrengelman/shadow/issues/336
+mainClassName = 'net.forlevity.homeglue.Main'
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
 repositories {
     mavenCentral()
 }
 
 group 'net.forlevity.homeglue'
 version '0.1'
-
-mainClassName = 'net.forlevity.homeglue.Main'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
