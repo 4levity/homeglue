@@ -6,13 +6,18 @@
 
 package net.forlevity.homeglue.api;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import net.forlevity.homeglue.web.WebserverGuice;
 
-public class ApiGuice extends AbstractModule {
+public class ApiGuice extends WebserverGuice {
+
+    public ApiGuice() {
+        super("net.forlevity.homeglue.api");
+    }
 
     @Override
     protected void configure() {
+        super.configure();
         install(new FactoryModuleBuilder().build(DeviceResource.Factory.class));
     }
 }

@@ -10,7 +10,6 @@ import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.http.SimpleHttpClient;

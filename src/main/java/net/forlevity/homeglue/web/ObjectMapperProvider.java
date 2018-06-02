@@ -13,6 +13,9 @@ import com.google.inject.Singleton;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 
+/**
+ * Provides Jackson ObjectMapper to RESTeasy.
+ */
 @Provider
 @Singleton
 public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {

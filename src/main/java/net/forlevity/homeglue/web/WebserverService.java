@@ -24,6 +24,11 @@ import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 
 import java.net.URI;
 
+/**
+ * Guava web server service with Jetty + RESTeasy + Jackson + Guice. Static html served at "/" from JAR /html/ folder.
+ * RESTeasy resource paths are prefixed with /api/. Must install() a WebserverGuice module. Will utilize custom Jackson
+ * ObjectMapper if provided by Guice.
+ */
 @Singleton
 @Log4j2
 public class WebserverService extends AbstractIdleService {

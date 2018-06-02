@@ -32,7 +32,6 @@ import net.forlevity.homeglue.upnp.SsdpSearcherImpl;
 import net.forlevity.homeglue.util.FanoutExchange;
 import net.forlevity.homeglue.util.Json;
 import net.forlevity.homeglue.util.ServiceDependencies;
-import net.forlevity.homeglue.web.WebserverGuice;
 import net.forlevity.homeglue.web.WebserverService;
 
 import java.util.Properties;
@@ -95,7 +94,6 @@ public class ApplicationGuice extends AbstractModule {
 
         // child modules
         install(new DeviceManagementGuice());
-        install(new WebserverGuice("net.forlevity.homeglue.api"));
         install(new ApiGuice());
     }
 

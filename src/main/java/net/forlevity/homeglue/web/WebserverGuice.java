@@ -14,10 +14,14 @@ import org.jboss.resteasy.plugins.guice.ext.RequestScopeModule;
 import javax.ws.rs.ext.Provider;
 import java.util.List;
 
+/**
+ * Guice module for RESTeasy w/ Guice injection support. Automatically binds @Provider annotated resources under a
+ * given package name prefix.
+ */
 @AllArgsConstructor
 public class WebserverGuice extends RequestScopeModule {
 
-    private final String resourcePackage;
+    private final String resourcePackagePrefix;
 
     @Override
     protected void configure() {
@@ -25,7 +29,7 @@ public class WebserverGuice extends RequestScopeModule {
         bind(WebserverService.class);
         bind(ObjectMapperProvider.class);
 
-        ScanResult scanResult = new FastClasspathScanner(resourcePackage).scan();
+        ScanResult scanResult = new FastClasspathScanner(resourcePackagePrefix).scan();
         List<String> resources = scanResult.getNamesOfClassesWithAnnotation(Provider.class);
         resources.forEach(className -> bind(scanResult.getClassNameToClassInfo().get(className).getClassRef()));
     }

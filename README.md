@@ -47,7 +47,7 @@ has pretty decent automated test coverage, you can't hold me responsible if,
 for example, it fails to turn off your coffeemaker and subsequently your house
 burns down. You should have bought a better coffee maker.
 
-Belkin, WeMo and WeMo Insight are presumably trademarks of and otherwise the
+The terms "Belkin", "WeMo" and "WeMo Insight" are presumably trademarks of and otherwise the
 property of Belkin. These terms are used only to refer to those neat-o
 products. 4Levity and Homeglue is not in any way affiliated with Belkin.
 
