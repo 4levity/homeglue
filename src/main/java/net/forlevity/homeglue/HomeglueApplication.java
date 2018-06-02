@@ -18,6 +18,7 @@ import net.forlevity.homeglue.device.DeviceStateProcessorService;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sink.IftttDeviceEventService;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
+import net.forlevity.homeglue.web.WebserverService;
 import org.apache.logging.log4j.LogManager;
 
 import java.util.ArrayList;
@@ -46,12 +47,14 @@ public class HomeglueApplication {
             DeviceStateProcessorService deviceStateProcessorService,
             SsdpDiscoveryService ssdpDiscoveryService,
             IftttDeviceEventService iftttDeviceEventService,
+            WebserverService webserverService,
             Set<Service> deviceManagers) {
         List<Service> services = new ArrayList<>();
         services.add(persistenceService);
         services.add(deviceStateProcessorService);
         services.add(iftttDeviceEventService);
         services.add(ssdpDiscoveryService);
+        services.add(webserverService);
         services.addAll(deviceManagers);
         serviceManager = new ServiceManager(services);
     }
@@ -61,7 +64,7 @@ public class HomeglueApplication {
         Runtime.getRuntime().addShutdownHook(new Thread(HomeglueApplication.this::shutdownHook));
         serviceManager.startAsync().awaitHealthy();
         String services = serviceManager.servicesByState().values().stream()
-                .map(service -> (service.getClass().getSimpleName() + "=" + service.state().toString()))
+                .map(service -> service.getClass().getSimpleName())
                 .collect(Collectors.joining(", "));
         log.info("application started services: {}", services);
     }

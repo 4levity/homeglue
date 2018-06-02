@@ -26,12 +26,14 @@ public class IftttMakerWebhookClient {
 
     private boolean notifiedDisabled = false;
 
-    private final String key;
     private final SimpleHttpClient httpClient;
+    private final Json json;
+    private final String key;
 
     @Inject
-    public IftttMakerWebhookClient(SimpleHttpClient httpClient, @Named("ifttt.webhooks.key") String key) {
+    public IftttMakerWebhookClient(SimpleHttpClient httpClient, Json json, @Named("ifttt.webhooks.key") String key) {
         this.httpClient = httpClient;
+        this.json = json;
         this.key = key;
     }
 
@@ -55,7 +57,7 @@ public class IftttMakerWebhookClient {
             if (value1 == null && value2 == null && value3 == null) {
                 payload = "";
             } else {
-                payload = Json.toJson(new WebhookPostBody(value1, value2, value3));
+                payload = json.toJson(new WebhookPostBody(value1, value2, value3));
             }
             try {
                 String result = httpClient.post(url, null, payload, ContentType.APPLICATION_JSON);

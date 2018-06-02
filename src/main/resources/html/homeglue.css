@@ -1,0 +1,10 @@
+body {
+    background-color: white;
+    color: black;
+}
+table {
+    border-collapse: collapse;
+}
+thead {
+    background: lightgray;
+}

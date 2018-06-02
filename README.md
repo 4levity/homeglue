@@ -28,11 +28,11 @@ Java 8 currently required. The command `java -version` should say something some
 
 To build and test locally, run this command from project folder (skip the `./` on MS Windows):
 
-    ./gradlew build
+    ./gradlew build shadowJar
 
 Then to run the application:
 
-    java -jar build/libs/homeglue-0.1.jar
+    java -jar build/libs/homeglue-0.1-all.jar
 
 To enable sending to [IFTTT Maker Webhooks](https://ifttt.com/maker_webhooks), create or edit a file called 
 `homeglue.properties` in the project root which contains a line similar to 

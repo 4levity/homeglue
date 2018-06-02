@@ -7,12 +7,15 @@
 package net.forlevity.homeglue.testing;
 
 import lombok.extern.log4j.Log4j2;
+import net.forlevity.homeglue.util.Json;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
 
 @Log4j2
 public abstract class HomeglueTests {
+
+    protected Json json = new Json(true);
 
     @Rule
     public TestName name = new TestName();
@@ -21,5 +24,4 @@ public abstract class HomeglueTests {
     public void setup() {
         log.info("***** STARTING TEST {} *****", name.getMethodName());
     }
-
 }

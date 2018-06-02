@@ -6,6 +6,7 @@
 
 package net.forlevity.homeglue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 import com.google.inject.TypeLiteral;
@@ -28,6 +29,8 @@ import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpSearcher;
 import net.forlevity.homeglue.upnp.SsdpSearcherImpl;
 import net.forlevity.homeglue.util.FanoutExchange;
+import net.forlevity.homeglue.util.Json;
+import net.forlevity.homeglue.web.WebserverGuice;
 
 import java.util.Properties;
 import java.util.function.Consumer;
@@ -48,6 +51,12 @@ public class ApplicationGuice extends AbstractModule {
 
         // the application
         bind(HomeglueApplication.class);
+
+        // JSON processor
+        boolean prettyPrintJson = Boolean.valueOf(namedConfigurationProperties.getProperty("json.pretty"));
+        Json json = new Json(prettyPrintJson);
+        bind(Json.class).toInstance(json);
+        bind(ObjectMapper.class).toInstance(json.objectMapper);
 
         // device status processor
         bind(new TypeLiteral<Consumer<DeviceState>>(){}).to(DeviceStateProcessorService.class);
@@ -81,5 +90,6 @@ public class ApplicationGuice extends AbstractModule {
 
         // device manager child module
         install(new DeviceManagementGuice());
+        install(new WebserverGuice());
     }
 }

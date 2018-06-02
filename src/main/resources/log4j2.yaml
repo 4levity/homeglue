@@ -37,6 +37,10 @@ Configuration:
     - name: net.forlevity
       level: info
     - name: org.hibernate
-      level: warn # suppress hibernate startup messages
+      level: warn # suppress hibernate startup logs
     - name: com.mchange.v2
-      level: warn # suppress c3p0 startup messages
+      level: warn # suppress c3p0 startup logs
+    - name: org.eclipse.jetty
+      level: warn # suppress jetty startup/shutdown logs
+    - name: org.jboss.resteasy.plugins.guice.i18n
+      level: warn # suppress provider registration messages at startup

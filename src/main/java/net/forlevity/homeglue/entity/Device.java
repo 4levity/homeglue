@@ -6,6 +6,8 @@
 
 package net.forlevity.homeglue.entity;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.common.collect.ImmutableMap;
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -22,6 +24,8 @@ import java.util.Map;
 @Accessors(chain = true)
 @ToString
 @EqualsAndHashCode(of = {"deviceId"})
+@JsonAutoDetect
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Device {
 
     @Id

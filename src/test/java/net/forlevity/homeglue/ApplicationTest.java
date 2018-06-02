@@ -17,6 +17,7 @@ import net.forlevity.homeglue.sink.IftttDeviceEventService;
 import net.forlevity.homeglue.testing.IntegrationTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpSearcher;
+import net.forlevity.homeglue.web.WebserverService;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -31,6 +32,7 @@ public class ApplicationTest extends IntegrationTests {
         newService(DeviceStateProcessorService.class);
         newService(SsdpDiscoveryService.class);
         newService(IftttDeviceEventService.class);
+        newService(WebserverService.class);
         application.start();
         assertTrue(application.getServiceManager().isHealthy());
         runningService(WemoInsightManagerService.class);
@@ -39,6 +41,7 @@ public class ApplicationTest extends IntegrationTests {
         runningService(DeviceStateProcessorService.class);
         runningService(SsdpDiscoveryService.class);
         runningService(IftttDeviceEventService.class);
+        runningService(WebserverService.class);
         assertTrue(injector.getInstance(SimpleHttpClient.class) instanceof SimulatedNetwork);
         assertTrue(injector.getInstance(SsdpSearcher.class) instanceof SimulatedNetwork);
         application.stop();

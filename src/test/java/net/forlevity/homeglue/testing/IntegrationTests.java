@@ -11,6 +11,7 @@ import com.google.inject.Injector;
 import net.forlevity.homeglue.ApplicationGuice;
 import net.forlevity.homeglue.HomeglueApplication;
 import net.forlevity.homeglue.persistence.PersistenceService;
+import net.forlevity.homeglue.util.Json;
 import net.forlevity.homeglue.util.ResourceHelper;
 import org.junit.After;
 import org.junit.Before;
@@ -28,6 +29,7 @@ public class IntegrationTests extends HomeglueTests {
         makeTestInjector();
         application = injector.getInstance(HomeglueApplication.class);
         persistence = injector.getInstance(PersistenceService.class);
+        json = injector.getInstance(Json.class);
     }
 
     protected void makeTestInjector() {

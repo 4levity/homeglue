@@ -6,6 +6,8 @@
 
 package net.forlevity.homeglue.entity;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.Accessors;
 
@@ -17,6 +19,8 @@ import javax.persistence.*;
 @Accessors(chain = true)
 @ToString
 @EqualsAndHashCode(of = {"device"})
+@JsonAutoDetect
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Relay {
 
     @Id

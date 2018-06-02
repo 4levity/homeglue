@@ -8,7 +8,6 @@ package net.forlevity.homeglue.ifttt;
 
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.testing.HomeglueTests;
-import net.forlevity.homeglue.util.Json;
 import org.apache.http.entity.ContentType;
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,12 +23,13 @@ import static org.mockito.Mockito.*;
 public class IftttMakerWebhookClientTest extends HomeglueTests {
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testIftttClient() throws IOException {
         String iftttKey = "111222333444";
         String response = "Congratulations! You've fired a fake event to nowhere";
         SimpleHttpClient httpClient = mock(SimpleHttpClient.class);
         when(httpClient.post(any(), any(), any(), any())).thenReturn(response);
-        IftttMakerWebhookClient client = new IftttMakerWebhookClient(httpClient, iftttKey);
+        IftttMakerWebhookClient client = new IftttMakerWebhookClient(httpClient, json, iftttKey);
         client.trigger(new IftttMakerWebhookClient.Event("a","a1", "a2", "a3"));
         client.trigger("b","b1", "b2", "b3");
         client.trigger("c", "c1", null, null);
@@ -50,19 +50,19 @@ public class IftttMakerWebhookClientTest extends HomeglueTests {
         contentType.getAllValues().forEach(type -> assertEquals(ContentType.APPLICATION_JSON, type));
 
         // individual events correctly generated
-        WebhookPostBody postBody = Json.fromJson(payload.getAllValues().get(0), WebhookPostBody.class);
+        WebhookPostBody postBody = json.fromJson(payload.getAllValues().get(0), WebhookPostBody.class);
         assertTrue(url.getAllValues().get(0).contains("/trigger/a/"));
         assertEquals("a1", postBody.getValue1());
         assertEquals("a2", postBody.getValue2());
         assertEquals("a3", postBody.getValue3());
 
-        postBody = Json.fromJson(payload.getAllValues().get(1), WebhookPostBody.class);
+        postBody = json.fromJson(payload.getAllValues().get(1), WebhookPostBody.class);
         assertTrue(url.getAllValues().get(1).contains("/trigger/b/"));
         assertEquals("b1", postBody.getValue1());
         assertEquals("b2", postBody.getValue2());
         assertEquals("b3", postBody.getValue3());
 
-        postBody = Json.fromJson(payload.getAllValues().get(2), WebhookPostBody.class);
+        postBody = json.fromJson(payload.getAllValues().get(2), WebhookPostBody.class);
         assertTrue(url.getAllValues().get(2).contains("/trigger/c/"));
         assertEquals("c1", postBody.getValue1());
         assertNull(postBody.getValue2());
