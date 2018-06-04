@@ -17,7 +17,7 @@ import javax.persistence.*;
 @Table(name = "appliance_cfg")
 @NoArgsConstructor
 @Accessors(chain = true)
-@ToString
+@ToString(of = {"id", "minWatts", "offDelaySecs", "on"})
 @EqualsAndHashCode(of = {"device"})
 @JsonAutoDetect
 @JsonInclude(JsonInclude.Include.NON_NULL)

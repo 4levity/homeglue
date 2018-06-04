@@ -6,13 +6,12 @@
 
 package net.forlevity.homeglue.device.wemo;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.device.DeviceState;
+import net.forlevity.homeglue.device.DeviceConnector;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 import net.forlevity.homeglue.util.QueueWorkerService;
@@ -20,10 +19,6 @@ import net.forlevity.homeglue.util.ServiceDependencies;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,24 +37,18 @@ public class WemoInsightManagerService extends QueueWorkerService<SsdpServiceDef
     private final Map<String, WemoInsightConnector> devices = new ConcurrentHashMap<>();
 
     private final WemoInsightConnectorFactory connectorFactory;
-    private final Consumer<DeviceState> deviceStateConsumer;
-    private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
     private final long pollPeriodMillis;
-
-    private final Object meterReadLock = new Object();
 
     @Inject
     WemoInsightManagerService(ServiceDependencies dependencies,
                               SsdpDiscoveryService ssdpDiscoveryService,
                               WemoInsightConnectorFactory connectorFactory,
-                              Consumer<DeviceState> deviceStateConsumer,
                               @Named("wemo.poll.period.millis") int pollPeriodMillis) {
         super(SsdpServiceDefinition.class, dependencies);
         ssdpDiscoveryService.registerSsdp(
                 service -> (SSDP_SERIALNUMBER.matcher(service.getSerialNumber()).matches()
                         && SSDP_LOCATION.matcher(service.getLocation()).matches()), this,1);
         this.connectorFactory = connectorFactory;
-        this.deviceStateConsumer = deviceStateConsumer;
         this.pollPeriodMillis = pollPeriodMillis;
     }
 
@@ -88,72 +77,24 @@ public class WemoInsightManagerService extends QueueWorkerService<SsdpServiceDef
      * @param port TCP webPort of Insight
      */
     private void handleWemoDiscovery(String ipAddress, int port) {
-        WemoInsightConnector foundConnector = devices.get(ipAddress);
-        if (foundConnector == null) {
+        WemoInsightConnector match = devices.get(ipAddress);
+        if (match == null) {
             WemoInsightConnector newConnector = connectorFactory.create(ipAddress, port);
-            if (newConnector.connect()) {
+            if (newConnector.start()) {
                 log.info("connected to Insight meter at {}:{}", ipAddress, port);
-                boolean firstDevice = devices.isEmpty();
                 devices.put(ipAddress, newConnector);
-                deviceStateConsumer.accept(new DeviceState(newConnector));
-                if (firstDevice) {
-                    // as soon as the first device is found, start polling
-                    startTimer();
-                }
             } else {
                 log.warn("detected but failed to connect to Insight meter at {}:{}", ipAddress, port);
             }
-        } else if (foundConnector.getPort() != port) {
-            log.info("WeMo Insight webPort at {} changed from {} to {}",
-                    ipAddress, foundConnector.getPort(), port);
-            foundConnector.setPort(port);
-            executor.execute(() -> poll(foundConnector)); // immediate poll
+        } else if (match.getPort() != port) {
+            log.info("WeMo Insight webPort at {} changed from {} to {}", ipAddress, match.getPort(), port);
+            match.setPort(port);
         }
-    }
-
-    private void startTimer() {
-        poll(); // first poll of first device blocks discovery thread, then timer starts (easier to test)
-        if (isRunning()) {
-            executor.scheduleAtFixedRate(this::poll, pollPeriodMillis, pollPeriodMillis, TimeUnit.MILLISECONDS);
-        }
-    }
-
-    /**
-     * Poll all Insights and send data to sink. Normally run by ScheduledExecutor.
-     *
-     * @return number of devices successfully polled
-     */
-    @VisibleForTesting
-    int poll() {
-        int[] polled = new int[1];
-        devices.values().forEach(meter -> {
-            if (poll(meter)) {
-                polled[0]++;
-            }
-        });
-        return polled[0];
-    }
-
-    private boolean poll(WemoInsightConnector wemo) {
-        DeviceState deviceState = null;
-        try {
-            deviceState = wemo.read();
-        } catch(RuntimeException e) {
-            log.error("unexpected exception during poll of {} (continuing)", wemo, e);
-        }
-        // TODO: handle failure to read meter
-        try {
-            if (deviceState != null) {
-                deviceStateConsumer.accept(deviceState);
-            }
-        } catch(RuntimeException e) {
-            log.error("unexpected exception during storage of telemetry for {} (continuing)", wemo, e);
-        }
-        return deviceState != null;
+        // if no new device or port change, ignore
     }
 
     @Override
     protected void shutDown() throws Exception {
-        executor.shutdown();
+        devices.values().forEach(DeviceConnector::terminate);
     }
 }

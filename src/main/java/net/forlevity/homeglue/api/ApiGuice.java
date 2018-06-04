@@ -16,8 +16,7 @@ public class ApiGuice extends WebserverGuice {
     }
 
     @Override
-    protected void configure() {
-        super.configure();
+    protected void configureMore() {
         install(new FactoryModuleBuilder().build(DeviceResource.Factory.class));
     }
 }

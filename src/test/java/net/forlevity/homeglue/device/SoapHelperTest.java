@@ -46,7 +46,7 @@ public class SoapHelperTest extends HomeglueTests {
         when(mockHttp.post(any(),any(),any(),any()))
                 .thenReturn(ResourceHelper.resourceAsString("net/forlevity/homeglue/sim/insightparams_response.xml"));
         SoapHelper soapHelper = new SoapHelper(mockHttp);
-        Document document = soapHelper.execSoapRequest(url, urn, action);
+        Document document = soapHelper.execSoapRequest(url, urn, action, "");
 
         ArgumentCaptor<String> xmlRequest = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Map<String,String>> requestHeaders = ArgumentCaptor.forClass(Map.class);

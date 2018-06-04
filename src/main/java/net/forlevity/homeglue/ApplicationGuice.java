@@ -16,7 +16,6 @@ import lombok.AllArgsConstructor;
 import net.forlevity.homeglue.api.ApiGuice;
 import net.forlevity.homeglue.device.DeviceEvent;
 import net.forlevity.homeglue.device.DeviceManagementGuice;
-import net.forlevity.homeglue.device.DeviceState;
 import net.forlevity.homeglue.device.DeviceStateProcessorService;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.http.SimpleHttpClientImpl;
@@ -60,9 +59,6 @@ public class ApplicationGuice extends AbstractModule {
         bind(Json.class).toInstance(json);
         bind(ObjectMapper.class).toInstance(json.objectMapper);
 
-        // device status processor
-        bind(new TypeLiteral<Consumer<DeviceState>>(){}).to(DeviceStateProcessorService.class);
-
         // device events: exchange
         bind(new TypeLiteral<Consumer<DeviceEvent>>(){})
                 .to(new TypeLiteral<FanoutExchange<DeviceEvent>>(){}).in(Scopes.SINGLETON);
@@ -81,7 +77,6 @@ public class ApplicationGuice extends AbstractModule {
         // ifttt glue
         bind(IftttMakerWebhookClient.class);
         bind(IftttDeviceEventService.class);
-
 
         // use simulated network instead of real devices?
         if (Boolean.valueOf(namedConfigurationProperties.get("network.simulated").toString())) {

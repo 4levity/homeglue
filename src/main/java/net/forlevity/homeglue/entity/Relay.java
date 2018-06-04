@@ -17,7 +17,7 @@ import javax.persistence.*;
 @Table(name = "relays")
 @NoArgsConstructor
 @Accessors(chain = true)
-@ToString
+@ToString(of = {"id", "closed"})
 @EqualsAndHashCode(of = {"device"})
 @JsonAutoDetect
 @JsonInclude(JsonInclude.Include.NON_NULL)

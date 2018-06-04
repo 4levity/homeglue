@@ -7,6 +7,7 @@
 package net.forlevity.homeglue.device.wemo;
 
 import lombok.extern.log4j.Log4j2;
+import net.forlevity.homeglue.device.DeviceCommandDispatcher;
 import net.forlevity.homeglue.device.LastDeviceStateCache;
 import net.forlevity.homeglue.device.SoapHelper;
 import net.forlevity.homeglue.persistence.PersistenceService;
@@ -59,12 +60,13 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
     private void makeWemoManager(SimulatedWemo... wemos) {
         network = makeTestNetwork(wemos);
         SoapHelper soapHelper = new SoapHelper(network);
-        WemoInsightConnectorFactory factory = (hostAddress, port) -> new WemoInsightConnector(soapHelper, hostAddress, port);
-        ssdp = new SsdpDiscoveryService(network, 0, 0, 0, 0);
         telemetryCache = new LastDeviceStateCache();
+        WemoInsightConnectorFactory factory = (hostAddress, port) -> new WemoInsightConnector(soapHelper,
+                mock(DeviceCommandDispatcher.class), telemetryCache, hostAddress, port);
+        ssdp = new SsdpDiscoveryService(network, 0, 0, 0, 0);
         PersistenceService persistence = mock(PersistenceService.class);
         when(persistence.exec(any())).thenReturn(new ArrayList<>());
-        manager = new WemoInsightManagerService(null, ssdp, factory, telemetryCache, 2500);
+        manager = new WemoInsightManagerService(null, ssdp, factory, 2500);
     }
 
     @Test
@@ -80,17 +82,18 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
         WemoInsightConnector device = manager.getDevices().values().iterator().next();
         assertEquals(macAddress, device.getDeviceId());
         assertEquals(2000, device.getPort());
+        assertTrue(device.poll()); // first poll
         Instant lastTelemetryTime = telemetryCache.lastDeviceState.get(macAddress).getTimestamp();
 
         // timestamp changes because successful poll
-        assertEquals(1, manager.poll());
+        assertTrue(device.poll());
         Instant newTelemetryTime = telemetryCache.lastDeviceState.get(macAddress).getTimestamp();
         assertNotEquals(lastTelemetryTime, newTelemetryTime);
         lastTelemetryTime = newTelemetryTime;
 
         // now this time the poll should have failed
         simulator.setWebPort(3000);
-        assertEquals(0, manager.poll());
+        assertFalse(device.poll());
 
         // now we rescan and device manager should pick up the new port
         ssdp.runOnce();
@@ -99,8 +102,8 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
         device = manager.getDevices().values().iterator().next();
         assertEquals(3000, device.getPort());
 
-        // poll was triggered by port change, so within a couple ms it has also polled the device successfully again
-        Thread.sleep(50);
+        // next poll works and telemetry timestamp changes
+        assertTrue(device.poll());
         newTelemetryTime = telemetryCache.lastDeviceState.get(macAddress).getTimestamp();
         assertNotEquals(lastTelemetryTime, newTelemetryTime);
     }

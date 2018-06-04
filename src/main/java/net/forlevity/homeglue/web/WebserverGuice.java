@@ -8,7 +8,6 @@ package net.forlevity.homeglue.web;
 
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
-import lombok.AllArgsConstructor;
 import org.jboss.resteasy.plugins.guice.ext.RequestScopeModule;
 
 import javax.ws.rs.ext.Provider;
@@ -18,13 +17,16 @@ import java.util.List;
  * Guice module for RESTeasy w/ Guice injection support. Automatically binds @Provider annotated resources under a
  * given package name prefix.
  */
-@AllArgsConstructor
-public class WebserverGuice extends RequestScopeModule {
+public abstract class WebserverGuice extends RequestScopeModule {
 
     private final String resourcePackagePrefix;
 
+    protected WebserverGuice(String resourcePackagePrefix) {
+        this.resourcePackagePrefix = resourcePackagePrefix;
+    }
+
     @Override
-    protected void configure() {
+    protected final void configure() {
         super.configure();
         bind(WebserverService.class);
         bind(ObjectMapperProvider.class);
@@ -32,5 +34,9 @@ public class WebserverGuice extends RequestScopeModule {
         ScanResult scanResult = new FastClasspathScanner(resourcePackagePrefix).scan();
         List<String> resources = scanResult.getNamesOfClassesWithAnnotation(Provider.class);
         resources.forEach(className -> bind(scanResult.getClassNameToClassInfo().get(className).getClassRef()));
+
+        configureMore();
     }
+
+    protected abstract void configureMore();
 }

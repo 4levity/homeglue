@@ -75,6 +75,8 @@ dependencies {
     implementation group: 'io.resourcepool', name: 'ssdp-client', version: '2.1.0'
     implementation group: 'org.apache.httpcomponents', name: 'fluent-hc', version: '4.5.5'
     implementation group: 'io.github.lukehutch', name: 'fast-classpath-scanner', version: '2.21'
+    implementation group: 'com.mitchellbosecke', name: 'pebble', version: '2.4.0'
+    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'
 
     // test
     testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion

@@ -20,7 +20,7 @@ import java.util.Map;
 @Table(name = "devices")
 @NoArgsConstructor
 @Accessors(chain = true)
-@ToString
+@ToString(of = {"id", "deviceId", "connected"})
 @EqualsAndHashCode(of = {"deviceId"})
 public class Device {
 
@@ -100,6 +100,15 @@ public class Device {
             applianceDetector.setDevice(this);
         }
         this.applianceDetector = applianceDetector;
+    }
+
+    /**
+     * Returns true if the device has a power meter. Appliance detector is attached when a meter is detected.
+     *
+     * @return true if device has a power meter
+     */
+    public boolean hasPowerMeter() {
+        return (getApplianceDetector() != null);
     }
 
     public static Device from(DeviceState deviceState) {

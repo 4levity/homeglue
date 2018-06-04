@@ -26,8 +26,8 @@ import java.net.URI;
 
 /**
  * Guava web server service with Jetty + RESTeasy + Jackson + Guice. Static html served at "/" from JAR /html/ folder.
- * RESTeasy resource paths are prefixed with /api/. Must install() a WebserverGuice module. Will utilize custom Jackson
- * ObjectMapper if provided by Guice.
+ * RESTeasy resource paths are prefixed with /api/. Must subclass and install() a WebserverGuice module. RESTeasy will
+ * utilize a custom Jackson ObjectMapper if provided by Guice.
  */
 @Singleton
 @Log4j2
@@ -50,6 +50,7 @@ public class WebserverService extends AbstractIdleService {
 
     @Override
     protected void startUp() throws Exception {
+
         // static html
         URI resourceUri = WebserverService.class.getClassLoader().getResource("html/").toURI();
         ServletContextHandler htmlHandler = new ServletContextHandler();

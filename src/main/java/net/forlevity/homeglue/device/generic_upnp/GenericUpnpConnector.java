@@ -36,7 +36,7 @@ public class GenericUpnpConnector implements DeviceConnector {
     }
 
     @Override
-    public boolean connect() {
+    public boolean start() {
         return true;
     }
 

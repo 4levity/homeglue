@@ -6,14 +6,34 @@
 
 package net.forlevity.homeglue.device;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+
 /**
  * Represents a connection to a device like a meter/switch/appliance/etc.
  */
 public interface DeviceConnector extends DeviceInfo {
 
     /**
-     * Attempt to make a connection to the device and retrieve metadata about it.
+     * Attempt to make a connection to the device and retrieve metadata about it, then start the operation of the
+     * connector. May block for a little while. May create threads etc.
+     *
      * @return true if successfully connected to this device and got latest metadata
      */
-    boolean connect();
+    boolean start();
+
+    /**
+     * Stop the connector. It may not be possible to start it again.
+     */
+    default void terminate() { };
+
+    /**
+     * Dispatch a command to the device and get a future to track the result.
+     *
+     * @param command command
+     * @return result
+     */
+    default Future<Command.Result> dispatch(Command command) {
+        return CompletableFuture.completedFuture(Command.Result.NOT_SUPPORTED);
+    }
 }

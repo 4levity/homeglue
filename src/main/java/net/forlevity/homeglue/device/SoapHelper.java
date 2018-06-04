@@ -43,13 +43,13 @@ public class SoapHelper {
      * @param action SOAP action
      * @return DOM or null if request failed
      */
-    public Document execSoapRequest(String url, String urn, String action) {
+    public Document execSoapRequest(String url, String urn, String action, String params) {
         String payload = String.format("<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
                 "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
                     "<s:Body>" +
-                        "<u:%s xmlns:u=\"%s\"/>" +
+                        "<u:%s xmlns:u=\"%s\">%s</u:%s>" +
                     "</s:Body>" +
-                "</s:Envelope>", action, urn);
+                "</s:Envelope>", action, urn, params, action);
 
         Document document = null;
         try {

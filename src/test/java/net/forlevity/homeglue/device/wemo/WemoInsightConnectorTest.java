@@ -7,7 +7,9 @@
 package net.forlevity.homeglue.device.wemo;
 
 import lombok.extern.log4j.Log4j2;
+import net.forlevity.homeglue.device.DeviceCommandDispatcher;
 import net.forlevity.homeglue.device.DeviceState;
+import net.forlevity.homeglue.device.DeviceStateProcessorService;
 import net.forlevity.homeglue.device.SoapHelper;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.testing.HomeglueTests;
@@ -65,10 +67,11 @@ public class WemoInsightConnectorTest extends HomeglueTests {
     private WemoInsightConnector connectedConnector(int port) throws IOException {
         httpClient = mock(SimpleHttpClient.class);
         SoapHelper soapHelper = new SoapHelper(httpClient);
-        WemoInsightConnector connector = new WemoInsightConnector(soapHelper, hostAddress, port);
+        WemoInsightConnector connector = new WemoInsightConnector(soapHelper, mock(DeviceCommandDispatcher.class), mock(DeviceStateProcessorService.class), hostAddress, port);
+        connector.setPollingEnabled(false);
         when(httpClient.get(any())).thenReturn(ResourceHelper.resourceAsString("net/forlevity/homeglue/sim/insight1_setup.xml"));
         log.info("before connecting: {}", connector);
-        assertTrue(connector.connect());
+        assertTrue(connector.start());
         log.info("after connecting: {}", connector);
         return connector;
     }
