@@ -26,6 +26,7 @@ public class DeviceEvent {
     public static final String APPLIANCE_OFF = "appliance_off";
     public static final String DETAILS_CHANGED = "details_changed";
     public static final String NEW_DEVICE = "new_device";
+    public static final String ON_TOO_LONG = "on_too_long";
 
     @NonNull
     private String deviceId;

@@ -18,8 +18,12 @@ import net.forlevity.homeglue.util.QueueWorkerService;
 import net.forlevity.homeglue.util.ServiceDependencies;
 import org.hibernate.Session;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /**
@@ -33,16 +37,20 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
     private final PersistenceService persistenceService;
     private final ApplianceStateDecider applianceStateDecider;
     private final Consumer<DeviceEvent> deviceEventConsumer;
+    private final DeviceCommandDispatcher deviceCommandDispatcher;
+    private final Map<Long, Instant> onTooLongSince = new ConcurrentHashMap<>();
 
     @Inject
     public DeviceStateProcessorService(ServiceDependencies dependencies,
                                        PersistenceService persistenceService,
                                        ApplianceStateDecider applianceStateDecider,
-                                       Consumer<DeviceEvent> deviceEventConsumer) {
+                                       Consumer<DeviceEvent> deviceEventConsumer,
+                                       DeviceCommandDispatcher deviceCommandDispatcher) {
         super(DeviceState.class, dependencies);
         this.persistenceService = persistenceService;
         this.applianceStateDecider = applianceStateDecider;
         this.deviceEventConsumer = deviceEventConsumer;
+        this.deviceCommandDispatcher = deviceCommandDispatcher;
     }
 
     /**
@@ -159,6 +167,24 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
                     applianceDetector.setOn(currentState);
                     String event = currentState ? DeviceEvent.APPLIANCE_ON : DeviceEvent.APPLIANCE_OFF;
                     events.add(new DeviceEvent(device.getDeviceId(), event));
+                }
+                if (applianceDetector.isOn() && applianceDetector.getMaxOnSeconds() > 0
+                        && Duration.between(applianceDetector.getLastStateChange(), Instant.now()).getSeconds()
+                        > applianceDetector.getMaxOnSeconds()) {
+
+                    // only create one event when a device is on too long, don't keep creating more events
+                    Instant eventSentForStateChange = onTooLongSince.get(device.getId());
+                    if (eventSentForStateChange == null
+                            || !eventSentForStateChange.equals(applianceDetector.getLastStateChange())) {
+                        onTooLongSince.put(device.getId(), applianceDetector.getLastStateChange());
+                        events.add(new DeviceEvent(device.getDeviceId(), DeviceEvent.ON_TOO_LONG));
+                    }
+
+                    Relay relay = device.getRelay();
+                    if (relay != null) {
+                        log.info("Device {} was on too long, opening relay", device.getDeviceId());
+                        deviceCommandDispatcher.dispatch(device.getDeviceId(), new Command(Command.Action.OPEN_RELAY));
+                    }
                 }
             }
         }

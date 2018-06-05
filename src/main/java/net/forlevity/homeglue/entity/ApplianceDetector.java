@@ -12,6 +12,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 
 import javax.persistence.*;
+import java.time.Instant;
 
 @Entity
 @Table(name = "appliance_cfg")
@@ -47,14 +48,28 @@ public class ApplianceDetector {
     @Setter
     private int offDelaySecs; // how long we can stay under threshold before we say appliance is off
 
-    @Column(name = "is_on", nullable = false)
+    @Column(name = "max_on_secs", nullable = false)
     @Getter
     @Setter
+    private int maxOnSeconds; // how long we can be in "on" state before on-too-long event
+
+    @Column(name = "is_on", nullable = false)
+    @Getter
     private boolean on;
+
+    @Column(name = "last_state_change", nullable = false)
+    @Getter
+    @Setter
+    private Instant lastStateChange = Instant.now();
 
     public ApplianceDetector withDefaultSettings() {
         this.setMinWatts(DEFAULT_MIN_WATTS);
         this.setOffDelaySecs(DEFAULT_OFF_DELAY_SECS);
         return this;
+    }
+
+    public void setOn(boolean isOn) {
+        this.on = isOn;
+        lastStateChange = Instant.now();
     }
 }

@@ -17,6 +17,7 @@ import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.util.ResourceHelper;
 import org.h2.tools.Server;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -133,6 +134,19 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
         } finally {
             lock.unlock();
         }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // is checked!
+    public <T> T unproxy(Class<T> entityClass, T entity) {
+        if (entity == null) {
+            return null;
+        }
+        Object unproxied = Hibernate.unproxy(entity);
+        if (!entityClass.isAssignableFrom(unproxied.getClass())) {
+            throw new IllegalArgumentException("unexpected type on unproxied entity");
+        }
+        return (T) unproxied;
     }
 
     private <RT> RT unlockedExec(Function<Session, RT> operation) {

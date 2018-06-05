@@ -23,6 +23,7 @@ public class DeviceResource {
 
     private final PersistenceService persistence;
     private final RelayResource.Factory relayResourceFactory;
+    private final ApplianceDetectorResource.Factory applianceDetectorResourceFactory;
     private final String deviceId;
 
     interface Factory {
@@ -32,9 +33,11 @@ public class DeviceResource {
     @Inject
     public DeviceResource(PersistenceService persistence,
                           RelayResource.Factory relayResourceFactory,
+                          ApplianceDetectorResource.Factory applianceDetectorResourceFactory,
                           @Assisted String deviceId) {
         this.persistence = persistence;
         this.relayResourceFactory = relayResourceFactory;
+        this.applianceDetectorResourceFactory = applianceDetectorResourceFactory;
         this.deviceId = deviceId;
     }
 
@@ -49,12 +52,9 @@ public class DeviceResource {
         return relayResourceFactory.create(persistence.exec(session -> getRelay(session, deviceId)));
     }
 
-    private Device getDevice(Session session, String deviceId) {
-        Device device = session.bySimpleNaturalId(Device.class).load(deviceId);
-        if (device == null) {
-            throw new NotFoundException("device not found");
-        }
-        return device;
+    @Path("appliance")
+    public ApplianceDetectorResource appliaceCfgResource() {
+        return applianceDetectorResourceFactory.create(deviceId);
     }
 
     private Relay getRelay(Session session, String deviceId) {
@@ -63,6 +63,14 @@ public class DeviceResource {
         if (relay == null) {
             throw new NotFoundException("relay not found");
         }
-        return relay;
+        return persistence.unproxy(Relay.class, relay);
+    }
+
+    static Device getDevice(Session session, String deviceId) {
+        Device device = session.bySimpleNaturalId(Device.class).load(deviceId);
+        if (device == null) {
+            throw new NotFoundException("device not found");
+        }
+        return device;
     }
 }

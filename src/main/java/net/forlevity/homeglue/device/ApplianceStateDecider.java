@@ -11,6 +11,7 @@ import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.entity.ApplianceDetector;
 import net.forlevity.homeglue.entity.Device;
+import net.forlevity.homeglue.entity.Relay;
 
 import java.time.Instant;
 import java.util.Map;
@@ -41,10 +42,13 @@ public class ApplianceStateDecider {
         }
         Instant now = Instant.now();
         boolean on;
+        Relay relay = device.getRelay();
         if (watts >= applianceDetector.getMinWatts()) {
             lastOverThresholdByDevice.put(device.getDeviceId(), now);
             // if it's over the threshold it's definitely on
             on = true;
+        } else if (relay != null && !relay.isClosed()) {
+            on = false;
         } else {
             Instant lastOverThreshold = lastOverThresholdByDevice.get(device.getDeviceId());
             if (lastOverThreshold == null) {

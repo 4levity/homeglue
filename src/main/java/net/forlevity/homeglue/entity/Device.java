@@ -111,6 +111,10 @@ public class Device {
         return (getApplianceDetector() != null);
     }
 
+    public boolean hasRelay() {
+        return getRelay() != null;
+    }
+
     public static Device from(DeviceState deviceState) {
         Device device = new Device();
         device.setDeviceId(deviceState.getDeviceId());

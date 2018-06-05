@@ -52,6 +52,11 @@ public class FakePersistence extends AbstractIdleService implements PersistenceS
     }
 
     @Override
+    public <T> T unproxy(Class<T> entityClass, T entity) {
+        return entity;
+    }
+
+    @Override
     protected void startUp() throws Exception {
     }
 

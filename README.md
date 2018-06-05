@@ -4,6 +4,9 @@ Discover and connect to Belkin WeMo Insight plug power meters and retrieve data 
 Also identifies other UPnP devices on the LAN, in order to monitor whether they are on or off.
 Integrates with IFTTT, and possibly other free cloud services in the future.
 
+The software is currently capable of detecting when my coffee maker has been left on and turning
+it off automatically, while notifying me via IFTTT.
+
 See future development plans below. Issues and pull requests are welcome via GitHub. 
 
 Homeglue home page - https://github.com/4levity/homeglue
@@ -53,13 +56,15 @@ products. 4Levity and Homeglue is not in any way affiliated with Belkin.
 
 ### Future plans ###
 
-* finish supporting appliance "on" detection with off-delay
-* implement appliance max-on-time
-* automatically notify me and turn off my coffee maker\* if left on\*\*
+* UI for configuring appliance detector and auto shutoff
+* restore device state from disk
 * handle read errors/offline devices
+* split up logic in DeviceStateProcessorService
 * more tests 
+  * commands, appliance detection, timeout
   * IOExceptions at various points
   * malformed XML at various points
+* show recent telemetry data
 * do more with IFTTT webhooks - multiple events, incoming hooks for device controls
 * detect on/off status of generic UPnP devices
 * store raw telemetry data (local SQL db, CSV file, Google Sheets, AWS DynamoDB or other free cloud db)
@@ -69,8 +74,3 @@ products. 4Levity and Homeglue is not in any way affiliated with Belkin.
 * support other home metering and automation devices
 * style and static analysis checks
 * consider updating to Java 9 or 10
-
-\* - Pretty much why I wrote all this in the first place
-
-\*\* - The Insight switch isn't smart enough to tell on its own, since the
-heating element cycles off for a few minutes at a time

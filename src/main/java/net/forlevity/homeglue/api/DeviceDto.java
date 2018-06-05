@@ -27,10 +27,10 @@ import java.util.Map;
 public class DeviceDto {
 
     private String deviceId;
-    Boolean connected;
+    private Boolean connected;
     private Map<String, String> details;
-    Boolean relayClosed;
-    Boolean applianceOn;
+    private Boolean relayClosed;
+    private Boolean applianceOn;
 
     DeviceDto(String deviceId, Boolean connected, Map<String, String> details) {
         this.deviceId = deviceId;

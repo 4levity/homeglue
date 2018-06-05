@@ -29,4 +29,15 @@ public interface PersistenceService extends Service {
      * @return result of work
      */
     <RT> RT exec(Function<Session, RT> operation);
+
+    /**
+     * Try to load an object that might be a synthetic proxy object so that its
+     * fields may be accessed outside of an active session.
+     *
+     * @param entityClass entity class
+     * @param entity entity object (maybe a proxy)
+     * @param <T> entity type
+     * @return entity (not a proxy)
+     */
+    <T> T unproxy(Class<T> entityClass, T entity);
 }
