@@ -29,6 +29,7 @@ public class Command {
         SUCCESS,
         DEVICE_NOT_FOUND,
         COMMS_FAILED,
-        DEVICE_ERROR
+        DEVICE_ERROR,
+        CONNECTOR_ERROR
     }
 }

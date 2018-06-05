@@ -128,9 +128,30 @@ public class WemoInsightConnector implements DeviceConnector {
     private Future<Command.Result> changeRelay(boolean closed) {
         String params = String.format("<BinaryState>%c</BinaryState>", closed ? '0' : '1');
         return poller.runCommand(() -> {
+            Command.Result result;
             Document doc = execWemoInsightSoapRequest(CONTROL_BASICEVENT, URN_BASICEVENT, ACTION_SETBINARYSTATE, params);
-            // TODO: check result
-            return Command.Result.SUCCESS;
+            if (doc != null) {
+                // result has a regular insightparams field, so let's process that
+                // since processing this command has probably caused us to miss a regular poll!
+                String insightParams = soap.getXml().nodeText(doc, "//BinaryState");
+                if (insightParams != null) {
+                    DeviceState deviceState = processInsightParams(insightParams);
+                    if (deviceState != null) {
+                        storeTelemetry(deviceState);
+                        result = Command.Result.SUCCESS;
+                    } else {
+                        log.warn("couldn't parse BinaryState from SetBinaryState response");
+                        result = Command.Result.CONNECTOR_ERROR;
+                    }
+                } else {
+                    log.warn("missing BinaryState tag in SetBinaryState response");
+                    result = Command.Result.DEVICE_ERROR;
+                }
+            } else {
+                log.warn("didn't get response from SetBinaryState");
+                result = Command.Result.COMMS_FAILED;
+            }
+            return result;
         });
     }
 
@@ -165,7 +186,12 @@ public class WemoInsightConnector implements DeviceConnector {
         } catch(RuntimeException e) {
             log.error("unexpected exception during poll of {} (continuing)", this, e);
         }
-        // TODO: handle failure to read meter
+        // TODO: better handle failure to read meter
+        storeTelemetry(deviceState);
+        return deviceState != null;
+    }
+
+    private void storeTelemetry(DeviceState deviceState) {
         try {
             if (deviceState != null) {
                 deviceStateConsumer.accept(deviceState);
@@ -173,31 +199,36 @@ public class WemoInsightConnector implements DeviceConnector {
         } catch(RuntimeException e) {
             log.error("unexpected exception during storage of telemetry for {} (continuing)", this, e);
         }
-        return deviceState != null;
     }
 
     @VisibleForTesting
     DeviceState read() {
-        Double watts = null;
-        Boolean switchClosed = null;
+        DeviceState result = null;
         Document doc = execWemoInsightSoapRequest(CONTROL_INSIGHT, URN_INSIGHT, ACTION_INSIGHTPARAMS, "");
         if (doc != null) {
             String insightParams = soap.getXml().nodeText(doc, "//InsightParams");
             if (insightParams != null) {
-                String[] params = insightParams.split("\\|");
-                switchClosed = !params[0].equals("0");
-                double milliwatts = Double.valueOf(params[7]);
-                log.debug("InsightParams={} / instantaneous power={} mw", insightParams, params[7], milliwatts);
-                watts = milliwatts / 1000.0;
+                result = processInsightParams(insightParams);
             } else {
                 log.warn("didn't get InsightParams from response");
             }
         } else {
             log.debug("failed to execute SOAP request for GetInsightParams");
         }
-        return watts == null ? null : new DeviceState(this)
-                .setInstantaneousWatts(watts)
-                .setRelayClosed(switchClosed);
+        return result;
+    }
+
+    private DeviceState processInsightParams(String insightParams) {
+        String[] params = insightParams.split("\\|");
+        if (params.length >= 8) {
+            boolean switchClosed = !params[0].equals("0");
+            double milliwatts = Double.valueOf(params[7]);
+            log.debug("InsightParams={} / instantaneous power={} mw", insightParams, params[7]);
+            return new DeviceState(this)
+                    .setInstantaneousWatts(milliwatts / 1000.0)
+                    .setRelayClosed(switchClosed);
+        } // else
+        return null;
     }
 
     private Document execWemoInsightSoapRequest(String control, String urn, String action, String content) {

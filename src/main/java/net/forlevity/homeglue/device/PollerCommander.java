@@ -28,6 +28,7 @@ public class PollerCommander {
     private final Runnable poller;
     private ScheduledThreadPoolExecutor executor;
     private long idleStartTime;
+    private boolean commandJustIssued = false;
 
     public PollerCommander(String name, Runnable poller, int periodMillis, int minIdleBetweenMillis) {
         this.name = name;
@@ -70,6 +71,7 @@ public class PollerCommander {
                 return command.call();
             } finally {
                 idleStartTime = Instant.now().toEpochMilli();
+                commandJustIssued = true;
             }
         });
     }
@@ -77,14 +79,20 @@ public class PollerCommander {
     private void tryPoll() {
         long pollStartTime = Instant.now().toEpochMilli();
         long idleMillis = pollStartTime - idleStartTime;
-        if (idleMillis < minIdleBetweenMillis) {
-            log.warn("Poller {} was only idle for {} ms, skipping trigger", getName(), idleMillis);
-        } else {
-            try {
-                poller.run(); // do poll operation
-            } finally {
-                idleStartTime = Instant.now().toEpochMilli();
+        try {
+            if (idleMillis < minIdleBetweenMillis) {
+                if (!commandJustIssued) {
+                    log.warn("Poller {} was only idle for {} ms, skipping trigger", getName(), idleMillis);
+                }
+            } else {
+                try {
+                    poller.run(); // do poll operation
+                } finally {
+                    idleStartTime = Instant.now().toEpochMilli();
+                }
             }
+        } finally {
+            commandJustIssued = false;
         }
     }
 }
