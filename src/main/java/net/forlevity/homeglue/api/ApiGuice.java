@@ -18,5 +18,6 @@ public class ApiGuice extends WebserverGuice {
     @Override
     protected void configureMore() {
         install(new FactoryModuleBuilder().build(DeviceResource.Factory.class));
+        install(new FactoryModuleBuilder().build(RelayResource.Factory.class));
     }
 }
