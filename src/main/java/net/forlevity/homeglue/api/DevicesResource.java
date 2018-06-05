@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 @Provider
 @Path("/devices")
 @Log4j2
+@Produces(MediaType.APPLICATION_JSON)
 public class DevicesResource {
 
     private final PersistenceService persistence;
@@ -35,7 +36,6 @@ public class DevicesResource {
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
     public List<DeviceDto> getDevices(@QueryParam("sort") String sort) {
         return persistence.exec(session -> {
             CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();

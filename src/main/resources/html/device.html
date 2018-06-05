@@ -92,7 +92,7 @@ function closeRelay(setClosed) {
     };
     request.open("POST", "/api/devices/" + deviceId + "/relay", true);
     request.setRequestHeader("Content-Type", "application/json");
-    request.send(JSON.stringify( setClosed ));
+    request.send(JSON.stringify({ closed: setClosed }));
 }
 function show() {
     document.getElementById("deviceId").innerHTML = device.deviceId;
@@ -102,9 +102,9 @@ function show() {
     var relay;
     if (device.relay) {
         if (device.relay.closed) {
-            relay = "CLOSED <button type=button onclick='closeRelay(false)'>Click to open</button>";
+            relay = "CLOSED (switched on) <button type=button onclick='closeRelay(false)'>Switch off</button>";
         } else {
-            relay = "OPEN <button type=button onclick='closeRelay(true)'>Click to close</button>";
+            relay = "OPEN (switched off) <button type=button onclick='closeRelay(true)'>Switch on</button>";
         }
     } else {
         relay = "n/a";

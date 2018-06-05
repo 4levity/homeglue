@@ -19,6 +19,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+@Produces(MediaType.APPLICATION_JSON)
 public class RelayResource {
 
     private final Relay relay;
@@ -35,19 +36,17 @@ public class RelayResource {
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public boolean getRelayState() {
-        return relay.isClosed();
+    public RelayDto getRelayState() {
+        return RelayDto.from(relay);
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Command.Result setRelayState(Boolean newState) throws ExecutionException, InterruptedException {
+    public Command.Result setRelayState(RelayDto newState) throws ExecutionException, InterruptedException {
         if (newState == null) {
             throw new BadRequestException("relay state must be true (closed) or false (open)");
         }
-        Command.Action action = newState ? Command.Action.CLOSE_RELAY : Command.Action.OPEN_RELAY;
+        Command.Action action = newState.isClosed() ? Command.Action.CLOSE_RELAY : Command.Action.OPEN_RELAY;
         Future<Command.Result> result = dispatcher.dispatch(relay.getDevice().getDeviceId(), new Command(action));
         try {
             return result.get(2000, TimeUnit.MILLISECONDS);

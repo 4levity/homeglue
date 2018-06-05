@@ -16,6 +16,7 @@ import org.hibernate.Session;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
+@Produces(MediaType.APPLICATION_JSON)
 public class DeviceResource {
 
     private final PersistenceService persistence;
@@ -39,7 +40,6 @@ public class DeviceResource {
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
     public DeviceDto get() {
         return persistence.exec(session -> DeviceDto.from(getDevice(session, deviceId)));
     }
@@ -52,7 +52,6 @@ public class DeviceResource {
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public DeviceDto post(DeviceDto dto) {
         if (dto.getFriendlyName() == null) {
             throw new BadRequestException("no name specified");

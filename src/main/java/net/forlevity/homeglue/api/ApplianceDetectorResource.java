@@ -18,6 +18,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 @Log4j2
+@Produces(MediaType.APPLICATION_JSON)
 public class ApplianceDetectorResource {
 
     private final PersistenceService persistence;
@@ -34,14 +35,12 @@ public class ApplianceDetectorResource {
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
     public ApplianceDetectorDto get() {
         return ApplianceDetectorDto.from(persistence.exec(this::getApplianceDetector));
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public ApplianceDetectorDto reconfigure(ApplianceDetectorDto newConfig) {
         if (newConfig == null || newConfig.getMinWatts() == null || newConfig.getOffDelaySeconds() == null) {
             throw new BadRequestException("invalid configuration");
