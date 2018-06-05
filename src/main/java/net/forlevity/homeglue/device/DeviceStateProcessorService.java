@@ -151,7 +151,7 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
         boolean forceSave = false;
         // appliance detection config
         if (newDeviceState.getInstantaneousWatts() != null) {
-            log.info("Read power meter: {}", newDeviceState);
+            log.info("Read power meter {} {}: {} Watts", device.getDeviceId(), device.getFriendlyName(), newDeviceState.getInstantaneousWatts());
             Double watts = newDeviceState.getInstantaneousWatts();
             ApplianceDetector applianceDetector = device.getApplianceDetector();
             if (applianceDetector == null) {
