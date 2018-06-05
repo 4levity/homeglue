@@ -6,9 +6,15 @@
 
 package net.forlevity.homeglue.device;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.entity.ApplianceDetector;
+import net.forlevity.homeglue.entity.Device;
+
+import java.time.Instant;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Use device configuration and recent power meter reading(s) to determine whether an "appliance" attached to a
@@ -18,6 +24,8 @@ import net.forlevity.homeglue.entity.ApplianceDetector;
 @Log4j2
 public class ApplianceStateDecider {
 
+    private final Map<String, Instant> lastOverThresholdByDevice = new ConcurrentHashMap<>();
+
     /**
      * Determine whether an appliance is on, given its meter's latest power meter reading.
      *
@@ -26,9 +34,26 @@ public class ApplianceStateDecider {
      * @return true if appliance is on
      */
     public boolean applianceOn(ApplianceDetector applianceDetector, Double watts) {
-        if (applianceDetector.getOffDelaySecs() > 0) {
-            log.warn("off delay set at device {}, not implemented", applianceDetector.getDevice().getDeviceId());
+        Preconditions.checkNotNull(applianceDetector);
+        Device device = applianceDetector.getDevice();
+        if (device == null || device.getDeviceId() == null) {
+            throw new IllegalArgumentException("ApplianceDetector must be attached to a valid device before use");
         }
-        return watts >= applianceDetector.getMinWatts();
+        Instant now = Instant.now();
+        boolean on;
+        if (watts >= applianceDetector.getMinWatts()) {
+            lastOverThresholdByDevice.put(device.getDeviceId(), now);
+            // if it's over the threshold it's definitely on
+            on = true;
+        } else {
+            Instant lastOverThreshold = lastOverThresholdByDevice.get(device.getDeviceId());
+            if (lastOverThreshold == null) {
+                on = false; // can't remember it ever being over threshold (at least since we started up)
+            } else {
+                // whether it's considered on depends on how much time has elapsed since it was last over threshold
+                on = lastOverThreshold.plusSeconds(applianceDetector.getOffDelaySecs()).isAfter(now);
+            }
+        }
+        return on;
     }
 }

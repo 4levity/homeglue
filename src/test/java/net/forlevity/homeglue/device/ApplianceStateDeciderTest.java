@@ -7,6 +7,7 @@
 package net.forlevity.homeglue.device;
 
 import net.forlevity.homeglue.entity.ApplianceDetector;
+import net.forlevity.homeglue.entity.Device;
 import net.forlevity.homeglue.testing.HomeglueTests;
 import org.junit.Test;
 
@@ -19,6 +20,7 @@ public class ApplianceStateDeciderTest extends HomeglueTests {
     public void applianceOn() {
         ApplianceStateDecider decider = new ApplianceStateDecider();
         ApplianceDetector applianceDetector = new ApplianceDetector().withDefaultSettings();
+        Device.from(new DeviceState("new", true)).setApplianceDetector(applianceDetector);
         assertFalse(decider.applianceOn(applianceDetector, 0.0));
         assertFalse(decider.applianceOn(applianceDetector, 1.0)); // default is 5w threshold
         assertTrue(decider.applianceOn(applianceDetector, 6.0));

@@ -149,9 +149,9 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
             if (applianceDetector == null) {
                 log.info("creating default appliance config for meter on device {}", device.getDeviceId());
                 applianceDetector = new ApplianceDetector().withDefaultSettings();
+                device.setApplianceDetector(applianceDetector);
                 boolean initialOnState = applianceStateDecider.applianceOn(applianceDetector, watts);
                 applianceDetector.setOn(initialOnState);
-                device.setApplianceDetector(applianceDetector);
                 forceSave = true; // no event
             } else {
                 boolean currentState = applianceStateDecider.applianceOn(applianceDetector, watts);

@@ -55,13 +55,11 @@ products. 4Levity and Homeglue is not in any way affiliated with Belkin.
 
 * finish supporting appliance "on" detection with off-delay
 * implement appliance max-on-time
-* support opening/closing WeMo switch
 * automatically notify me and turn off my coffee maker\* if left on\*\*
 * handle read errors/offline devices
 * more tests 
   * IOExceptions at various points
   * malformed XML at various points
-* local REST API for device data and control
 * do more with IFTTT webhooks - multiple events, incoming hooks for device controls
 * detect on/off status of generic UPnP devices
 * store raw telemetry data (local SQL db, CSV file, Google Sheets, AWS DynamoDB or other free cloud db)
