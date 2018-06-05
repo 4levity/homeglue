@@ -13,10 +13,7 @@ import net.forlevity.homeglue.entity.Relay;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import org.hibernate.Session;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 public class DeviceResource {
@@ -47,13 +44,38 @@ public class DeviceResource {
         return persistence.exec(session -> DeviceDto.from(getDevice(session, deviceId)));
     }
 
+    /**
+     * Set friendlyName of a device.
+     *
+     * @param dto dto
+     * @return device
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public DeviceDto post(DeviceDto dto) {
+        if (dto.getFriendlyName() == null) {
+            throw new BadRequestException("no name specified");
+        }
+        return persistence.exec(session -> {
+            Device device = getDevice(session, deviceId);
+            if (dto.getFriendlyName().equals("")) {
+                device.setFriendlyName(null);
+            } else {
+                device.setFriendlyName(dto.getFriendlyName());
+            }
+            session.saveOrUpdate(device);
+            return DeviceDto.from(device);
+        });
+    }
+
     @Path("relay")
     public RelayResource relayResource() {
         return relayResourceFactory.create(persistence.exec(session -> getRelay(session, deviceId)));
     }
 
     @Path("appliance")
-    public ApplianceDetectorResource appliaceCfgResource() {
+    public ApplianceDetectorResource applianceResource() {
         return applianceDetectorResourceFactory.create(deviceId);
     }
 

@@ -44,6 +44,7 @@ public class DevicesResource {
             String orderBy = sort == null ? Device._deviceId : sort;
             switch (orderBy) {
                 case "deviceId":
+                case "friendlyName":
                 case "connected":
                     query.orderBy(criteriaBuilder.asc(root.get(orderBy)));
                     break;

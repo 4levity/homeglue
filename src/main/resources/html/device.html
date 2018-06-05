@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!--
+  ~ Part of Homeglue (c) 2018 C. Ivan Cooper - https://github.com/4levity/homeglue
+  ~ Homeglue is free software. You can modify and/or distribute it under the terms
+  ~ of the Apache License Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
+  -->
+
+<html><head><title>homeglue</title>
+    <link rel="stylesheet" type="text/css" href="homeglue.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Language" content="en_US" />
+    <script>
+var device;
+var deviceId;
+function load() {
+    var req = new XMLHttpRequest();
+    req.onreadystatechange = function() {
+        if (this.readyState == 4) { // done
+            if (this.status == 200) {
+                device = JSON.parse(this.responseText);
+            } else {
+                device = null;
+            }
+            show();
+        }
+    }
+    if (window.location.search.startsWith("?id=")) {
+        deviceId = window.location.search.substr(4);
+    } else {
+        alert("no device selected!");
+        document.location = "/";
+    }
+    req.open("GET","/api/devices/" + deviceId, true);
+    req.send(null);
+}
+function loadBy(sort) {
+    orderBy = sort;
+    load();
+}
+function saveAppliance() {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        if (this.readyState == 4) {
+            if (this.status == 200) {
+                alert("Saved.");
+                load();
+            } else {
+                alert("An error occurred. Check values and try again.");
+                load();
+            }
+        }
+    };
+    request.open("POST", "/api/devices/" + deviceId + "/appliance", true);
+    request.setRequestHeader("Content-Type", "application/json");
+    request.send(JSON.stringify({
+        minWatts: document.getElementById("minWatts").value,
+        offDelaySeconds: document.getElementById("offDelaySeconds").value,
+        maxOnSeconds: document.getElementById("maxOnSeconds").value
+    }));
+}
+function saveName() {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        if (this.readyState == 4) {
+            if (this.status == 200) {
+                alert("Saved.");
+                load();
+            } else {
+                alert("An error occurred. Try again.");
+                load();
+            }
+        }
+    };
+    request.open("POST", "/api/devices/" + deviceId, true);
+    request.setRequestHeader("Content-Type", "application/json");
+    request.send(JSON.stringify({
+        friendlyName: document.getElementById("friendlyName").value
+    }));
+}
+function closeRelay(setClosed) {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        if (this.readyState == 4) {
+            if (this.status == 200) {
+                alert("Relay: " + this.responseText);
+                load();
+            } else {
+                alert("An error occurred. Try again.");
+                load();
+            }
+        }
+    };
+    request.open("POST", "/api/devices/" + deviceId + "/relay", true);
+    request.setRequestHeader("Content-Type", "application/json");
+    request.send(JSON.stringify( setClosed ));
+}
+function show() {
+    document.getElementById("deviceId").innerHTML = device.deviceId;
+    document.getElementById("friendlyName").value = device.friendlyName || '';
+    document.getElementById("connected").innerHTML = device.connected;
+    document.getElementById("details").innerHTML = JSON.stringify(device.details, undefined, 3);
+    var relay;
+    if (device.relay) {
+        if (device.relay.closed) {
+            relay = "CLOSED <button type=button onclick='closeRelay(false)'>Click to open</button>";
+        } else {
+            relay = "OPEN <button type=button onclick='closeRelay(true)'>Click to close</button>";
+        }
+    } else {
+        relay = "n/a";
+    }
+    document.getElementById("relay").innerHTML = relay;
+    if (device.appliance) {
+        var since = new Date(Math.round(device.appliance.lastStateChange * 1000));
+        document.getElementById("appliance").innerHTML =
+            "<table><tr><td>State:</td><td>" + (device.appliance.on ? "ON" : "OFF") + " since " + since + "</td></tr>"
+            + "<tr><td>Threshold (Watts):</td><td><input type=textbox size=5 maxlength=255 id=minWatts value=" + device.appliance.minWatts + " /></td></tr>"
+            + "<tr><td>Off delay (Seconds):</td><td><input type=textbox size=5 maxlength=255 id=offDelaySeconds value=" + device.appliance.offDelaySeconds + " /></td></tr>"
+            + "<tr><td>Max on time (Seconds):</td><td><input type=textbox size=5 maxlength=255 id=maxOnSeconds value=" + device.appliance.maxOnSeconds + " /></td></tr>"
+            + "<tr><td colspan=2><button type=button onclick='saveAppliance()'>Save Appliance Settings</button></td></tr></table>";
+    } else {
+        document.getElementById("appliance").innerHTML = "n/a";
+    }
+}
+</script>
+</head>
+<body onload="load()">
+<h3><a href="/">homeglue</a> - device</h3>
+<table border="1">
+    <tr><td>Device ID:</td><td><output id="deviceId"></output></td></tr>
+    <tr><td>Friendly name:</td><td><input type=textbox size=20 maxlength=255 id="friendlyName"/><button type=button onclick="saveName()">Save Name</button></td></tr>
+    <tr><td>Connected:</td><td><output id="connected"></output></td></tr>
+    <tr><td>Details:</td><td><output style="white-space:pre;font-family:monospace" id="details"></output></td></tr>
+    <tr><td colspan="2"></td></tr>
+    <tr><td>Relay:</td><td><output id="relay"></output></td></tr>
+    <tr><td colspan="2"></td></tr>
+    <tr><td>Appliance:</td><td><output id="appliance"></output></td></tr>
+</table>
+</body></html>

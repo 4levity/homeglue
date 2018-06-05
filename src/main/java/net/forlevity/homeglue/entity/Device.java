@@ -38,6 +38,10 @@ public class Device {
     private String deviceId;
     public static String _deviceId = "deviceId";
 
+    @Column(name = "friendly_name")
+    @Getter
+    private String friendlyName;
+
     @Column(name = "connected", nullable = false)
     @Getter
     @Setter
@@ -102,6 +106,13 @@ public class Device {
         this.applianceDetector = applianceDetector;
     }
 
+    public void setFriendlyName(String friendlyName) {
+        if (!friendlyName.matches("[A-Za-z0-9]{1,64}")) {
+            throw new IllegalArgumentException("invalid friendlyName");
+        }
+        this.friendlyName = friendlyName;
+    }
+
     /**
      * Returns true if the device has a power meter. Appliance detector is attached when a meter is detected.
      *
@@ -120,6 +131,13 @@ public class Device {
         device.setDeviceId(deviceState.getDeviceId());
         device.setConnected(deviceState.isConnected());
         device.setDetails(deviceState.getDeviceDetails());
+        if (device.details.containsKey("name")) {
+            try {
+                device.setFriendlyName(device.details.get("name"));
+            } catch(IllegalArgumentException e) {
+                // ignore
+            }
+        }
         return device;
     }
 }

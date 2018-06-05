@@ -8,6 +8,7 @@ package net.forlevity.homeglue.api;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.google.common.base.Strings;
 import lombok.*;
 import lombok.experimental.Accessors;
 import net.forlevity.homeglue.entity.ApplianceDetector;
@@ -27,10 +28,11 @@ import java.util.Map;
 public class DeviceDto {
 
     private String deviceId;
+    private String friendlyName;
     private Boolean connected;
     private Map<String, String> details;
-    private Boolean relayClosed;
-    private Boolean applianceOn;
+    private RelayDto relay;
+    private ApplianceDetectorDto appliance;
 
     DeviceDto(String deviceId, Boolean connected, Map<String, String> details) {
         this.deviceId = deviceId;
@@ -40,13 +42,16 @@ public class DeviceDto {
 
     public static DeviceDto from(Device device) {
         DeviceDto dto = new DeviceDto(device.getDeviceId(), device.isConnected(), device.getDetails());
+        if (!Strings.isNullOrEmpty(device.getFriendlyName())) {
+            dto.setFriendlyName(device.getFriendlyName());
+        }
         Relay relay = device.getRelay();
         if (relay != null) {
-            dto.setRelayClosed(relay.isClosed());
+            dto.setRelay(RelayDto.from(relay));
         }
         ApplianceDetector appliance = device.getApplianceDetector();
         if (appliance != null) {
-            dto.setApplianceOn(appliance.isOn());
+            dto.setAppliance(ApplianceDetectorDto.from(appliance));
         }
         return dto;
     }

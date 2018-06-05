@@ -6,13 +6,15 @@
 
 package net.forlevity.homeglue.device;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.ToString;
+import net.forlevity.homeglue.entity.Device;
 
 import java.util.Map;
 
 @NoArgsConstructor
-@AllArgsConstructor
-@RequiredArgsConstructor
 @Getter
 @ToString
 public class DeviceEvent {
@@ -30,8 +32,22 @@ public class DeviceEvent {
 
     @NonNull
     private String deviceId;
+    private String friendlyName;
     @NonNull
     private String event;
 
     private Map<String, String> data = null;
+
+    public DeviceEvent(Device device, String event) {
+        this.deviceId = device.getDeviceId();
+        this.friendlyName = device.getFriendlyName();
+        this.event = event;
+    }
+
+    public DeviceEvent(Device device, String event, Map<String, String> data) {
+        this.deviceId = device.getDeviceId();
+        this.friendlyName = device.getFriendlyName();
+        this.event = event;
+        this.data = data;
+    }
 }

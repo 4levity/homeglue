@@ -9,7 +9,7 @@
     <link rel="stylesheet" type="text/css" href="homeglue.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Language" content="en_US" />
-    <script>
+<script>
 var devices;
 var orderBy = "deviceId";
 function start() {
@@ -26,29 +26,34 @@ function load() {
             }
             show();
         }
-    }
+    };
     req.open("GET","/api/devices/?sort=" + orderBy, true);
     req.send(null);
+}
+function loadBy(sort) {
+    orderBy = sort;
+    load();
 }
 function show() {
     var table="<table><thead><tr>"
         + "<td onclick=loadBy('deviceId')>Device Id&nbsp;</td>"
+        + "<td onclick=loadBy('friendlyName')>Friendly Name&nbsp;</td>"
         + "<td onclick=loadBy('connected')>Connected?&nbsp;</td>"
-        + "<td>Details&nbsp;</td>"
         + "<td>Switch&nbsp;</td>"
         + "<td>Appliance&nbsp;</td>"
         + "</tr></thead><tbody>";
     if (devices == null) {
-        table += "<tr><td>error</td></tr>";
+        table += "<tr><td>couldn't load data</td></tr>";
     } else {
         var ix;
         for (ix = 0; ix < devices.length; ix++) {
             var device = devices[ix];
-            var relay = device.relayClosed == null ? "-" : (device.relayClosed ? "ON" : "OFF");
-            var appliance = device.applianceOn == null ? "-" : (device.applianceOn ? "ON" : "OFF");
-            table += "<tr><td>" + device.deviceId +"</td>"
+            var relay = device.relay == null ? "-" : (device.relay.closed ? "ON" : "OFF");
+            var appliance = device.appliance == null ? "-" : (device.appliance.on ? "ON" : "OFF");
+            table += "<tr onclick=document.location='device.html?id=" + device.deviceId + "'>"
+                + "<td>" + device.deviceId +"</td>"
+                + "<td>" + (device.friendlyName || '') +"</td>"
                 + "<td>" + device.connected + "</td>"
-                + "<td style='font-size:x-small'>" + JSON.stringify(device.details) + "</td>"
                 + "<td>" + relay + "</td>"
                 + "<td>" + appliance + "</td></tr>";
         }
@@ -56,9 +61,9 @@ function show() {
     table += "</tbody></table>";
     document.getElementById("devices").innerHTML = table;
 }
-    </script>
+</script>
 </head>
-<body onload=start()>
+<body onload="start()">
 <h3>homeglue</h3>
 <div id="devices">loading...</div>
 </body></html>

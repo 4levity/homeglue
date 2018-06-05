@@ -56,12 +56,11 @@ products. 4Levity and Homeglue is not in any way affiliated with Belkin.
 
 ### Future plans ###
 
-* UI for configuring appliance detector and auto shutoff
 * restore device state from disk
 * handle read errors/offline devices
 * split up logic in DeviceStateProcessorService
 * more tests 
-  * commands, appliance detection, timeout
+  * commands, appliance detector, friendly name ..
   * IOExceptions at various points
   * malformed XML at various points
 * show recent telemetry data

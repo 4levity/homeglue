@@ -94,16 +94,16 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
         if (device == null) {
             log.info("device first detection: {}", newDeviceState);
             device = Device.from(newDeviceState);
-            events.add(new DeviceEvent(deviceId, DeviceEvent.NEW_DEVICE, device.getDetails()));
+            events.add(new DeviceEvent(device, DeviceEvent.NEW_DEVICE, device.getDetails()));
         } else {
             if (device.isConnected() != newDeviceState.isConnected()) {
                 device.setConnected(newDeviceState.isConnected());
                 String event = device.isConnected() ? DeviceEvent.CONNECTED : DeviceEvent.CONNECTION_LOST;
-                events.add(new DeviceEvent(deviceId, event));
+                events.add(new DeviceEvent(device, event));
             }
             if (!device.getDetails().equals(newDeviceState.getDeviceDetails())) {
                 device.setDetails(newDeviceState.getDeviceDetails());
-                events.add(new DeviceEvent(deviceId, DeviceEvent.DETAILS_CHANGED, device.getDetails()));
+                events.add(new DeviceEvent(device, DeviceEvent.DETAILS_CHANGED, device.getDetails()));
             }
         }
         return device;
@@ -132,7 +132,7 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
                 if (relay.isClosed() != closed) {
                     relay.setClosed(closed);
                     String event = closed ? DeviceEvent.RELAY_CLOSED : DeviceEvent.RELAY_OPENED;
-                    events.add(new DeviceEvent(device.getDeviceId(), event));
+                    events.add(new DeviceEvent(device, event));
                 }
             }
         }
@@ -166,7 +166,7 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
                 if (applianceDetector.isOn() != currentState) {
                     applianceDetector.setOn(currentState);
                     String event = currentState ? DeviceEvent.APPLIANCE_ON : DeviceEvent.APPLIANCE_OFF;
-                    events.add(new DeviceEvent(device.getDeviceId(), event));
+                    events.add(new DeviceEvent(device, event));
                 }
                 if (applianceDetector.isOn() && applianceDetector.getMaxOnSeconds() > 0
                         && Duration.between(applianceDetector.getLastStateChange(), Instant.now()).getSeconds()
@@ -177,7 +177,7 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
                     if (eventSentForStateChange == null
                             || !eventSentForStateChange.equals(applianceDetector.getLastStateChange())) {
                         onTooLongSince.put(device.getId(), applianceDetector.getLastStateChange());
-                        events.add(new DeviceEvent(device.getDeviceId(), DeviceEvent.ON_TOO_LONG));
+                        events.add(new DeviceEvent(device, DeviceEvent.ON_TOO_LONG));
                     }
 
                     Relay relay = device.getRelay();

@@ -45,14 +45,22 @@ public class IftttDeviceEventService extends QueueWorkerService<DeviceEvent> {
         String[] values = new String[3];
         int filled = 0;
 
+        // Use friendly name for event instead of automatic device id, if available
+        String deviceDescriptor;
+        if (deviceEvent.getFriendlyName() != null) {
+            deviceDescriptor = deviceEvent.getFriendlyName();
+        } else {
+            deviceDescriptor = deviceEvent.getDeviceId();
+        }
+
         if (deviceEvent.getEvent().equals(DeviceEvent.NEW_DEVICE)) {
             // new device deviceEvent: ifttt deviceEvent code is just "new_device" and first value is new device code
             ifttt_event = deviceEvent.getEvent();
-            values[0] = deviceEvent.getDeviceId();
+            values[0] = deviceDescriptor;
             filled++;
         } else {
             // most events: ifttt deviceEvent code is "device_event"
-            ifttt_event = deviceEvent.getDeviceId() + "_" + deviceEvent.getEvent();
+            ifttt_event = deviceDescriptor + "_" + deviceEvent.getEvent();
         }
 
         // put max 3 data items in the values fields
