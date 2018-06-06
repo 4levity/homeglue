@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 
 /**
@@ -58,10 +59,6 @@ public class WemoInsightConnector implements DeviceConnector {
     @Getter
     private boolean connected = false;
 
-    @VisibleForTesting
-    @Setter
-    private boolean pollingEnabled = true;
-
     private final SoapHelper soap;
     private final DeviceCommandDispatcher dispatcher;
     private final Consumer<DeviceState> deviceStateConsumer;
@@ -72,6 +69,7 @@ public class WemoInsightConnector implements DeviceConnector {
     WemoInsightConnector(SoapHelper soapHelper,
                          DeviceCommandDispatcher dispatcher,
                          Consumer<DeviceState> deviceStateConsumer,
+                         ScheduledExecutorService executor,
                          @Assisted String hostAddress,
                          @Assisted int port) {
 
@@ -80,7 +78,7 @@ public class WemoInsightConnector implements DeviceConnector {
         this.soap = soapHelper;
         this.dispatcher = dispatcher;
         this.deviceStateConsumer = deviceStateConsumer;
-        poller = new PollerCommander(getClass().getSimpleName() + "@" + hostAddress, this::poll,
+        poller = new PollerCommander(executor, getClass().getSimpleName() + "@" + hostAddress, this::poll,
                 POLLING_PERIOD_MILLIS, MIN_IDLE_MILLIS);
     }
 
@@ -93,9 +91,7 @@ public class WemoInsightConnector implements DeviceConnector {
             connected = parseWemoSetup(result);
             if (connected) {
                 dispatcher.register(this);
-                if (pollingEnabled) {
-                    poller.start();
-                }
+                poller.start();
             }
         } catch (IOException e) {
             log.warn("failed to get {} : {} {}", location, e.getClass().getSimpleName(), e.getMessage());

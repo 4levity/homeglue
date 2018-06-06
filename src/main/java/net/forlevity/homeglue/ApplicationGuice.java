@@ -11,6 +11,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.*;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import lombok.AllArgsConstructor;
 import net.forlevity.homeglue.api.ApiGuice;
@@ -34,6 +35,8 @@ import net.forlevity.homeglue.util.ServiceDependencies;
 import net.forlevity.homeglue.web.WebserverService;
 
 import java.util.Properties;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.function.Consumer;
 
 /**
@@ -52,12 +55,6 @@ public class ApplicationGuice extends AbstractModule {
 
         // the application
         bind(HomeglueApplication.class);
-
-        // JSON processor
-        boolean prettyPrintJson = Boolean.valueOf(namedConfigurationProperties.getProperty("json.pretty"));
-        Json json = new Json(prettyPrintJson);
-        bind(Json.class).toInstance(json);
-        bind(ObjectMapper.class).toInstance(json.objectMapper);
 
         // device events: exchange
         bind(new TypeLiteral<Consumer<DeviceEvent>>(){})
@@ -94,7 +91,25 @@ public class ApplicationGuice extends AbstractModule {
 
     @Provides
     @Singleton
-    public ServiceDependencies serviceDependencies(PersistenceService persistenceService,
+    ScheduledExecutorService executorService(@Named("scheduler.threads") int threads) {
+        return new ScheduledThreadPoolExecutor(threads);
+    }
+
+    @Provides
+    @Singleton
+    Json json(@Named("json.pretty") boolean prettyPrintJson) {
+        return new Json(prettyPrintJson);
+    }
+
+    @Provides
+    @Singleton
+    ObjectMapper objectMapper(Json json) {
+        return json.objectMapper;
+    }
+
+    @Provides
+    @Singleton
+    ServiceDependencies serviceDependencies(PersistenceService persistenceService,
                                                    DeviceStateProcessorService deviceStateProcessorService) {
         return new ServiceDependencies(ImmutableMap.of(
                 WebserverService.class, ImmutableList.of(persistenceService),

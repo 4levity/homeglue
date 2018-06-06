@@ -23,7 +23,7 @@ public class GenericUpnpManagerServiceTest extends SimulatedNetworkTests {
     public void genericUpnpManagerServiceTest() throws InterruptedException {
         SimulatedNetwork network = makeTestNetwork();
         GenericUpnpConnectorFactory factory = GenericUpnpConnector::new;
-        SsdpDiscoveryService ssdp = new SsdpDiscoveryService(network, ServiceDependencies.NONE,0, 0, 0, 0);
+        SsdpDiscoveryService ssdp = new SsdpDiscoveryService(network);
         GenericUpnpManagerService manager = new GenericUpnpManagerService(null, ssdp, factory, status -> log.info("{}", status));
 
         // disable SSDP service discovery on one of our devices

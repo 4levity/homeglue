@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -34,6 +35,7 @@ import java.util.function.Predicate;
 public class SsdpDiscoveryService extends AbstractIdleService {
 
     private final SsdpSearcher ssdpSearcher;
+    private final ScheduledExecutorService executor;
     private final ServiceDependencies serviceDependencies;
     private final int ssdpScanPeriodMillis;
     private final int ssdpScanLengthMillis;
@@ -41,22 +43,28 @@ public class SsdpDiscoveryService extends AbstractIdleService {
     private final int minimumInactiveMillis;
     private Instant lastSearchEndTime = Instant.EPOCH;
     private final Object lastSearchLock = new Object();
-    private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
     private final List<Registration> registrations = new ArrayList<>();
+    private ScheduledFuture<?> searcherFuture = null;
 
     @Inject
     public SsdpDiscoveryService(SsdpSearcher ssdpSearcher,
+                                ScheduledExecutorService executor,
                                 ServiceDependencies serviceDependencies,
                                 @Named("ssdp.scan.period.millis") int ssdpScanPeriodMillis,
                                 @Named("ssdp.scan.length.millis") int ssdpScanLengthMillis,
                                 @Named("ssdp.startup.delay.millis") int startupDelayMillis,
                                 @Named("ssdp.minimum.inactive.millis") int minimumInactiveMillis) {
+        this.ssdpSearcher = ssdpSearcher;
+        this.executor = executor;
         this.serviceDependencies = serviceDependencies;
         this.ssdpScanPeriodMillis = ssdpScanPeriodMillis;
         this.ssdpScanLengthMillis = ssdpScanLengthMillis;
         this.startupDelayMillis = startupDelayMillis;
         this.minimumInactiveMillis = minimumInactiveMillis;
-        this.ssdpSearcher = ssdpSearcher;
+    }
+
+    public SsdpDiscoveryService(SsdpSearcher ssdpSearcher) {
+        this(ssdpSearcher, new ScheduledThreadPoolExecutor(1), ServiceDependencies.NONE, 50, 0, 0, 0);
     }
 
     /**
@@ -81,12 +89,12 @@ public class SsdpDiscoveryService extends AbstractIdleService {
     @Override
     protected void startUp() {
         serviceDependencies.waitForDependencies(this);
-        executor.scheduleAtFixedRate(this::runOnce, startupDelayMillis, ssdpScanPeriodMillis, TimeUnit.MILLISECONDS);
+        searcherFuture = executor.scheduleAtFixedRate(this::runOnce, startupDelayMillis, ssdpScanPeriodMillis, TimeUnit.MILLISECONDS);
     }
 
     @Override
     protected void shutDown() {
-        executor.shutdownNow();
+        searcherFuture.cancel(true);
     }
 
     /**

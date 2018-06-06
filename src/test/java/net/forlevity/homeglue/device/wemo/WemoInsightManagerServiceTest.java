@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -63,8 +64,9 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
         SoapHelper soapHelper = new SoapHelper(network);
         telemetryCache = new LastDeviceStateCache();
         WemoInsightConnectorFactory factory = (hostAddress, port) -> new WemoInsightConnector(soapHelper,
-                mock(DeviceCommandDispatcher.class), telemetryCache, hostAddress, port);
-        ssdp = new SsdpDiscoveryService(network, ServiceDependencies.NONE,0, 0, 0, 0);
+                mock(DeviceCommandDispatcher.class), telemetryCache, mock(ScheduledExecutorService.class),
+                hostAddress, port);
+        ssdp = new SsdpDiscoveryService(network);
         PersistenceService persistence = mock(PersistenceService.class);
         when(persistence.exec(any())).thenReturn(new ArrayList<>());
         manager = new WemoInsightManagerService(null, ssdp, factory, 2500);

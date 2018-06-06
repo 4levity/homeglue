@@ -10,10 +10,7 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
 import java.time.Instant;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Log4j2
 public class PollerCommander {
@@ -26,38 +23,37 @@ public class PollerCommander {
     private final int periodMillis;
     private final int minIdleBetweenMillis;
     private final Runnable poller;
-    private ScheduledThreadPoolExecutor executor;
+    private final ScheduledExecutorService executor;
     private long idleStartTime;
     private boolean commandJustIssued = false;
+    private ScheduledFuture<?> pollerFuture = null;
 
-    public PollerCommander(String name, Runnable poller, int periodMillis, int minIdleBetweenMillis) {
+    public PollerCommander(ScheduledExecutorService executor,
+                           String name, Runnable poller, int periodMillis, int minIdleBetweenMillis) {
         this.name = name;
         this.periodMillis = periodMillis;
         this.poller = poller;
         this.minIdleBetweenMillis = minIdleBetweenMillis;
-    }
-
-    public boolean isStarted() {
-        return executor != null;
+        this.executor = executor;
     }
 
     public synchronized void start() {
         if (isStarted()) {
             throw new IllegalStateException("already started");
         }
-        executor = new ScheduledThreadPoolExecutor(1);
         idleStartTime = 0L;
-        executor.scheduleAtFixedRate(this::tryPoll, 0L, periodMillis, TimeUnit.MILLISECONDS);
+        pollerFuture = executor.scheduleAtFixedRate(this::tryPoll, 0L, periodMillis, TimeUnit.MILLISECONDS);
     }
 
     public synchronized void stop() {
         if (!isStarted()) {
             throw new IllegalStateException("never started");
         }
-        if (executor.isShutdown()) {
-            throw new IllegalStateException("already shutdown");
-        }
-        executor.shutdown();
+        pollerFuture.cancel(true);
+    }
+
+    public boolean isStarted() {
+        return pollerFuture != null;
     }
 
     public Future<Command.Result> runCommand(Callable<Command.Result> command) {

@@ -20,6 +20,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -67,8 +68,7 @@ public class WemoInsightConnectorTest extends HomeglueTests {
     private WemoInsightConnector connectedConnector(int port) throws IOException {
         httpClient = mock(SimpleHttpClient.class);
         SoapHelper soapHelper = new SoapHelper(httpClient);
-        WemoInsightConnector connector = new WemoInsightConnector(soapHelper, mock(DeviceCommandDispatcher.class), mock(DeviceStateProcessorService.class), hostAddress, port);
-        connector.setPollingEnabled(false);
+        WemoInsightConnector connector = new WemoInsightConnector(soapHelper, mock(DeviceCommandDispatcher.class), mock(DeviceStateProcessorService.class), mock(ScheduledExecutorService.class), hostAddress, port);
         when(httpClient.get(any())).thenReturn(ResourceHelper.resourceAsString("net/forlevity/homeglue/sim/insight1_setup.xml"));
         log.info("before connecting: {}", connector);
         assertTrue(connector.start());
