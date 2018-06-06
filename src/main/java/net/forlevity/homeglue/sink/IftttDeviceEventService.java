@@ -45,12 +45,12 @@ public class IftttDeviceEventService extends QueueWorkerService<DeviceEvent> {
         String[] values = new String[3];
         int filled = 0;
 
-        // Use friendly name for event instead of automatic device id, if available
+        // Use friendly name for event instead of detection id, if available
         String deviceDescriptor;
         if (deviceEvent.getFriendlyName() != null) {
             deviceDescriptor = deviceEvent.getFriendlyName();
         } else {
-            deviceDescriptor = deviceEvent.getDeviceId();
+            deviceDescriptor = deviceEvent.getDetectionId();
         }
 
         if (deviceEvent.getEvent().equals(DeviceEvent.NEW_DEVICE)) {

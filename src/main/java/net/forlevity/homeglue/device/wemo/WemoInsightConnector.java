@@ -16,6 +16,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.*;
+import net.forlevity.homeglue.entity.Device;
 import net.forlevity.homeglue.util.Xml;
 import org.w3c.dom.Document;
 
@@ -45,7 +46,7 @@ public class WemoInsightConnector implements DeviceConnector {
     private static final int MIN_IDLE_MILLIS = 2000;
 
     @Getter
-    private String deviceId = DEVICE_ID_UNKNOWN;
+    private String detectionId = DEVICE_ID_UNKNOWN;
 
     @Getter
     Map<String, String> deviceDetails = ImmutableMap.of();
@@ -168,12 +169,12 @@ public class WemoInsightConnector implements DeviceConnector {
         if (macAddress == null) {
             log.warn("xml did not contain device macAddress");
         } else {
-            this.deviceId = macAddress;
+            this.detectionId = macAddress;
             this.deviceDetails = ImmutableMap.of(
-                    "model", xml.nodeText(doc, "/root/device/modelDescription"),
-                    "serialNumber", xml.nodeText(doc, "/root/device/serialNumber"),
-                    "name", xml.nodeText(doc, "/root/device/friendlyName"),
-                    "firmwareVersion", xml.nodeText(doc, "/root/device/firmwareVersion") );
+                    Device.DETAIL_MODEL, xml.nodeText(doc, "/root/device/modelDescription"),
+                    Device.DETAIL_SERIAL_NUMBER, xml.nodeText(doc, "/root/device/serialNumber"),
+                    Device.DETAIL_USER_SPECIFIED_NAME, xml.nodeText(doc, "/root/device/friendlyName"),
+                    Device.DETAIL_FIRMWARE_VERSON, xml.nodeText(doc, "/root/device/firmwareVersion") );
             success = true;
         }
         return success;

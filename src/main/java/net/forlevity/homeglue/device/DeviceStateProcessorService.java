@@ -60,10 +60,10 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
      */
     @Override
     protected void handle(DeviceState newDeviceState) {
-        String deviceId = newDeviceState.getDeviceId();
+        String detectionId = newDeviceState.getDetectionId();
         List<DeviceEvent> newEvents = persistenceService.exec(session -> {
             List<DeviceEvent> events = new ArrayList<>();
-            Device device = session.bySimpleNaturalId(Device.class).load(deviceId);
+            Device device = session.bySimpleNaturalId(Device.class).load(detectionId);
             handle(session, device, newDeviceState, events);
             return events;
         });
@@ -90,7 +90,7 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
      */
     private Device handleDeviceConnection(Device device, DeviceState newDeviceState, List<DeviceEvent> events) {
         // check for new device, connection state changed, details changed
-        String deviceId = newDeviceState.getDeviceId();
+        String detectionId = newDeviceState.getDetectionId();
         if (device == null) {
             log.info("device first detection: {}", newDeviceState);
             device = Device.from(newDeviceState);
@@ -124,7 +124,7 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
             boolean closed = newDeviceState.getRelayClosed();
             Relay relay = device.getRelay();
             if (relay == null) {
-                log.debug("relay discovered on device {}", device.getDeviceId());
+                log.debug("relay discovered on device {}", device.getDetectionId());
                 relay = new Relay().setClosed(closed);
                 device.setRelay(relay);
                 forceSave = true; // no event
@@ -151,11 +151,11 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
         boolean forceSave = false;
         // appliance detection config
         if (newDeviceState.getInstantaneousWatts() != null) {
-            log.info("Read power meter {} {}: {} Watts", device.getDeviceId(), device.getFriendlyName(), newDeviceState.getInstantaneousWatts());
+            log.info("Read power meter {} {}: {} Watts", device.getDetectionId(), device.getFriendlyName(), newDeviceState.getInstantaneousWatts());
             Double watts = newDeviceState.getInstantaneousWatts();
             ApplianceDetector applianceDetector = device.getApplianceDetector();
             if (applianceDetector == null) {
-                log.info("creating default appliance config for meter on device {}", device.getDeviceId());
+                log.info("creating default appliance config for meter on device {}", device.getDetectionId());
                 applianceDetector = new ApplianceDetector().withDefaultSettings();
                 device.setApplianceDetector(applianceDetector);
                 boolean initialOnState = applianceStateDecider.applianceOn(applianceDetector, watts);
@@ -182,8 +182,8 @@ public class DeviceStateProcessorService extends QueueWorkerService<DeviceState>
 
                     Relay relay = device.getRelay();
                     if (relay != null) {
-                        log.info("Device {} was on too long, opening relay", device.getDeviceId());
-                        deviceCommandDispatcher.dispatch(device.getDeviceId(), new Command(Command.Action.OPEN_RELAY));
+                        log.info("Device {} was on too long, opening relay", device.getDetectionId());
+                        deviceCommandDispatcher.dispatch(device.getDetectionId(), new Command(Command.Action.OPEN_RELAY));
                     }
                 }
             }

@@ -26,6 +26,6 @@ public class DeviceEventLogger implements Consumer<DeviceEvent> {
         } else {
             eventData = "";
         }
-        log.info("Device {}: / Event: {} {}", event.getDeviceId(), event.getEvent(), eventData);
+        log.info("Device {}: / Event: {} {}", event.getDetectionId(), event.getEvent(), eventData);
     }
 }

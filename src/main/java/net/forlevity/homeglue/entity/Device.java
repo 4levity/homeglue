@@ -13,6 +13,7 @@ import net.forlevity.homeglue.device.DeviceState;
 import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,9 +21,15 @@ import java.util.Map;
 @Table(name = "devices")
 @NoArgsConstructor
 @Accessors(chain = true)
-@ToString(of = {"id", "deviceId", "connected"})
-@EqualsAndHashCode(of = {"deviceId"})
+@ToString(of = {"id", "detectionId", "connected"})
+@EqualsAndHashCode(of = {"detectionId"})
 public class Device {
+
+    // standardized metadata fields - connectors MAY use these as keys in the device details
+    public static final String DETAIL_USER_SPECIFIED_NAME = "name";
+    public static final String DETAIL_SERIAL_NUMBER = "serialNumber";
+    public static final String DETAIL_FIRMWARE_VERSON = "firmwareVersion";
+    public static final String DETAIL_MODEL = "model";
 
     @Id
     @GeneratedValue
@@ -32,11 +39,13 @@ public class Device {
     private Long id;
 
     @NaturalId(mutable = false)
-    @Column(name = "device_id", nullable = false, unique = true)
-    @Getter
+    @Column(name = "detection_id", nullable = false, unique = true)
     @Setter(AccessLevel.PRIVATE)
-    private String deviceId;
-    public static String _deviceId = "deviceId";
+    private String detectionId;
+    public static String _detectionId = "detectionId";
+    public String getDetectionId() {
+        return detectionId;
+    }
 
     @Column(name = "friendly_name")
     @Getter
@@ -47,6 +56,11 @@ public class Device {
     @Setter
     private boolean connected;
 
+    @Column(name = "last_state_change", nullable = false)
+    @Getter
+    @Setter
+    private Instant lastStateChange = Instant.now();
+
     @OneToOne(mappedBy = "device", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Getter
     private Relay relay;
@@ -56,8 +70,8 @@ public class Device {
     private ApplianceDetector applianceDetector;
 
     @ElementCollection
-    @MapKeyColumn(name="name")
-    @Column(name="value")
+    @MapKeyColumn(name="k")
+    @Column(name="v")
     @CollectionTable(name="device_details", joinColumns=@JoinColumn(name="id"))
     private Map<String, String> details = new HashMap<>();
 
@@ -107,10 +121,14 @@ public class Device {
     }
 
     public void setFriendlyName(String friendlyName) {
-        if (!friendlyName.matches("[A-Za-z0-9]{1,64}")) {
+        if (!validFriendlyName(friendlyName)) {
             throw new IllegalArgumentException("invalid friendlyName");
         }
         this.friendlyName = friendlyName;
+    }
+
+    public static boolean validFriendlyName(String fname) {
+        return fname != null && fname.matches("[A-Za-z0-9]{1,64}");
     }
 
     /**
@@ -128,15 +146,12 @@ public class Device {
 
     public static Device from(DeviceState deviceState) {
         Device device = new Device();
-        device.setDeviceId(deviceState.getDeviceId());
+        device.setDetectionId(deviceState.getDetectionId());
         device.setConnected(deviceState.isConnected());
         device.setDetails(deviceState.getDeviceDetails());
-        if (device.details.containsKey("name")) {
-            try {
-                device.setFriendlyName(device.details.get("name"));
-            } catch(IllegalArgumentException e) {
-                // ignore
-            }
+        String userSpecifiedName = device.details.get(DETAIL_USER_SPECIFIED_NAME);
+        if (validFriendlyName(userSpecifiedName)) {
+            device.setFriendlyName(userSpecifiedName);
         }
         return device;
     }

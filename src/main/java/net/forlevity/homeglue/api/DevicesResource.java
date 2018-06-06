@@ -41,9 +41,9 @@ public class DevicesResource {
             CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
             CriteriaQuery<Device> query = criteriaBuilder.createQuery(Device.class);
             Root<Device> root = query.from(Device.class);
-            String orderBy = sort == null ? Device._deviceId : sort;
+            String orderBy = sort == null ? Device._detectionId : sort;
             switch (orderBy) {
-                case "deviceId":
+                case "detectionId":
                 case "friendlyName":
                 case "connected":
                     query.orderBy(criteriaBuilder.asc(root.get(orderBy)));
@@ -55,8 +55,8 @@ public class DevicesResource {
         });
     }
 
-    @Path("{deviceId}")
-    public DeviceResource device(@PathParam("deviceId") String deviceId) {
-        return deviceResourceFactory.create(deviceId);
+    @Path("{detectionId}")
+    public DeviceResource device(@PathParam("detectionId") String detectionId) {
+        return deviceResourceFactory.create(detectionId);
     }
 }

@@ -47,7 +47,7 @@ public class RelayResource {
             throw new BadRequestException("relay state must be true (closed) or false (open)");
         }
         Command.Action action = newState.isClosed() ? Command.Action.CLOSE_RELAY : Command.Action.OPEN_RELAY;
-        Future<Command.Result> result = dispatcher.dispatch(relay.getDevice().getDeviceId(), new Command(action));
+        Future<Command.Result> result = dispatcher.dispatch(relay.getDevice().getDetectionId(), new Command(action));
         try {
             return result.get(2000, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {

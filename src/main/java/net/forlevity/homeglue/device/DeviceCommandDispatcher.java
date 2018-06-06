@@ -21,15 +21,15 @@ public class DeviceCommandDispatcher {
     private final Map<String, DeviceConnector> devices = new ConcurrentHashMap<>();
 
     public void register(DeviceConnector deviceConnectorInstance) {
-        devices.put(deviceConnectorInstance.getDeviceId(), deviceConnectorInstance);
+        devices.put(deviceConnectorInstance.getDetectionId(), deviceConnectorInstance);
     }
 
-    public Future<Command.Result> dispatch(String deviceId, Command command) {
-        DeviceConnector device = devices.get(deviceId);
+    public Future<Command.Result> dispatch(String deviceDetectionId, Command command) {
+        DeviceConnector device = devices.get(deviceDetectionId);
         if (device == null) {
             return CompletableFuture.completedFuture(Command.Result.DEVICE_NOT_FOUND);
         } // else
-        log.info("command for device {} : {}", deviceId, command);
+        log.info("command for device {} : {}", deviceDetectionId, command);
         return device.dispatch(command);
     }
 }

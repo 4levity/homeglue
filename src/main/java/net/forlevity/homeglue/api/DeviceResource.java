@@ -22,26 +22,26 @@ public class DeviceResource {
     private final PersistenceService persistence;
     private final RelayResource.Factory relayResourceFactory;
     private final ApplianceDetectorResource.Factory applianceDetectorResourceFactory;
-    private final String deviceId;
+    private final String detectionId;
 
     interface Factory {
-        DeviceResource create(String deviceId);
+        DeviceResource create(String detectionId);
     }
 
     @Inject
     public DeviceResource(PersistenceService persistence,
                           RelayResource.Factory relayResourceFactory,
                           ApplianceDetectorResource.Factory applianceDetectorResourceFactory,
-                          @Assisted String deviceId) {
+                          @Assisted String detectionId) {
         this.persistence = persistence;
         this.relayResourceFactory = relayResourceFactory;
         this.applianceDetectorResourceFactory = applianceDetectorResourceFactory;
-        this.deviceId = deviceId;
+        this.detectionId = detectionId;
     }
 
     @GET
     public DeviceDto get() {
-        return persistence.exec(session -> DeviceDto.from(getDevice(session, deviceId)));
+        return persistence.exec(session -> DeviceDto.from(getDevice(session, detectionId)));
     }
 
     /**
@@ -57,7 +57,7 @@ public class DeviceResource {
             throw new BadRequestException("no name specified");
         }
         return persistence.exec(session -> {
-            Device device = getDevice(session, deviceId);
+            Device device = getDevice(session, detectionId);
             if (dto.getFriendlyName().equals("")) {
                 device.setFriendlyName(null);
             } else {
@@ -70,16 +70,16 @@ public class DeviceResource {
 
     @Path("relay")
     public RelayResource relayResource() {
-        return relayResourceFactory.create(persistence.exec(session -> getRelay(session, deviceId)));
+        return relayResourceFactory.create(persistence.exec(session -> getRelay(session, detectionId)));
     }
 
     @Path("appliance")
     public ApplianceDetectorResource applianceResource() {
-        return applianceDetectorResourceFactory.create(deviceId);
+        return applianceDetectorResourceFactory.create(detectionId);
     }
 
-    private Relay getRelay(Session session, String deviceId) {
-        Device device = getDevice(session, deviceId);
+    private Relay getRelay(Session session, String deviceDetectionId) {
+        Device device = getDevice(session, deviceDetectionId);
         Relay relay = device.getRelay();
         if (relay == null) {
             throw new NotFoundException("relay not found");
@@ -87,8 +87,8 @@ public class DeviceResource {
         return persistence.unproxy(Relay.class, relay);
     }
 
-    static Device getDevice(Session session, String deviceId) {
-        Device device = session.bySimpleNaturalId(Device.class).load(deviceId);
+    static Device getDevice(Session session, String detectionId) {
+        Device device = session.bySimpleNaturalId(Device.class).load(detectionId);
         if (device == null) {
             throw new NotFoundException("device not found");
         }

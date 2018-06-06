@@ -27,12 +27,12 @@ public class PersistenceTest extends IntegrationTests {
         ServiceManager serviceManager = new ServiceManager(Collections.singleton(persistence));
         serviceManager.startAsync().awaitHealthy();
         assertTrue(persistence.isRunning());
-        String deviceId = "mydevice";
-        Function<Session, Boolean> deviceLoader = session -> null != session.bySimpleNaturalId(Device.class).load(deviceId);
+        String detectionId = "mydevice";
+        Function<Session, Boolean> deviceLoader = session -> null != session.bySimpleNaturalId(Device.class).load(detectionId);
 
         assertFalse(persistence.exec(deviceLoader)); // no device
         persistence.exec(session -> { // create device
-            session.saveOrUpdate(Device.from(new DeviceState(deviceId, true, ImmutableMap.of())));
+            session.saveOrUpdate(Device.from(new DeviceState(detectionId, true, ImmutableMap.of())));
             return null;
         });
         assertTrue(persistence.exec(deviceLoader)); // device exists

@@ -16,6 +16,6 @@ public class LastDeviceStateCache implements Consumer<DeviceState> {
 
     @Override
     public void accept(DeviceState data) {
-        this.lastDeviceState.put(data.getDeviceId(), data);
+        this.lastDeviceState.put(data.getDetectionId(), data);
     }
 }

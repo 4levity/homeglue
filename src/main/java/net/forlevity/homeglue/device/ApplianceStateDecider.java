@@ -37,20 +37,20 @@ public class ApplianceStateDecider {
     public boolean applianceOn(ApplianceDetector applianceDetector, Double watts) {
         Preconditions.checkNotNull(applianceDetector);
         Device device = applianceDetector.getDevice();
-        if (device == null || device.getDeviceId() == null) {
+        if (device == null || device.getDetectionId() == null) {
             throw new IllegalArgumentException("ApplianceDetector must be attached to a valid device before use");
         }
         Instant now = Instant.now();
         boolean on;
         Relay relay = device.getRelay();
         if (watts >= applianceDetector.getMinWatts()) {
-            lastOverThresholdByDevice.put(device.getDeviceId(), now);
+            lastOverThresholdByDevice.put(device.getDetectionId(), now);
             // if it's over the threshold it's definitely on
             on = true;
         } else if (relay != null && !relay.isClosed()) {
             on = false;
         } else {
-            Instant lastOverThreshold = lastOverThresholdByDevice.get(device.getDeviceId());
+            Instant lastOverThreshold = lastOverThresholdByDevice.get(device.getDetectionId());
             if (lastOverThreshold == null) {
                 on = false; // can't remember it ever being over threshold (at least since we started up)
             } else {

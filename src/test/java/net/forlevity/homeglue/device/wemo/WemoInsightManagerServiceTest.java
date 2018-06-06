@@ -80,7 +80,7 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
         manager.processQueue();
         assertEquals(1, manager.getDevices().size());
         WemoInsightConnector device = manager.getDevices().values().iterator().next();
-        assertEquals(macAddress, device.getDeviceId());
+        assertEquals(macAddress, device.getDetectionId());
         assertEquals(2000, device.getPort());
         assertTrue(device.poll()); // first poll
         Instant lastTelemetryTime = telemetryCache.lastDeviceState.get(macAddress).getTimestamp();

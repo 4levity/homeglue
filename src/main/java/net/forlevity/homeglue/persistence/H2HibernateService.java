@@ -16,6 +16,7 @@ import io.github.lukehutch.fastclasspathscanner.scanner.ClassInfo;
 import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.util.ResourceHelper;
+import org.flywaydb.core.Flyway;
 import org.h2.tools.Server;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
@@ -85,6 +86,11 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
             h2WebServer.start();
             log.info("H2 db web interface at http://localhost:{}/ (local access only)", h2WebserverPort);
         }
+
+        // perform any necessary database migration
+        migrate();
+
+        // set up Hibernate
         StandardServiceRegistry registry = new StandardServiceRegistryBuilder().applySettings(settings).build();
         MetadataSources metadata = new MetadataSources(registry);
 
@@ -201,7 +207,12 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
         }
     }
 
+    private String getConnectionUrl() {
+        return settings.getProperty("hibernate.connection.url");
+    }
+
     private String getJdbcUrl() {
+        // may be different than configured connection URL, e.g. connection params not included
         return exec(session -> {
             String[] url = new String[1];
             session.doWork(connection -> url[0] = connection.getMetaData().getURL());
@@ -209,13 +220,21 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
         });
     }
 
+    private String getUsername() {
+        return settings.getProperty("hibernate.connection.username");
+    }
+
+    private String getPassword() {
+        return settings.getProperty("hibernate.connection.password");
+    }
+
     private void h2Shutdown() {
-        String dbUrl = settings.getProperty("hibernate.connection.url");
+        String dbUrl = getConnectionUrl();
         if (!dbUrl.toUpperCase().contains("DB_CLOSE_ON_EXIT=FALSE")) {
             return; // we only need to do something if using H2 embedded with manual shutdown needed
         }
-        String username = settings.getProperty("hibernate.connection.username");
-        String password = settings.getProperty("hibernate.connection.password");
+        String username = getUsername();
+        String password = getPassword();
         Connection connection;
         try {
             connection = DriverManager.getConnection(dbUrl, username, password);
@@ -237,5 +256,12 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
             }
         }
         log.debug("H2 shutdown successful");
+    }
+
+    private void migrate() {
+        Flyway flyway = new Flyway();
+        flyway.setLocations("classpath:db/migrations");
+        flyway.setDataSource(getConnectionUrl(), getUsername(), getPassword());
+        flyway.migrate();
     }
 }

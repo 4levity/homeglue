@@ -16,12 +16,12 @@ interface DeviceInfo {
     String DEVICE_ID_UNKNOWN = "unknown";
 
     /**
-     * Get the unique identifier of this device, which might be something like its MAC address or serial number.
-     * If the device ID equals DeviceConnector.DEVICE_ID_UNKNOWN , the device's identity has not been determined.
+     * Get a unique identifier of this device, which might be something like its MAC address or serial number.
+     * If the detection ID equals DeviceConnector.DEVICE_ID_UNKNOWN , the device's identity has not yet een determined.
      *
-     * @return device id
+     * @return device detection id
      */
-    String getDeviceId();
+    String getDetectionId();
 
     /**
      * True if the device is "probably online."

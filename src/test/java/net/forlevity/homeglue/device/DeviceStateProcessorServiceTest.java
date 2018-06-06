@@ -37,12 +37,12 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         processor.handle(state);
         assertEquals(1, events.size());
         assertEquals(DeviceEvent.NEW_DEVICE, events.get(0).getEvent());
-        assertEquals("new", events.get(0).getDeviceId());
+        assertEquals("new", events.get(0).getDetectionId());
 
         // device saved
         ArgumentCaptor<Device> deviceArgumentCaptor = ArgumentCaptor.forClass(Device.class);
         verify(persistence.getSession()).saveOrUpdate(deviceArgumentCaptor.capture());
-        assertEquals("new", deviceArgumentCaptor.getValue().getDeviceId());
+        assertEquals("new", deviceArgumentCaptor.getValue().getDetectionId());
     }
 
     @Test
@@ -57,7 +57,7 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         processor.handle(state);
         assertEquals(1, events.size());
         assertEquals(DeviceEvent.NEW_DEVICE, events.get(0).getEvent());
-        assertEquals("new", events.get(0).getDeviceId());
+        assertEquals("new", events.get(0).getDetectionId());
         assertEquals(state.getDeviceDetails(), events.get(0).getData());
         events.clear();
 
@@ -65,7 +65,7 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         ArgumentCaptor<Device> deviceArgumentCaptor = ArgumentCaptor.forClass(Device.class);
         verify(persistence.getSession()).saveOrUpdate(deviceArgumentCaptor.capture());
         Device device = deviceArgumentCaptor.getValue();
-        assertEquals("new", device.getDeviceId());
+        assertEquals("new", device.getDetectionId());
         assertTrue(device.getRelay().isClosed());
         assertTrue(device.getApplianceDetector().isOn());
     }
@@ -80,7 +80,7 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         processor.handle(new DeviceState("devid", false));
         ArgumentCaptor<Device> deviceArgumentCaptor = ArgumentCaptor.forClass(Device.class);
         verify(persistence.getSession()).saveOrUpdate(deviceArgumentCaptor.capture());
-        assertEquals("devid", deviceArgumentCaptor.getValue().getDeviceId());
+        assertEquals("devid", deviceArgumentCaptor.getValue().getDetectionId());
         assertFalse(deviceArgumentCaptor.getValue().isConnected());
 
         processor.handle(new DeviceState("devid", true));
@@ -88,9 +88,9 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         processor.handle(new DeviceState("devid", true));
         assertEquals(2, events.size());
         assertEquals(DeviceEvent.CONNECTION_LOST, events.get(0).getEvent());
-        assertEquals("devid", events.get(0).getDeviceId());
+        assertEquals("devid", events.get(0).getDetectionId());
         assertEquals(DeviceEvent.CONNECTED, events.get(1).getEvent());
-        assertEquals("devid", events.get(1).getDeviceId());
+        assertEquals("devid", events.get(1).getDetectionId());
     }
 
     @Test
@@ -107,7 +107,7 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         // saved?
         ArgumentCaptor<Device> deviceArgumentCaptor = ArgumentCaptor.forClass(Device.class);
         verify(persistence.getSession()).saveOrUpdate(deviceArgumentCaptor.capture());
-        assertEquals("devid", deviceArgumentCaptor.getValue().getDeviceId());
+        assertEquals("devid", deviceArgumentCaptor.getValue().getDetectionId());
         assertEquals(newDeviceDetails, deviceArgumentCaptor.getValue().getDetails());
 
         DeviceState newState = new DeviceState("devid", true, originalDetails);
@@ -117,10 +117,10 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         assertEquals(2, events.size());
         assertEquals(DeviceEvent.DETAILS_CHANGED, events.get(0).getEvent());
         assertEquals(newDeviceDetails, events.get(0).getData());
-        assertEquals("devid", events.get(0).getDeviceId());
+        assertEquals("devid", events.get(0).getDetectionId());
         assertEquals(DeviceEvent.DETAILS_CHANGED, events.get(1).getEvent());
         assertEquals(originalDetails, events.get(1).getData());
-        assertEquals("devid", events.get(1).getDeviceId());
+        assertEquals("devid", events.get(1).getDetectionId());
     }
 
     @Test
@@ -138,7 +138,7 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         // saved?
         ArgumentCaptor<Device> deviceArgumentCaptor = ArgumentCaptor.forClass(Device.class);
         verify(persistence.getSession()).saveOrUpdate(deviceArgumentCaptor.capture());
-        assertEquals("devid", deviceArgumentCaptor.getValue().getDeviceId());
+        assertEquals("devid", deviceArgumentCaptor.getValue().getDetectionId());
         Relay relay = device.getRelay();
         assertEquals(device, relay.getDevice());
         assertTrue(relay.isClosed());
@@ -151,9 +151,9 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         processor.handle(new DeviceState(initialState).setRelayClosed(true));
         assertEquals(2, events.size());
         assertEquals(DeviceEvent.RELAY_OPENED, events.get(0).getEvent());
-        assertEquals("devid", events.get(0).getDeviceId());
+        assertEquals("devid", events.get(0).getDetectionId());
         assertEquals(DeviceEvent.RELAY_CLOSED, events.get(1).getEvent());
-        assertEquals("devid", events.get(1).getDeviceId());
+        assertEquals("devid", events.get(1).getDetectionId());
     }
 
     @Test
@@ -170,7 +170,7 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         // saved?
         ArgumentCaptor<Device> deviceArgumentCaptor = ArgumentCaptor.forClass(Device.class);
         verify(persistence.getSession()).saveOrUpdate(deviceArgumentCaptor.capture());
-        assertEquals("did", deviceArgumentCaptor.getValue().getDeviceId());
+        assertEquals("did", deviceArgumentCaptor.getValue().getDetectionId());
         ApplianceDetector applianceDetector = device.getApplianceDetector();
         assertEquals(device, applianceDetector.getDevice());
         assertFalse(applianceDetector.isOn());
@@ -183,9 +183,9 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         processor.handle(new DeviceState(initialState).setInstantaneousWatts(0.5));
         assertEquals(2, events.size());
         assertEquals(DeviceEvent.APPLIANCE_ON, events.get(0).getEvent());
-        assertEquals("did", events.get(0).getDeviceId());
+        assertEquals("did", events.get(0).getDetectionId());
         assertEquals(DeviceEvent.APPLIANCE_OFF, events.get(1).getEvent());
-        assertEquals("did", events.get(1).getDeviceId());
+        assertEquals("did", events.get(1).getDetectionId());
 
         events.clear();
         // reconfigure appliance detector
@@ -195,8 +195,8 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         processor.handle(new DeviceState(initialState).setInstantaneousWatts(0.0));
         assertEquals(2, events.size());
         assertEquals(DeviceEvent.APPLIANCE_ON, events.get(0).getEvent());
-        assertEquals("did", events.get(0).getDeviceId());
+        assertEquals("did", events.get(0).getDetectionId());
         assertEquals(DeviceEvent.APPLIANCE_OFF, events.get(1).getEvent());
-        assertEquals("did", events.get(1).getDeviceId());
+        assertEquals("did", events.get(1).getDetectionId());
     }
 }

@@ -27,7 +27,7 @@ public class DeviceState implements DeviceInfo {
     private final Instant timestamp = Instant.now();
 
     @NonNull
-    private final String deviceId;
+    private final String detectionId;
 
     private final boolean connected;
 
@@ -40,18 +40,18 @@ public class DeviceState implements DeviceInfo {
     @NonNull
     private final Map<String, String> deviceDetails;
 
-    public DeviceState(String deviceId, boolean connected, Map<String, String> deviceDetails) {
-        this.deviceId = deviceId;
+    public DeviceState(String detectionId, boolean connected, Map<String, String> deviceDetails) {
+        this.detectionId = detectionId;
         this.connected = connected;
         this.deviceDetails = ImmutableMap.copyOf(deviceDetails);
     }
 
-    public DeviceState(String deviceId, boolean connected) {
-        this(deviceId, connected, ImmutableMap.of());
+    public DeviceState(String detectionId, boolean connected) {
+        this(detectionId, connected, ImmutableMap.of());
     }
 
     public DeviceState(DeviceInfo toCopy) {
-        this(toCopy.getDeviceId(), toCopy.isConnected(), toCopy.getDeviceDetails());
+        this(toCopy.getDetectionId(), toCopy.isConnected(), toCopy.getDeviceDetails());
         setInstantaneousWatts(toCopy.getInstantaneousWatts());
         setRelayClosed(toCopy.getRelayClosed());
     }

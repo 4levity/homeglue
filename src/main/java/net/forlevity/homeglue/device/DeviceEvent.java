@@ -31,7 +31,7 @@ public class DeviceEvent {
     public static final String ON_TOO_LONG = "on_too_long";
 
     @NonNull
-    private String deviceId;
+    private String detectionId;
     private String friendlyName;
     @NonNull
     private String event;
@@ -39,13 +39,13 @@ public class DeviceEvent {
     private Map<String, String> data = null;
 
     public DeviceEvent(Device device, String event) {
-        this.deviceId = device.getDeviceId();
+        this.detectionId = device.getDetectionId();
         this.friendlyName = device.getFriendlyName();
         this.event = event;
     }
 
     public DeviceEvent(Device device, String event, Map<String, String> data) {
-        this.deviceId = device.getDeviceId();
+        this.detectionId = device.getDetectionId();
         this.friendlyName = device.getFriendlyName();
         this.event = event;
         this.data = data;

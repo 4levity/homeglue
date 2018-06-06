@@ -24,7 +24,7 @@ import java.time.Instant;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApplianceDetectorDto {
 
-    Float minWatts;
+    Double minWatts;
     Integer offDelaySeconds;
     Integer maxOnSeconds;
     Boolean on;

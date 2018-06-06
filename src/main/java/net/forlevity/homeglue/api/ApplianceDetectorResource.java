@@ -22,16 +22,16 @@ import javax.ws.rs.core.MediaType;
 public class ApplianceDetectorResource {
 
     private final PersistenceService persistence;
-    private final String deviceId;
+    private final String deviceDetectionId;
 
     interface Factory {
-        ApplianceDetectorResource create(String deviceId);
+        ApplianceDetectorResource create(String deviceDetectionId);
     }
 
     @Inject
-    public ApplianceDetectorResource(PersistenceService persistence, @Assisted String deviceId) {
+    public ApplianceDetectorResource(PersistenceService persistence, @Assisted String deviceDetectionId) {
         this.persistence = persistence;
-        this.deviceId = deviceId;
+        this.deviceDetectionId = deviceDetectionId;
     }
 
     @GET
@@ -45,7 +45,7 @@ public class ApplianceDetectorResource {
         if (newConfig == null || newConfig.getMinWatts() == null || newConfig.getOffDelaySeconds() == null) {
             throw new BadRequestException("invalid configuration");
         }
-        log.info("updating appliance configuration for {} : {}", deviceId, newConfig);
+        log.info("updating appliance configuration for {} : {}", deviceDetectionId, newConfig);
         return persistence.exec(session -> {
             ApplianceDetector applianceDetector = getApplianceDetector(session);
             applianceDetector.setMinWatts(newConfig.getMinWatts());
@@ -57,7 +57,7 @@ public class ApplianceDetectorResource {
     }
 
     private ApplianceDetector getApplianceDetector(Session session) {
-        Device device = DeviceResource.getDevice(session, deviceId);
+        Device device = DeviceResource.getDevice(session, deviceDetectionId);
         ApplianceDetector applianceDetector = device.getApplianceDetector();
         if (applianceDetector == null) {
             throw new NotFoundException("appliance detector not found");

@@ -27,21 +27,21 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DeviceDto {
 
-    private String deviceId;
+    private String detectionId;
     private String friendlyName;
     private Boolean connected;
     private Map<String, String> details;
     private RelayDto relay;
     private ApplianceDetectorDto appliance;
 
-    DeviceDto(String deviceId, Boolean connected, Map<String, String> details) {
-        this.deviceId = deviceId;
+    DeviceDto(String detectionId, Boolean connected, Map<String, String> details) {
+        this.detectionId = detectionId;
         this.connected = connected;
         this.details = details;
     }
 
     public static DeviceDto from(Device device) {
-        DeviceDto dto = new DeviceDto(device.getDeviceId(), device.isConnected(), device.getDetails());
+        DeviceDto dto = new DeviceDto(device.getDetectionId(), device.isConnected(), device.getDetails());
         if (!Strings.isNullOrEmpty(device.getFriendlyName())) {
             dto.setFriendlyName(device.getFriendlyName());
         }

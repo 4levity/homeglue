@@ -12,6 +12,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 
 import javax.persistence.*;
+import java.time.Instant;
 
 @Entity
 @Table(name = "relays")
@@ -36,6 +37,18 @@ public class Relay {
 
     @Column(name = "closed", nullable = false)
     @Getter
-    @Setter
     private boolean closed;
+
+    @Column(name = "last_state_change", nullable = false)
+    @Getter
+    @Setter
+    private Instant lastStateChange;
+
+    public Relay setClosed(boolean newClosed) {
+        if (newClosed != closed) {
+            lastStateChange = Instant.now();
+        }
+        closed = newClosed;
+        return this;
+    }
 }

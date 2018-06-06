@@ -11,7 +11,7 @@
     <meta http-equiv="Content-Language" content="en_US" />
 <script>
 var devices;
-var orderBy = "deviceId";
+var orderBy = "detectionId";
 function start() {
     setInterval(load, 1000); // refresh list once per second!
 }
@@ -36,7 +36,7 @@ function loadBy(sort) {
 }
 function show() {
     var table="<table><thead><tr>"
-        + "<td onclick=loadBy('deviceId')>Device Id&nbsp;</td>"
+        + "<td onclick=loadBy('detectionId')>Detection ID&nbsp;</td>"
         + "<td onclick=loadBy('friendlyName')>Friendly Name&nbsp;</td>"
         + "<td onclick=loadBy('connected')>Connected?&nbsp;</td>"
         + "<td>Switch&nbsp;</td>"
@@ -50,8 +50,8 @@ function show() {
             var device = devices[ix];
             var relay = device.relay == null ? "-" : (device.relay.closed ? "ON" : "OFF");
             var appliance = device.appliance == null ? "-" : (device.appliance.on ? "ON" : "OFF");
-            table += "<tr onclick=document.location='device.html?id=" + device.deviceId + "'>"
-                + "<td>" + device.deviceId +"</td>"
+            table += "<tr onclick=document.location='device.html?id=" + device.detectionId + "'>"
+                + "<td>" + device.detectionId +"</td>"
                 + "<td>" + (device.friendlyName || '') +"</td>"
                 + "<td>" + device.connected + "</td>"
                 + "<td>" + relay + "</td>"

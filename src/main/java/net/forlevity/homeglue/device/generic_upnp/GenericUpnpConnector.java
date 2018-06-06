@@ -21,17 +21,17 @@ import java.util.Set;
 /**
  * A generic UPnP device is a collection of 1+ services detected at a particular host address.
  */
-@ToString(of = {"deviceId"})
+@ToString(of = {"detectionId"})
 public class GenericUpnpConnector implements DeviceConnector {
 
     @Getter
-    private final String deviceId;
+    private final String detectionId;
 
     private final Set<SsdpServiceDefinition> ssdpServices = new HashSet<>();
 
     @Inject
     GenericUpnpConnector(@Assisted SsdpServiceDefinition firstService) {
-        this.deviceId = firstService.getRemoteIp().getHostAddress();
+        this.detectionId = firstService.getRemoteIp().getHostAddress();
         this.ssdpServices.add(firstService);
     }
 

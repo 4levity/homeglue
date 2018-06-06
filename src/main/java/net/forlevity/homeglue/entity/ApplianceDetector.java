@@ -15,7 +15,7 @@ import javax.persistence.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "appliance_cfg")
+@Table(name = "appliance_detector")
 @NoArgsConstructor
 @Accessors(chain = true)
 @ToString(of = {"id", "minWatts", "offDelaySecs", "on"})
@@ -41,7 +41,7 @@ public class ApplianceDetector {
     @Column(name = "min_watts", nullable = false)
     @Getter
     @Setter
-    private float minWatts; // minimum number of watts registering before we say appliance is on
+    private double minWatts; // minimum number of watts registering before we say appliance is on
 
     @Column(name = "off_delay_secs", nullable = false)
     @Getter
