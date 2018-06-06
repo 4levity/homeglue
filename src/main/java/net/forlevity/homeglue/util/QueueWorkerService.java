@@ -58,15 +58,19 @@ public class QueueWorkerService<T> extends AbstractExecutionThreadService implem
         log.warn("{} default handler for {}", getClass().getSimpleName(), item);
     }
 
+    @Override
+    protected final void startUp() throws Exception {
+        if (dependencies != null) {
+            dependencies.waitForDependencies(this);
+        }
+    }
+
     /**
      * Run until interrupted.
      */
     @Override
     protected final void run() {
         executionThread = Thread.currentThread();
-        if (dependencies != null) {
-            dependencies.waitForDependencies(this);
-        }
         worker.run();
     }
 

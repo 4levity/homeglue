@@ -87,6 +87,11 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
             log.info("H2 db web interface at http://localhost:{}/ (local access only)", h2WebserverPort);
         }
 
+        Connection keepalive = null; // temporary connection keeps db from resetting between Flyway and Hibernate init
+        if (getConnectionUrl().startsWith("jdbc:h2:mem")) {
+            keepalive = getConnection();
+        }
+
         // perform any necessary database migration
         migrate();
 
@@ -102,6 +107,14 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
         // create session factory
         sessionFactory = metadata.buildMetadata().buildSessionFactory();
 
+        if (keepalive != null) {
+            try {
+                keepalive.close();
+            } catch (SQLException e) {
+                log.error("error closing temporary keepalive connection");
+            }
+        }
+
         // startup log
         Map<String, ClassInfo> classInfoMap = scanResult.getClassNameToClassInfo();
         String classNames = entityClasses.stream().map(name -> classInfoMap.get(name).getClassRef().getSimpleName())
@@ -110,7 +123,7 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
     }
 
     @VisibleForTesting
-    void stop() {
+    void stop() throws SQLException {
         if (!stopped) {
             stopped = true;
             if (h2WebServer != null && h2WebServer.isRunning(false)) {
@@ -228,34 +241,38 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
         return settings.getProperty("hibernate.connection.password");
     }
 
-    private void h2Shutdown() {
+    private void h2Shutdown() throws SQLException {
         String dbUrl = getConnectionUrl();
         if (!dbUrl.toUpperCase().contains("DB_CLOSE_ON_EXIT=FALSE")) {
             return; // we only need to do something if using H2 embedded with manual shutdown needed
         }
-        String username = getUsername();
-        String password = getPassword();
-        Connection connection;
+        Connection connection = null;
+        Statement statement = null;
         try {
-            connection = DriverManager.getConnection(dbUrl, username, password);
-        } catch (SQLException e) {
-            log.error("failed to connect to H2 to initiate clean shutdown!", e);
-            return;
-        }
-        Statement statement;
-        try {
+            connection = getConnection();
             statement = connection.createStatement();
             statement.executeUpdate("SHUTDOWN");
-        } catch (SQLException e) {
-            log.error("failed to execute SHUTDOWN statement for clean H2 shutdown", e);
         } finally {
             try {
-                connection.close();
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
             } catch (SQLException e) {
                 log.error("failed to close connection");
             }
         }
         log.debug("H2 shutdown successful");
+    }
+
+    private Connection getConnection() throws SQLException {
+        String username = getUsername();
+        String password = getPassword();
+        Connection connection;
+        connection = DriverManager.getConnection(getConnectionUrl(), username, password);
+        return connection;
     }
 
     private void migrate() {

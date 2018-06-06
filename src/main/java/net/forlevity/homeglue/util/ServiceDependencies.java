@@ -6,6 +6,7 @@
 
 package net.forlevity.homeglue.util;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Service;
 import lombok.extern.log4j.Log4j2;
 
@@ -19,6 +20,8 @@ import java.util.Map;
 W */
 @Log4j2
 public class ServiceDependencies {
+
+    public final static ServiceDependencies NONE = new ServiceDependencies(ImmutableMap.of());
 
     private final Map<Class<? extends Service>, List<Service>> dependsOn;
 
@@ -50,9 +53,14 @@ public class ServiceDependencies {
         }
         if (match != null) {
             match.forEach(dependency -> {
-                dependency.awaitRunning();
-                log.debug("{} is waiting for {}",
-                        forService.getClass().getSimpleName(), dependency.getClass().getSimpleName());
+                if (!dependency.isRunning()) {
+                    log.debug("{} is waiting for {}",
+                            forService.getClass().getSimpleName(), dependency.getClass().getSimpleName());
+                    dependency.awaitRunning();
+                } else {
+                    log.trace("{} doesn't need to wait for {}",
+                            forService.getClass().getSimpleName(), dependency.getClass().getSimpleName());
+                }
             });
         }
     }

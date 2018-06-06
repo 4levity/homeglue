@@ -15,6 +15,7 @@ import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sim.SimulatedWemo;
 import net.forlevity.homeglue.testing.SimulatedNetworkTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
+import net.forlevity.homeglue.util.ServiceDependencies;
 import org.junit.Test;
 
 import java.time.Instant;
@@ -63,7 +64,7 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
         telemetryCache = new LastDeviceStateCache();
         WemoInsightConnectorFactory factory = (hostAddress, port) -> new WemoInsightConnector(soapHelper,
                 mock(DeviceCommandDispatcher.class), telemetryCache, hostAddress, port);
-        ssdp = new SsdpDiscoveryService(network, 0, 0, 0, 0);
+        ssdp = new SsdpDiscoveryService(network, ServiceDependencies.NONE,0, 0, 0, 0);
         PersistenceService persistence = mock(PersistenceService.class);
         when(persistence.exec(any())).thenReturn(new ArrayList<>());
         manager = new WemoInsightManagerService(null, ssdp, factory, 2500);

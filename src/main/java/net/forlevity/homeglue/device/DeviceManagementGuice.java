@@ -36,6 +36,7 @@ public class DeviceManagementGuice extends AbstractModule {
 
         // device state processor
         bind(new TypeLiteral<Consumer<DeviceState>>(){}).to(DeviceStateProcessorService.class);
+        bind(DeviceStateProcessorService.class).to(DeviceStateProcessorServiceImpl.class);
 
         // dispatcher
         bind(DeviceCommandDispatcher.class);

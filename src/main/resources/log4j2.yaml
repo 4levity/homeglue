@@ -44,3 +44,5 @@ Configuration:
       level: warn # suppress jetty startup/shutdown logs
     - name: org.jboss.resteasy.plugins.guice.i18n
       level: warn # suppress provider registration messages at startup
+    - name: org.flywaydb.core.internal
+      level: warn # suppress flyway version and database migration messages

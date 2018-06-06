@@ -13,6 +13,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import net.forlevity.homeglue.util.ServiceDependencies;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import java.util.function.Predicate;
 public class SsdpDiscoveryService extends AbstractIdleService {
 
     private final SsdpSearcher ssdpSearcher;
+    private final ServiceDependencies serviceDependencies;
     private final int ssdpScanPeriodMillis;
     private final int ssdpScanLengthMillis;
     private final int startupDelayMillis;
@@ -44,10 +46,12 @@ public class SsdpDiscoveryService extends AbstractIdleService {
 
     @Inject
     public SsdpDiscoveryService(SsdpSearcher ssdpSearcher,
+                                ServiceDependencies serviceDependencies,
                                 @Named("ssdp.scan.period.millis") int ssdpScanPeriodMillis,
                                 @Named("ssdp.scan.length.millis") int ssdpScanLengthMillis,
                                 @Named("ssdp.startup.delay.millis") int startupDelayMillis,
                                 @Named("ssdp.minimum.inactive.millis") int minimumInactiveMillis) {
+        this.serviceDependencies = serviceDependencies;
         this.ssdpScanPeriodMillis = ssdpScanPeriodMillis;
         this.ssdpScanLengthMillis = ssdpScanLengthMillis;
         this.startupDelayMillis = startupDelayMillis;
@@ -76,6 +80,7 @@ public class SsdpDiscoveryService extends AbstractIdleService {
 
     @Override
     protected void startUp() {
+        serviceDependencies.waitForDependencies(this);
         executor.scheduleAtFixedRate(this::runOnce, startupDelayMillis, ssdpScanPeriodMillis, TimeUnit.MILLISECONDS);
     }
 

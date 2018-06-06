@@ -11,18 +11,19 @@ import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.testing.SimulatedNetworkTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
+import net.forlevity.homeglue.util.ServiceDependencies;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 @Log4j2
 public class GenericUpnpManagerServiceTest extends SimulatedNetworkTests {
-    
+
     @Test
     public void genericUpnpManagerServiceTest() throws InterruptedException {
         SimulatedNetwork network = makeTestNetwork();
         GenericUpnpConnectorFactory factory = GenericUpnpConnector::new;
-        SsdpDiscoveryService ssdp = new SsdpDiscoveryService(network, 0, 0, 0, 0);
+        SsdpDiscoveryService ssdp = new SsdpDiscoveryService(network, ServiceDependencies.NONE,0, 0, 0, 0);
         GenericUpnpManagerService manager = new GenericUpnpManagerService(null, ssdp, factory, status -> log.info("{}", status));
 
         // disable SSDP service discovery on one of our devices

@@ -11,6 +11,7 @@ import net.forlevity.homeglue.sim.SimulatedUpnpDevice;
 import net.forlevity.homeglue.sim.UpnpServiceInfo;
 import net.forlevity.homeglue.testing.LinkedUniqueQueue;
 import net.forlevity.homeglue.testing.SimulatedNetworkTests;
+import net.forlevity.homeglue.util.ServiceDependencies;
 import org.junit.Test;
 
 import java.net.InetAddress;
@@ -35,7 +36,7 @@ public class SsdpDiscoveryServiceTest extends SimulatedNetworkTests {
         SimulatedNetwork network = new SimulatedNetwork(Collections.singleton(device));
 
         // create test service and register interest in our service
-        SsdpDiscoveryService service = new SsdpDiscoveryService(network,0,0,0,0);
+        SsdpDiscoveryService service = new SsdpDiscoveryService(network, ServiceDependencies.NONE,0,0,0,0);
         LinkedBlockingQueue<SsdpServiceDefinition> queue = new LinkedBlockingQueue<>();
         service.registerSsdp(candidate -> candidate.getRemoteIp().equals(remoteIp), queue::offer, 0);
 
@@ -51,7 +52,7 @@ public class SsdpDiscoveryServiceTest extends SimulatedNetworkTests {
         SimulatedNetwork network = makeTestNetwork();
 
         // create test service and register interest in our service
-        SsdpDiscoveryService service = new SsdpDiscoveryService(network,0,0,0,0);
+        SsdpDiscoveryService service = new SsdpDiscoveryService(network, ServiceDependencies.NONE,0,0,0,0);
         LinkedBlockingQueue<SsdpServiceDefinition> queueIp1 = new LinkedUniqueQueue<>();
         LinkedBlockingQueue<SsdpServiceDefinition> queueOtherRootDevices = new LinkedUniqueQueue<>();
         LinkedBlockingQueue<SsdpServiceDefinition> queueUsn3 = new LinkedUniqueQueue<>();
