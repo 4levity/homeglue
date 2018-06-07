@@ -50,7 +50,7 @@ public class WemoInsightConnector implements DeviceConnector {
     private String detectionId = DEVICE_ID_UNKNOWN;
 
     @Getter
-    Map<String, String> deviceDetails = ImmutableMap.of();
+    Map<String, String> details = ImmutableMap.of();
 
     @Getter
     @Setter // port can change, device manager may update
@@ -168,7 +168,7 @@ public class WemoInsightConnector implements DeviceConnector {
             log.warn("xml did not contain device macAddress");
         } else {
             this.detectionId = macAddress;
-            this.deviceDetails = ImmutableMap.of(
+            this.details = ImmutableMap.of(
                     Device.DETAIL_MODEL, xml.nodeText(doc, "/root/device/modelDescription"),
                     Device.DETAIL_SERIAL_NUMBER, xml.nodeText(doc, "/root/device/serialNumber"),
                     Device.DETAIL_USER_SPECIFIED_NAME, xml.nodeText(doc, "/root/device/friendlyName"),

@@ -59,7 +59,7 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         assertEquals(1, events.size());
         assertEquals(DeviceEvent.NEW_DEVICE, events.get(0).getEvent());
         assertEquals("new", events.get(0).getDetectionId());
-        assertEquals(state.getDeviceDetails(), events.get(0).getData());
+        assertEquals(state.getDetails(), events.get(0).getData());
         events.clear();
 
         // device saved

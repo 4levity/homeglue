@@ -97,8 +97,8 @@ public class DeviceStateProcessorServiceImpl extends QueueWorkerService<DeviceSt
                 log.info("device connected: {}", newDeviceState);
                 events.add(new DeviceEvent(device, DeviceEvent.CONNECTED));
             }
-            if (newDeviceState.getDeviceDetails() != null && !device.getDetails().equals(newDeviceState.getDeviceDetails())) {
-                device.setDetails(newDeviceState.getDeviceDetails());
+            if (newDeviceState.getDetails() != null && !device.getDetails().equals(newDeviceState.getDetails())) {
+                device.setDetails(newDeviceState.getDetails());
                 events.add(new DeviceEvent(device, DeviceEvent.DETAILS_CHANGED, device.getDetails()));
             }
         }

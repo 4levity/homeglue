@@ -28,7 +28,7 @@ interface DeviceInfo {
      *
      * @return copy of device metadata
      */
-    Map<String,String> getDeviceDetails();
+    Map<String,String> getDetails();
 
     /**
      * If the device is a meter, get watts that are being consumed by loads. If measuring generated energy,

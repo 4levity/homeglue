@@ -155,7 +155,9 @@ public class Device {
         Device device = new Device();
         device.setDetectionId(deviceState.getDetectionId());
         device.setConnected(false);
-        device.setDetails(deviceState.getDeviceDetails());
+        if (deviceState.getDetails() != null) {
+            device.setDetails(deviceState.getDetails());
+        }
         String userSpecifiedName = device.details.get(DETAIL_USER_SPECIFIED_NAME);
         if (validFriendlyName(userSpecifiedName)) {
             device.setFriendlyName(userSpecifiedName);

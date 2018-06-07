@@ -21,7 +21,7 @@ import java.util.Map;
  */
 @Getter
 @Accessors(chain = true)
-@ToString(of = {"detectionId", "deviceDetails", "timestamp"})
+@ToString(of = {"detectionId", "details", "timestamp"})
 public class DeviceState implements DeviceInfo {
 
     private final Instant timestamp = Instant.now();
@@ -35,20 +35,19 @@ public class DeviceState implements DeviceInfo {
     @Setter
     private Boolean relayClosed = null;
 
-    @NonNull
-    private final Map<String, String> deviceDetails;
+    private final Map<String, String> details;
 
-    public DeviceState(String detectionId, Map<String, String> deviceDetails) {
+    public DeviceState(String detectionId, Map<String, String> details) {
         this.detectionId = detectionId;
-        this.deviceDetails = ImmutableMap.copyOf(deviceDetails);
+        this.details = details == null ? null : ImmutableMap.copyOf(details);
     }
 
     public DeviceState(String detectionId) {
-        this(detectionId, ImmutableMap.of());
+        this(detectionId, null);
     }
 
     public DeviceState(DeviceInfo toCopy) {
-        this(toCopy.getDetectionId(), toCopy.getDeviceDetails());
+        this(toCopy.getDetectionId(), null);
         setInstantaneousWatts(toCopy.getInstantaneousWatts());
         setRelayClosed(toCopy.getRelayClosed());
     }

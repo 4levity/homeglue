@@ -57,7 +57,7 @@ public class SoapHelper {
             String result = httpClient.post(url, extraHeaders, payload, ContentType.TEXT_XML);
             document = xml.parse(result);
         } catch (IOException e) {
-            log.warn("failed to execute SOAP request: {} {}", e.getClass().getSimpleName(), e.getMessage());
+            log.info("SOAP request failed: {} {}", e.getClass().getSimpleName(), e.getMessage());
         }
         return document;
     }

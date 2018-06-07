@@ -38,7 +38,7 @@ public class WemoInsightConnectorTest extends HomeglueTests {
         verify(httpClient).get(url.capture());
         assertEquals(String.format("http://%s:%d/setup.xml", hostAddress, port), url.getValue());
         assertEquals("94103E3D1A5C", connector.getDetectionId());
-        assertEquals("coffeemaker", connector.getDeviceDetails().get("name"));
+        assertEquals("coffeemaker", connector.getDetails().get("name"));
     }
 
     @Test

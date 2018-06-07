@@ -52,10 +52,10 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
 
         // devices have been connected to simulators
         manager.getDevices().values().forEach(device -> {
-            assertEquals("Belkin Insight 1.0", device.getDeviceDetails().get("model"));
-            assertNotNull(device.getDeviceDetails().get("name"));
-            assertNotNull(device.getDeviceDetails().get("firmwareVersion"));
-            assertNotNull(device.getDeviceDetails().get("serialNumber"));
+            assertEquals("Belkin Insight 1.0", device.getDetails().get("model"));
+            assertNotNull(device.getDetails().get("name"));
+            assertNotNull(device.getDetails().get("firmwareVersion"));
+            assertNotNull(device.getDetails().get("serialNumber"));
         });
     }
 
