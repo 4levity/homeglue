@@ -8,6 +8,7 @@ package net.forlevity.homeglue.api;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import net.forlevity.homeglue.device.DeviceStateProcessorService;
 import net.forlevity.homeglue.entity.Device;
 import net.forlevity.homeglue.entity.Relay;
 import net.forlevity.homeglue.persistence.PersistenceService;
@@ -20,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 public class DeviceResource {
 
     private final PersistenceService persistence;
+    private final DeviceStateProcessorService stateProcessor;
     private final RelayResource.Factory relayResourceFactory;
     private final ApplianceDetectorResource.Factory applianceDetectorResourceFactory;
     private final String detectionId;
@@ -30,10 +32,12 @@ public class DeviceResource {
 
     @Inject
     public DeviceResource(PersistenceService persistence,
+                          DeviceStateProcessorService stateProcessor,
                           RelayResource.Factory relayResourceFactory,
                           ApplianceDetectorResource.Factory applianceDetectorResourceFactory,
                           @Assisted String detectionId) {
         this.persistence = persistence;
+        this.stateProcessor = stateProcessor;
         this.relayResourceFactory = relayResourceFactory;
         this.applianceDetectorResourceFactory = applianceDetectorResourceFactory;
         this.detectionId = detectionId;
@@ -41,7 +45,8 @@ public class DeviceResource {
 
     @GET
     public DeviceDto get() {
-        return persistence.exec(session -> DeviceDto.from(getDevice(session, detectionId)));
+        return persistence.exec(session ->
+                DeviceDto.from(getDevice(session, detectionId), stateProcessor.getLastState(detectionId)));
     }
 
     /**
@@ -64,7 +69,7 @@ public class DeviceResource {
                 device.setFriendlyName(dto.getFriendlyName());
             }
             session.saveOrUpdate(device);
-            return DeviceDto.from(device);
+            return DeviceDto.from(device, stateProcessor.getLastState(detectionId));
         });
     }
 

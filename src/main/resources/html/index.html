@@ -13,7 +13,7 @@
 var devices;
 var orderBy = "detectionId";
 function start() {
-    setInterval(load, 1000); // refresh list once per second!
+    setInterval(load, 2000); // refresh list once per 2 seconds!
 }
 function load() {
     var req = new XMLHttpRequest();
@@ -41,6 +41,7 @@ function show() {
         + "<td onclick=loadBy('connected')>Connected?&nbsp;</td>"
         + "<td>Switch&nbsp;</td>"
         + "<td>Appliance&nbsp;</td>"
+        + "<td>Meter&nbsp;</td>"
         + "</tr></thead><tbody>";
     if (devices == null) {
         table += "<tr><td>couldn't load data</td></tr>";
@@ -50,12 +51,14 @@ function show() {
             var device = devices[ix];
             var relay = device.relay == null ? "-" : (device.relay.closed ? "ON" : "OFF");
             var appliance = device.appliance == null ? "-" : (device.appliance.on ? "ON" : "OFF");
+            var meter = (device.lastState ? (device.lastState.watts === undefined ? "-" : ("" + device.lastState.watts + "W")) : "-");
             table += "<tr onclick=document.location='device.html?id=" + device.detectionId + "'>"
                 + "<td>" + device.detectionId +"</td>"
                 + "<td>" + (device.friendlyName || '') +"</td>"
                 + "<td>" + device.connected + "</td>"
                 + "<td>" + relay + "</td>"
-                + "<td>" + appliance + "</td></tr>";
+                + "<td>" + appliance + "</td>"
+                + "<td>" + meter + "</td></tr>";
         }
     }
     table += "</tbody></table>";

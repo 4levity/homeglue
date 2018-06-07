@@ -8,6 +8,7 @@ package net.forlevity.homeglue.api;
 
 import com.google.inject.Inject;
 import lombok.extern.log4j.Log4j2;
+import net.forlevity.homeglue.device.DeviceStateProcessorService;
 import net.forlevity.homeglue.entity.Device;
 import net.forlevity.homeglue.persistence.PersistenceService;
 
@@ -27,11 +28,15 @@ import java.util.stream.Collectors;
 public class DevicesResource {
 
     private final PersistenceService persistence;
+    private final DeviceStateProcessorService stateProcessor;
     private final DeviceResource.Factory deviceResourceFactory;
 
     @Inject
-    public DevicesResource(PersistenceService persistence, DeviceResource.Factory deviceResourceFactory) {
+    public DevicesResource(PersistenceService persistence,
+                           DeviceStateProcessorService stateProcessor,
+                           DeviceResource.Factory deviceResourceFactory) {
         this.persistence = persistence;
+        this.stateProcessor = stateProcessor;
         this.deviceResourceFactory = deviceResourceFactory;
     }
 
@@ -51,7 +56,9 @@ public class DevicesResource {
                 default:
                     log.warn("unsupported sort column");
             }
-            return session.createQuery(query).list().stream().map(DeviceDto::from).collect(Collectors.toList());
+            return session.createQuery(query).list().stream()
+                    .map(device -> DeviceDto.from(device, stateProcessor.getLastState(device.getDetectionId())))
+                    .collect(Collectors.toList());
         });
     }
 

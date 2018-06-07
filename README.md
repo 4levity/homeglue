@@ -56,7 +56,6 @@ products. 4Levity and Homeglue is not in any way affiliated with Belkin.
 
 ### Future plans ###
 
-* show most recent watts
 * better detectionId for generic UPnP + expose service info
 * more tests 
   * commands, appliance detector, friendly name, offline marker ..
