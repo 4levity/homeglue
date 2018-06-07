@@ -54,14 +54,21 @@ public class ServiceDependencies {
         if (match != null) {
             match.forEach(dependency -> {
                 if (!dependency.isRunning()) {
-                    log.debug("{} is waiting for {}",
-                            forService.getClass().getSimpleName(), dependency.getClass().getSimpleName());
-                    dependency.awaitRunning();
+                    waitFor(dependency, forService);
                 } else {
-                    log.trace("{} doesn't need to wait for {}",
-                            forService.getClass().getSimpleName(), dependency.getClass().getSimpleName());
+                    log.trace("{} doesn't need to wait for {}", forService, dependency);
                 }
             });
+        }
+    }
+
+    private void waitFor(Service dependency, Service forService) {
+        log.debug("{} is waiting for {}", forService, dependency);
+        try {
+            dependency.awaitRunning();
+        } catch (IllegalStateException e) {
+            log.error("{} failed because: {}", forService.toString(), e.getMessage());
+            throw e;
         }
     }
 }

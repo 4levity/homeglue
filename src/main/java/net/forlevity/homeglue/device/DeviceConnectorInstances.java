@@ -16,12 +16,16 @@ import java.util.concurrent.Future;
 
 @Singleton
 @Log4j2
-public class DeviceCommandDispatcher {
+public class DeviceConnectorInstances {
 
     private final Map<String, DeviceConnector> devices = new ConcurrentHashMap<>();
 
     public void register(DeviceConnector deviceConnectorInstance) {
         devices.put(deviceConnectorInstance.getDetectionId(), deviceConnectorInstance);
+    }
+
+    public DeviceConnectorInfo get(String detectionId) {
+        return devices.get(detectionId);
     }
 
     public Future<Command.Result> dispatch(String deviceDetectionId, Command command) {

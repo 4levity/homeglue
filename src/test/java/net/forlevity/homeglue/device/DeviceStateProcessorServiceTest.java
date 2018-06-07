@@ -12,6 +12,7 @@ import net.forlevity.homeglue.entity.Device;
 import net.forlevity.homeglue.entity.Relay;
 import net.forlevity.homeglue.testing.FakePersistence;
 import net.forlevity.homeglue.testing.HomeglueTests;
+import net.forlevity.homeglue.util.ServiceDependencies;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -24,16 +25,16 @@ import static org.mockito.Mockito.verify;
 
 public class DeviceStateProcessorServiceTest extends HomeglueTests {
 
-    DeviceCommandDispatcher deviceCommandDispatcher = new DeviceCommandDispatcher();
+    DeviceConnectorInstances deviceConnectorInstances = new DeviceConnectorInstances();
 
     @Test
     public void testNewDevice() {
         List<DeviceEvent> events = new ArrayList<>();
         FakePersistence persistence = new FakePersistence();
-        DeviceStateProcessorService processor = new DeviceStateProcessorServiceImpl(null, persistence, new ApplianceStateDecider(), events::add, deviceCommandDispatcher);
+        DeviceStateProcessorService processor = new DeviceStateProcessorServiceImpl(ServiceDependencies.NONE, persistence, new ApplianceStateDecider(), events::add, deviceConnectorInstances);
 
         // event generated
-        DeviceState state = new DeviceState("new", true);
+        DeviceState state = new DeviceState("new");
         processor.handle(state);
         assertEquals(1, events.size());
         assertEquals(DeviceEvent.NEW_DEVICE, events.get(0).getEvent());
@@ -49,10 +50,10 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
     public void testNewDeviceWithRelayAndMeter() {
         List<DeviceEvent> events = new ArrayList<>();
         FakePersistence persistence = new FakePersistence();
-        DeviceStateProcessorService processor = new DeviceStateProcessorServiceImpl(null, persistence, new ApplianceStateDecider(), events::add, deviceCommandDispatcher);
+        DeviceStateProcessorService processor = new DeviceStateProcessorServiceImpl(ServiceDependencies.NONE, persistence, new ApplianceStateDecider(), events::add, deviceConnectorInstances);
 
         // event generated
-        DeviceState state = new DeviceState("new", true, ImmutableMap.of("key", "value"))
+        DeviceState state = new DeviceState("new", ImmutableMap.of("key", "value"))
                 .setRelayClosed(true).setInstantaneousWatts(25.0);
         processor.handle(state);
         assertEquals(1, events.size());
@@ -71,38 +72,34 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
     }
 
     @Test
-    public void changeConnectionState() {
+    public void newDeviceGetsMarkedAsConnected() {
         List<DeviceEvent> events = new ArrayList<>();
-        Device existingDevice = Device.from(new DeviceState("devid", true));
-        FakePersistence persistence = new FakePersistence().setResolver(id -> existingDevice);
-        DeviceStateProcessorService processor = new DeviceStateProcessorServiceImpl(null, persistence, new ApplianceStateDecider(), events::add, deviceCommandDispatcher);
+        Device existingDevice = Device.from(new DeviceState("devid"));
+        assertFalse(existingDevice.isConnected());
 
-        processor.handle(new DeviceState("devid", false));
+        FakePersistence persistence = new FakePersistence().setResolver(id -> existingDevice);
+        DeviceStateProcessorService processor = new DeviceStateProcessorServiceImpl(ServiceDependencies.NONE, persistence, new ApplianceStateDecider(), events::add, deviceConnectorInstances);
+        processor.handle(new DeviceState("devid"));
         ArgumentCaptor<Device> deviceArgumentCaptor = ArgumentCaptor.forClass(Device.class);
         verify(persistence.getSession()).saveOrUpdate(deviceArgumentCaptor.capture());
         assertEquals("devid", deviceArgumentCaptor.getValue().getDetectionId());
-        assertFalse(deviceArgumentCaptor.getValue().isConnected());
-
-        processor.handle(new DeviceState("devid", true));
-        processor.handle(new DeviceState("devid", true));
-        processor.handle(new DeviceState("devid", true));
-        assertEquals(2, events.size());
-        assertEquals(DeviceEvent.CONNECTION_LOST, events.get(0).getEvent());
+        assertTrue(deviceArgumentCaptor.getValue().isConnected());
+        assertEquals(1, events.size());
+        assertEquals(DeviceEvent.CONNECTED, events.get(0).getEvent());
         assertEquals("devid", events.get(0).getDetectionId());
-        assertEquals(DeviceEvent.CONNECTED, events.get(1).getEvent());
-        assertEquals("devid", events.get(1).getDetectionId());
     }
 
     @Test
     public void changeDeviceDetails() {
         List<DeviceEvent> events = new ArrayList<>();
         Map<String, String> originalDetails = ImmutableMap.of("k1", "v1", "k2", "v2");
-        Device existingDevice = Device.from(new DeviceState("devid", true, originalDetails));
+        Device existingDevice = Device.from(new DeviceState("devid", originalDetails));
+        existingDevice.setConnected(true);
         FakePersistence persistence = new FakePersistence().setResolver(id -> existingDevice);
-        DeviceStateProcessorService processor = new DeviceStateProcessorServiceImpl(null, persistence, new ApplianceStateDecider(), events::add, deviceCommandDispatcher);
+        DeviceStateProcessorService processor = new DeviceStateProcessorServiceImpl(ServiceDependencies.NONE, persistence, new ApplianceStateDecider(), events::add, deviceConnectorInstances);
 
         Map<String, String> newDeviceDetails = ImmutableMap.of("k1","changed_v1","k2","v2");
-        processor.handle(new DeviceState("devid", true, newDeviceDetails));
+        processor.handle(new DeviceState("devid", newDeviceDetails));
 
         // saved?
         ArgumentCaptor<Device> deviceArgumentCaptor = ArgumentCaptor.forClass(Device.class);
@@ -110,7 +107,7 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         assertEquals("devid", deviceArgumentCaptor.getValue().getDetectionId());
         assertEquals(newDeviceDetails, deviceArgumentCaptor.getValue().getDetails());
 
-        DeviceState newState = new DeviceState("devid", true, originalDetails);
+        DeviceState newState = new DeviceState("devid", originalDetails);
         processor.handle(newState);
         processor.handle(newState);
         processor.handle(newState); // multiple invocations no extra events
@@ -126,10 +123,11 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
     @Test
     public void relayDetected() {
         List<DeviceEvent> events = new ArrayList<>();
-        DeviceState initialState = new DeviceState("devid", true);
+        DeviceState initialState = new DeviceState("devid");
         Device device = Device.from(initialState);
+        device.setConnected(true);
         FakePersistence persistence = new FakePersistence().setResolver(id -> device);
-        DeviceStateProcessorService processor = new DeviceStateProcessorServiceImpl(null, persistence, new ApplianceStateDecider(), events::add, deviceCommandDispatcher);
+        DeviceStateProcessorService processor = new DeviceStateProcessorServiceImpl(ServiceDependencies.NONE, persistence, new ApplianceStateDecider(), events::add, deviceConnectorInstances);
 
         assertNull(device.getRelay());
         processor.handle(new DeviceState(initialState).setRelayClosed(true));
@@ -159,10 +157,11 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
     @Test
     public void powerMeterDetected() {
         List<DeviceEvent> events = new ArrayList<>();
-        DeviceState initialState = new DeviceState("did", true);
+        DeviceState initialState = new DeviceState("did");
         Device device = Device.from(initialState);
+        device.setConnected(true);
         FakePersistence persistence = new FakePersistence().setResolver(id -> device);
-        DeviceStateProcessorService processor = new DeviceStateProcessorServiceImpl(null, persistence, new ApplianceStateDecider(), events::add, deviceCommandDispatcher);
+        DeviceStateProcessorService processor = new DeviceStateProcessorServiceImpl(ServiceDependencies.NONE, persistence, new ApplianceStateDecider(), events::add, deviceConnectorInstances);
 
         assertNull(device.getRelay());
         processor.handle(new DeviceState(initialState).setInstantaneousWatts(0.5));
@@ -175,7 +174,7 @@ public class DeviceStateProcessorServiceTest extends HomeglueTests {
         assertEquals(device, applianceDetector.getDevice());
         assertFalse(applianceDetector.isOn());
 
-        assertEquals(0, events.size()); // no event for initial detection
+        assertEquals(0, events.size()); // no event for initial relay detection
 
         processor.handle(new DeviceState(initialState).setInstantaneousWatts(1000.0));
         processor.handle(new DeviceState(initialState).setInstantaneousWatts(1000.0));

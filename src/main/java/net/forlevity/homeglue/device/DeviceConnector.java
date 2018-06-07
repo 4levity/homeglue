@@ -12,7 +12,7 @@ import java.util.concurrent.Future;
 /**
  * Represents a connection to a device like a meter/switch/appliance/etc.
  */
-public interface DeviceConnector extends DeviceInfo {
+public interface DeviceConnector extends DeviceConnectorInfo {
 
     /**
      * Attempt to make a connection to the device and retrieve metadata about it, then start the operation of the
@@ -25,7 +25,7 @@ public interface DeviceConnector extends DeviceInfo {
     /**
      * Stop the connector. It may not be possible to start it again.
      */
-    default void terminate() { };
+    default void terminate() { }
 
     /**
      * Dispatch a command to the device and get a future to track the result.

@@ -56,17 +56,16 @@ products. 4Levity and Homeglue is not in any way affiliated with Belkin.
 
 ### Future plans ###
 
-* restore device state from disk
-* handle read errors/offline devices
-* split up logic in DeviceStateProcessorService
+* show most recent watts
+* better detectionId for generic UPnP + expose service info
 * more tests 
-  * commands, appliance detector, friendly name ..
+  * commands, appliance detector, friendly name, offline marker ..
   * IOExceptions at various points
   * malformed XML at various points
 * show recent telemetry data
 * do more with IFTTT webhooks - multiple events, incoming hooks for device controls
-* detect on/off status of generic UPnP devices
 * store raw telemetry data (local SQL db, CSV file, Google Sheets, AWS DynamoDB or other free cloud db)
+* split up logic in DeviceStateProcessorService
 * auto versioning (major/branch/build)
 * user interface, configuration in database
 * publish packaged binary from Travis CI

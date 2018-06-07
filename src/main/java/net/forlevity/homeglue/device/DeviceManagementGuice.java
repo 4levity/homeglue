@@ -34,12 +34,15 @@ public class DeviceManagementGuice extends AbstractModule {
         install(new FactoryModuleBuilder().build(WemoInsightConnectorFactory.class));
         install(new FactoryModuleBuilder().build(GenericUpnpConnectorFactory.class));
 
-        // device state processor
+        // offline marker
+        bind(OfflineMarkerService.class);
+
+        // device state processor (and online marker)
         bind(new TypeLiteral<Consumer<DeviceState>>(){}).to(DeviceStateProcessorService.class);
         bind(DeviceStateProcessorService.class).to(DeviceStateProcessorServiceImpl.class);
 
-        // dispatcher
-        bind(DeviceCommandDispatcher.class);
+        // live connector instances registry
+        bind(DeviceConnectorInstances.class);
 
         // appliance detector
         bind(ApplianceStateDecider.class);

@@ -9,11 +9,14 @@ package net.forlevity.homeglue.device.generic_upnp;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import com.google.inject.name.Named;
 import lombok.Getter;
 import lombok.ToString;
 import net.forlevity.homeglue.device.DeviceConnector;
+import net.forlevity.homeglue.device.DeviceConnectorInstances;
 import net.forlevity.homeglue.upnp.SsdpServiceDefinition;
 
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -26,22 +29,25 @@ public class GenericUpnpConnector implements DeviceConnector {
 
     @Getter
     private final String detectionId;
+    @Getter
+    private final Duration offlineDelay;
 
+    private final DeviceConnectorInstances registry;
     private final Set<SsdpServiceDefinition> ssdpServices = new HashSet<>();
 
     @Inject
-    GenericUpnpConnector(@Assisted SsdpServiceDefinition firstService) {
+    GenericUpnpConnector(DeviceConnectorInstances registry,
+                         @Named("ssdp.scan.period.millis") int ssdpScanPeriodMillis,
+                         @Assisted SsdpServiceDefinition firstService) {
+        this.offlineDelay = Duration.ofMillis((long) (ssdpScanPeriodMillis * 3.5));
         this.detectionId = firstService.getRemoteIp().getHostAddress();
+        this.registry = registry;
         this.ssdpServices.add(firstService);
     }
 
     @Override
     public boolean start() {
-        return true;
-    }
-
-    @Override
-    public boolean isConnected() {
+        registry.register(this);
         return true;
     }
 

@@ -12,6 +12,7 @@ import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.DeviceEvent;
 import net.forlevity.homeglue.ifttt.IftttMakerWebhookClient;
 import net.forlevity.homeglue.util.QueueWorkerService;
+import net.forlevity.homeglue.util.ServiceDependencies;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -27,7 +28,7 @@ public class IftttDeviceEventService extends QueueWorkerService<DeviceEvent> {
 
     @Inject
     public IftttDeviceEventService(IftttMakerWebhookClient iftttWebhookClient) {
-        super(DeviceEvent.class, null);
+        super(DeviceEvent.class, ServiceDependencies.NONE);
         this.iftttWebhookClient = iftttWebhookClient;
     }
 

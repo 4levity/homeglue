@@ -86,9 +86,15 @@ public class WemoInsightManagerService extends QueueWorkerService<SsdpServiceDef
             } else {
                 log.warn("detected but failed to connect to Insight meter at {}:{}", ipAddress, port);
             }
-        } else if (match.getPort() != port) {
-            log.info("WeMo Insight webPort at {} changed from {} to {}", ipAddress, match.getPort(), port);
-            match.setPort(port);
+        } else {
+            // re-discovered existing wemo
+            if (match.getPort() != port) {
+                log.info("WeMo Insight webPort at {} changed from {} to {}", ipAddress, match.getPort(), port);
+                match.setPort(port);
+            }
+            if (!match.isConnected()) {
+                match.setConnected(true);
+            }
         }
         // if no new device or port change, ignore
     }

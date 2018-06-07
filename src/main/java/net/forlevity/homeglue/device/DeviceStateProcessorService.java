@@ -24,4 +24,12 @@ public interface DeviceStateProcessorService extends Service, Consumer<DeviceSta
      * @param newDeviceState device status
      */
     void handle(DeviceState newDeviceState);
+
+    /**
+     * Get the last reported state (since service startup) for the given device detection ID, or null if none.
+     *
+     * @param deviceDetectionId detectionId
+     * @return last known DeviceState or null
+     */
+    DeviceState getLastState(String deviceDetectionId);
 }

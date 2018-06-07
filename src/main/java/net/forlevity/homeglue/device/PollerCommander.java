@@ -11,11 +11,17 @@ import lombok.extern.log4j.Log4j2;
 
 import java.time.Instant;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Polls a device periodically, enforcing limits
+ */
 @Log4j2
 public class PollerCommander {
 
     private static final int WARN_EARLY_MILLIS = 500;
+    private static final int MISSED_TRIGGERS_PER_WARNING = 10;
 
     @Getter
     private final String name;
@@ -27,6 +33,8 @@ public class PollerCommander {
     private long idleStartTime;
     private boolean commandJustIssued = false;
     private ScheduledFuture<?> pollerFuture = null;
+    private int ignoredMissedTriggers = 0;
+    private Lock pollingLock = new ReentrantLock();
 
     public PollerCommander(ScheduledExecutorService executor,
                            String name, Runnable poller, int periodMillis, int minIdleBetweenMillis) {
@@ -56,29 +64,47 @@ public class PollerCommander {
         return pollerFuture != null;
     }
 
+    /**
+     * Run a command on a device that we are also polling. Don't do it too close to the same time as the poll.
+     *
+     * @param command command
+     * @return future result (may take a few seconds)
+     */
     public Future<Command.Result> runCommand(Callable<Command.Result> command) {
         return executor.submit(() -> {
-            long callableStartTime = Instant.now().toEpochMilli();
-            long idleMillis = callableStartTime - idleStartTime;
-            if (idleMillis < minIdleBetweenMillis) {
-                Thread.sleep(minIdleBetweenMillis - idleMillis);
-            }
+            pollingLock.lock();
             try {
-                return command.call();
+                long callableStartTime = Instant.now().toEpochMilli();
+                long idleMillis = callableStartTime - idleStartTime;
+                if (idleMillis < minIdleBetweenMillis) {
+                    Thread.sleep(minIdleBetweenMillis - idleMillis);
+                }
+                try {
+                    return command.call();
+                } finally {
+                    idleStartTime = Instant.now().toEpochMilli();
+                    commandJustIssued = true;
+                }
             } finally {
-                idleStartTime = Instant.now().toEpochMilli();
-                commandJustIssued = true;
+                pollingLock.unlock();
             }
         });
     }
 
     private void tryPoll() {
-        long pollStartTime = Instant.now().toEpochMilli();
-        long idleMillis = pollStartTime - idleStartTime;
+        pollingLock.lock();
         try {
+            long pollStartTime = Instant.now().toEpochMilli();
+            long idleMillis = pollStartTime - idleStartTime;
             if (idleMillis < minIdleBetweenMillis) {
-                if (!commandJustIssued) {
-                    log.warn("Poller {} was only idle for {} ms, skipping trigger", getName(), idleMillis);
+                if (!commandJustIssued) { // ignore skipped trigger if the last thing we did was issue a command
+                    if (ignoredMissedTriggers < MISSED_TRIGGERS_PER_WARNING) {
+                        ignoredMissedTriggers++;
+                    } else {
+                        log.warn("Poller {} missed {} triggers, last idle for {} ms",
+                                getName(), ignoredMissedTriggers, idleMillis);
+                        ignoredMissedTriggers = 0;
+                    }
                 }
             } else {
                 try {
@@ -89,6 +115,7 @@ public class PollerCommander {
             }
         } finally {
             commandJustIssued = false;
+            pollingLock.unlock();
         }
     }
 }

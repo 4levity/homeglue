@@ -47,8 +47,8 @@ public class Relay {
     public Relay setClosed(boolean newClosed) {
         if (newClosed != closed) {
             lastStateChange = Instant.now();
+            closed = newClosed;
         }
-        closed = newClosed;
         return this;
     }
 }

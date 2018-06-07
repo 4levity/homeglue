@@ -46,3 +46,5 @@ Configuration:
       level: warn # suppress provider registration messages at startup
     - name: org.flywaydb.core.internal
       level: warn # suppress flyway version and database migration messages
+    - name: org.apache.http.impl.execchain.RetryExec
+      level: warn # suppress messages about retries by HTTP client

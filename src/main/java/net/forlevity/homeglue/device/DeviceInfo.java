@@ -24,13 +24,6 @@ interface DeviceInfo {
     String getDetectionId();
 
     /**
-     * True if the device is "probably online."
-     *
-     * @return true if device is or was recently contactable
-     */
-    boolean isConnected();
-
-    /**
      * Get metadata about device, such as make/model/serial or whatever else is available for that device.
      *
      * @return copy of device metadata

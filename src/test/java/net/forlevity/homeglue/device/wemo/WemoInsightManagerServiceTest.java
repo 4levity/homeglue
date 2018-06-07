@@ -7,15 +7,15 @@
 package net.forlevity.homeglue.device.wemo;
 
 import lombok.extern.log4j.Log4j2;
-import net.forlevity.homeglue.device.DeviceCommandDispatcher;
+import net.forlevity.homeglue.device.DeviceConnectorInstances;
 import net.forlevity.homeglue.device.LastDeviceStateCache;
+import net.forlevity.homeglue.device.OfflineMarkerService;
 import net.forlevity.homeglue.device.SoapHelper;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.sim.SimulatedWemo;
 import net.forlevity.homeglue.testing.SimulatedNetworkTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
-import net.forlevity.homeglue.util.ServiceDependencies;
 import org.junit.Test;
 
 import java.time.Instant;
@@ -64,8 +64,8 @@ public class WemoInsightManagerServiceTest extends SimulatedNetworkTests {
         SoapHelper soapHelper = new SoapHelper(network);
         telemetryCache = new LastDeviceStateCache();
         WemoInsightConnectorFactory factory = (hostAddress, port) -> new WemoInsightConnector(soapHelper,
-                mock(DeviceCommandDispatcher.class), telemetryCache, mock(ScheduledExecutorService.class),
-                hostAddress, port);
+                mock(DeviceConnectorInstances.class), telemetryCache, mock(OfflineMarkerService.class), hostAddress, port, mock(ScheduledExecutorService.class)
+        );
         ssdp = new SsdpDiscoveryService(network);
         PersistenceService persistence = mock(PersistenceService.class);
         when(persistence.exec(any())).thenReturn(new ArrayList<>());

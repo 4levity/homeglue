@@ -60,9 +60,7 @@ public class QueueWorkerService<T> extends AbstractExecutionThreadService implem
 
     @Override
     protected final void startUp() throws Exception {
-        if (dependencies != null) {
-            dependencies.waitForDependencies(this);
-        }
+        dependencies.waitForDependencies(this);
     }
 
     /**

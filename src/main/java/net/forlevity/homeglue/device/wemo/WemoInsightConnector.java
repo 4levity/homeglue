@@ -10,10 +10,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.*;
 import net.forlevity.homeglue.entity.Device;
@@ -21,6 +18,7 @@ import net.forlevity.homeglue.util.Xml;
 import org.w3c.dom.Document;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -45,6 +43,8 @@ public class WemoInsightConnector implements DeviceConnector {
 
     private static final int POLLING_PERIOD_MILLIS = 2500;
     private static final int MIN_IDLE_MILLIS = 2000;
+    private static final Duration OFFLINE_DELAY = Duration.ofMinutes(1);
+    private static final int MAX_CONSECUTIVE_READ_ERRORS = 3;
 
     @Getter
     private String detectionId = DEVICE_ID_UNKNOWN;
@@ -57,27 +57,29 @@ public class WemoInsightConnector implements DeviceConnector {
     private int port;
 
     @Getter
+    @Setter(AccessLevel.PACKAGE)
     private boolean connected = false;
 
     private final SoapHelper soap;
-    private final DeviceCommandDispatcher dispatcher;
+    private final DeviceConnectorInstances registry;
     private final Consumer<DeviceState> deviceStateConsumer;
+    private final OfflineMarkerService offlineMarkerService;
     private final String hostAddress;
     private final PollerCommander poller;
+    private int consecutiveReadErrors = 0;
 
     @Inject
     WemoInsightConnector(SoapHelper soapHelper,
-                         DeviceCommandDispatcher dispatcher,
+                         DeviceConnectorInstances registry,
                          Consumer<DeviceState> deviceStateConsumer,
-                         ScheduledExecutorService executor,
-                         @Assisted String hostAddress,
-                         @Assisted int port) {
+                         OfflineMarkerService offlineMarkerService, @Assisted String hostAddress, @Assisted int port, ScheduledExecutorService executor) {
 
+        this.soap = soapHelper;
+        this.registry = registry;
+        this.deviceStateConsumer = deviceStateConsumer;
+        this.offlineMarkerService = offlineMarkerService;
         this.hostAddress = hostAddress;
         this.port = port;
-        this.soap = soapHelper;
-        this.dispatcher = dispatcher;
-        this.deviceStateConsumer = deviceStateConsumer;
         poller = new PollerCommander(executor, getClass().getSimpleName() + "@" + hostAddress, this::poll,
                 POLLING_PERIOD_MILLIS, MIN_IDLE_MILLIS);
     }
@@ -90,7 +92,7 @@ public class WemoInsightConnector implements DeviceConnector {
             String result = soap.getHttpClient().get(location);
             connected = parseWemoSetup(result);
             if (connected) {
-                dispatcher.register(this);
+                registry.register(this);
                 poller.start();
             }
         } catch (IOException e) {
@@ -134,7 +136,7 @@ public class WemoInsightConnector implements DeviceConnector {
                 if (insightParams != null) {
                     DeviceState deviceState = processInsightParams(insightParams);
                     if (deviceState != null) {
-                        storeTelemetry(deviceState);
+                        deviceStateConsumer.accept(deviceState);
                         result = Command.Result.SUCCESS;
                     } else {
                         log.warn("couldn't parse BinaryState from SetBinaryState response");
@@ -178,24 +180,26 @@ public class WemoInsightConnector implements DeviceConnector {
 
     boolean poll() {
         DeviceState deviceState = null;
-        try {
-            deviceState = read();
-        } catch(RuntimeException e) {
-            log.error("unexpected exception during poll of {} (continuing)", this, e);
-        }
-        // TODO: better handle failure to read meter
-        storeTelemetry(deviceState);
-        return deviceState != null;
-    }
-
-    private void storeTelemetry(DeviceState deviceState) {
-        try {
-            if (deviceState != null) {
+        if (isConnected()) {
+            try {
+                deviceState = read();
+            } catch(RuntimeException e) {
+                log.error("unexpected exception during poll of {} (continuing)", this, e);
+            }
+            if (deviceState == null) {
+                consecutiveReadErrors++;
+                if (consecutiveReadErrors > MAX_CONSECUTIVE_READ_ERRORS) {
+                    setConnected(false);
+                    // mark offline right away, no need to wait for marker service to do it
+                    offlineMarkerService.markOffline(detectionId);
+                    // WemoInsightManagerService will turn us back on later, when SSDP service rediscovers the device
+                }
+            } else {
+                consecutiveReadErrors = 0;
                 deviceStateConsumer.accept(deviceState);
             }
-        } catch(RuntimeException e) {
-            log.error("unexpected exception during storage of telemetry for {} (continuing)", this, e);
         }
+        return deviceState != null;
     }
 
     @VisibleForTesting
@@ -231,5 +235,10 @@ public class WemoInsightConnector implements DeviceConnector {
     private Document execWemoInsightSoapRequest(String control, String urn, String action, String content) {
         String url = String.format("http://%s:%d/upnp/control/%s", hostAddress, port, control);
         return soap.execSoapRequest(url, urn, action, content);
+    }
+
+    @Override
+    public Duration getOfflineDelay() {
+        return OFFLINE_DELAY;
     }
 }

@@ -9,7 +9,7 @@ package net.forlevity.homeglue.api;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import net.forlevity.homeglue.device.Command;
-import net.forlevity.homeglue.device.DeviceCommandDispatcher;
+import net.forlevity.homeglue.device.DeviceConnectorInstances;
 import net.forlevity.homeglue.entity.Relay;
 
 import javax.ws.rs.*;
@@ -22,17 +22,19 @@ import java.util.concurrent.TimeoutException;
 @Produces(MediaType.APPLICATION_JSON)
 public class RelayResource {
 
+    private static final long API_DEVICE_COMMAND_TIMEOUT_MILLIS = 4000;
+
     private final Relay relay;
-    private final DeviceCommandDispatcher dispatcher;
+    private final DeviceConnectorInstances registry;
 
     interface Factory {
         RelayResource create(Relay relay);
     }
 
     @Inject
-    public RelayResource(DeviceCommandDispatcher dispatcher, @Assisted Relay relay) {
+    public RelayResource(DeviceConnectorInstances registry, @Assisted Relay relay) {
         this.relay = relay;
-        this.dispatcher = dispatcher;
+        this.registry = registry;
     }
 
     @GET
@@ -47,9 +49,9 @@ public class RelayResource {
             throw new BadRequestException("relay state must be true (closed) or false (open)");
         }
         Command.Action action = newState.isClosed() ? Command.Action.CLOSE_RELAY : Command.Action.OPEN_RELAY;
-        Future<Command.Result> result = dispatcher.dispatch(relay.getDevice().getDetectionId(), new Command(action));
+        Future<Command.Result> result = registry.dispatch(relay.getDevice().getDetectionId(), new Command(action));
         try {
-            return result.get(2000, TimeUnit.MILLISECONDS);
+            return result.get(API_DEVICE_COMMAND_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
             return Command.Result.PENDING;
         }

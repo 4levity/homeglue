@@ -15,6 +15,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.device.DeviceStateProcessorService;
+import net.forlevity.homeglue.device.OfflineMarkerService;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.sink.IftttDeviceEventService;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
@@ -45,6 +46,7 @@ public class HomeglueApplication {
     public HomeglueApplication(
             PersistenceService persistenceService,
             DeviceStateProcessorService deviceStateProcessorService,
+            OfflineMarkerService offlineMarkerService,
             SsdpDiscoveryService ssdpDiscoveryService,
             IftttDeviceEventService iftttDeviceEventService,
             WebserverService webserverService,
@@ -52,6 +54,7 @@ public class HomeglueApplication {
         List<Service> services = new ArrayList<>();
         services.add(persistenceService);
         services.add(deviceStateProcessorService);
+        services.add(offlineMarkerService);
         services.add(iftttDeviceEventService);
         services.add(ssdpDiscoveryService);
         services.add(webserverService);

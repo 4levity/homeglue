@@ -28,28 +28,31 @@ import java.util.function.Consumer;
 @Log4j2
 @Singleton
 public class DeviceStateProcessorServiceImpl extends QueueWorkerService<DeviceState> implements DeviceStateProcessorService {
+
     private final PersistenceService persistenceService;
     private final ApplianceStateDecider applianceStateDecider;
     private final Consumer<DeviceEvent> deviceEventConsumer;
-    private final DeviceCommandDispatcher deviceCommandDispatcher;
+    private final DeviceConnectorInstances deviceConnectorInstances;
     private final Map<Long, Instant> onTooLongSince = new ConcurrentHashMap<>();
+    private final Map<String, DeviceState> lastState = new ConcurrentHashMap<>();
 
     @Inject
     public DeviceStateProcessorServiceImpl(ServiceDependencies dependencies,
                                            PersistenceService persistenceService,
                                            ApplianceStateDecider applianceStateDecider,
                                            Consumer<DeviceEvent> deviceEventConsumer,
-                                           DeviceCommandDispatcher deviceCommandDispatcher) {
+                                           DeviceConnectorInstances deviceConnectorInstances) {
         super(DeviceState.class, dependencies);
         this.persistenceService = persistenceService;
         this.applianceStateDecider = applianceStateDecider;
         this.deviceEventConsumer = deviceEventConsumer;
-        this.deviceCommandDispatcher = deviceCommandDispatcher;
+        this.deviceConnectorInstances = deviceConnectorInstances;
     }
 
     @Override
     public void handle(DeviceState newDeviceState) {
         String detectionId = newDeviceState.getDetectionId();
+        lastState.put(detectionId, newDeviceState);
         List<DeviceEvent> newEvents = persistenceService.exec(session -> {
             List<DeviceEvent> events = new ArrayList<>();
             Device device = session.bySimpleNaturalId(Device.class).load(detectionId);
@@ -57,6 +60,11 @@ public class DeviceStateProcessorServiceImpl extends QueueWorkerService<DeviceSt
             return events;
         });
         newEvents.forEach(deviceEventConsumer);
+    }
+
+    @Override
+    public DeviceState getLastState(String deviceDetectionId) {
+        return lastState.get(deviceDetectionId);
     }
 
     private void handle(Session session, Device device, DeviceState newDeviceState, List<DeviceEvent> events) {
@@ -80,16 +88,16 @@ public class DeviceStateProcessorServiceImpl extends QueueWorkerService<DeviceSt
         // check for new device, connection state changed, details changed
         String detectionId = newDeviceState.getDetectionId();
         if (device == null) {
-            log.info("device first detection: {}", newDeviceState);
+            log.debug("device first detection: {}", newDeviceState);
             device = Device.from(newDeviceState);
             events.add(new DeviceEvent(device, DeviceEvent.NEW_DEVICE, device.getDetails()));
         } else {
-            if (device.isConnected() != newDeviceState.isConnected()) {
-                device.setConnected(newDeviceState.isConnected());
-                String event = device.isConnected() ? DeviceEvent.CONNECTED : DeviceEvent.CONNECTION_LOST;
-                events.add(new DeviceEvent(device, event));
+            if (!device.isConnected()) {
+                device.setConnected(true);
+                log.info("device connected: {}", newDeviceState);
+                events.add(new DeviceEvent(device, DeviceEvent.CONNECTED));
             }
-            if (!device.getDetails().equals(newDeviceState.getDeviceDetails())) {
+            if (newDeviceState.getDeviceDetails() != null && !device.getDetails().equals(newDeviceState.getDeviceDetails())) {
                 device.setDetails(newDeviceState.getDeviceDetails());
                 events.add(new DeviceEvent(device, DeviceEvent.DETAILS_CHANGED, device.getDetails()));
             }
@@ -171,7 +179,7 @@ public class DeviceStateProcessorServiceImpl extends QueueWorkerService<DeviceSt
                     Relay relay = device.getRelay();
                     if (relay != null) {
                         log.info("Device {} was on too long, opening relay", device.getDetectionId());
-                        deviceCommandDispatcher.dispatch(device.getDetectionId(), new Command(Command.Action.OPEN_RELAY));
+                        deviceConnectorInstances.dispatch(device.getDetectionId(), new Command(Command.Action.OPEN_RELAY));
                     }
                 }
             }

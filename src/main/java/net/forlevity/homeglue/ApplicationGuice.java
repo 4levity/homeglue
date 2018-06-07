@@ -110,7 +110,7 @@ public class ApplicationGuice extends AbstractModule {
     @Provides
     @Singleton
     ServiceDependencies serviceDependencies(PersistenceService persistenceService,
-                                                   DeviceStateProcessorService deviceStateProcessorService) {
+                                            DeviceStateProcessorService deviceStateProcessorService) {
         return new ServiceDependencies(ImmutableMap.of(
                 WebserverService.class, ImmutableList.of(persistenceService),
                 DeviceStateProcessorService.class, ImmutableList.of(persistenceService),

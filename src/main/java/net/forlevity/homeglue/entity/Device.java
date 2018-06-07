@@ -53,13 +53,13 @@ public class Device {
 
     @Column(name = "connected", nullable = false)
     @Getter
-    @Setter
     private boolean connected;
+    public static String _connected = "connected";
 
     @Column(name = "last_state_change", nullable = false)
     @Getter
     @Setter
-    private Instant lastStateChange = Instant.now();
+    private Instant lastStateChange = Instant.EPOCH;
 
     @OneToOne(mappedBy = "device", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Getter
@@ -74,6 +74,13 @@ public class Device {
     @Column(name="v")
     @CollectionTable(name="device_details", joinColumns=@JoinColumn(name="id"))
     private Map<String, String> details = new HashMap<>();
+
+    public void setConnected(boolean isConnected) {
+        if (connected != isConnected) {
+            lastStateChange = Instant.now();
+            connected = isConnected;
+        }
+    }
 
     public Map<String, String> getDetails() {
         return ImmutableMap.copyOf(details);
@@ -147,7 +154,7 @@ public class Device {
     public static Device from(DeviceState deviceState) {
         Device device = new Device();
         device.setDetectionId(deviceState.getDetectionId());
-        device.setConnected(deviceState.isConnected());
+        device.setConnected(false);
         device.setDetails(deviceState.getDeviceDetails());
         String userSpecifiedName = device.details.get(DETAIL_USER_SPECIFIED_NAME);
         if (validFriendlyName(userSpecifiedName)) {

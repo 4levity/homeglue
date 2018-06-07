@@ -69,7 +69,9 @@ public class ApplianceDetector {
     }
 
     public void setOn(boolean isOn) {
-        this.on = isOn;
-        lastStateChange = Instant.now();
+        if (on != isOn) {
+            on = isOn;
+            lastStateChange = Instant.now();
+        }
     }
 }

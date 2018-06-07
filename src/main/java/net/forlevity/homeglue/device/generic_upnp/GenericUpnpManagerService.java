@@ -67,6 +67,7 @@ public class GenericUpnpManagerService extends QueueWorkerService<SsdpServiceDef
         } else {
             // additional (or duplicate) service at same address
             genericUpnpDevice.add(service);
+            deviceStateConsumer.accept(new DeviceState(genericUpnpDevice)); // refresh online state
         }
     }
 }
