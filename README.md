@@ -56,13 +56,15 @@ products. 4Levity and Homeglue is not in any way affiliated with Belkin.
 
 ### Future plans ###
 
+* support more devices - ESP8266 generic, X10, LIFX ?
 * better detectionId for generic UPnP + expose service info
+* detect non-UPnP devices (detect phone on wifi etc)
 * more tests 
   * commands, appliance detector, friendly name, offline marker ..
   * IOExceptions at various points
   * malformed XML at various points
 * show recent telemetry data
-* do more with IFTTT webhooks - multiple events, incoming hooks for device controls
+* IFTTT incoming webhooks for device controls
 * store raw telemetry data (local SQL db, CSV file, Google Sheets, AWS DynamoDB or other free cloud db)
 * split up logic in DeviceStateProcessorService
 * auto versioning (major/branch/build)

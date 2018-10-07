@@ -12,9 +12,9 @@ import net.forlevity.homeglue.device.DeviceConnectorInstances;
 import net.forlevity.homeglue.sim.SimulatedNetwork;
 import net.forlevity.homeglue.testing.SimulatedNetworkTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
 @Log4j2

@@ -17,24 +17,33 @@ mainClassName = 'net.forlevity.homeglue.Main'
 
 apply plugin: 'com.github.johnrengelman.shadow'
 
+// generate shadow jar zip distribution (only)
+tasks.withType(Tar) { enabled = false }
+tasks.distZip.enabled = false
+tasks.shadowDistZip.baseName = project.name
+
 repositories {
     mavenCentral()
 }
 
 group 'net.forlevity.homeglue'
-version '0.1'
+version "1.0-${'git rev-parse --short HEAD'.execute().text.trim()}"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ['-Xlint:all', '-Xlint:-processing', '-Xlint:-serial', '-Werror']
+}
+
 ext {
-    lombokVersion = '1.16.20'
-    log4j2version = '2.11.0'
-    jacksonVersion = '2.9.5'
-    guiceVersion = '4.2.0'
-    hibernateVersion = '5.3.1.Final'
-    jettyVersion = '9.4.10.v20180503'
-    restEasyVersion = '3.5.1.Final'
+    lombokVersion = '1.18.2'
+    log4j2version = '2.11.1'
+    jacksonVersion = '2.9.7'
+    guiceVersion = '4.2.1'
+    hibernateVersion = '5.3.6.Final'
+    jettyVersion = '9.4.12.v20180830'
+    restEasyVersion = '3.6.1.Final'
 }
 
 dependencies {
@@ -55,7 +64,7 @@ dependencies {
     runtimeOnly group: 'com.fasterxml.jackson.jaxrs', name: 'jackson-jaxrs-json-provider', version: jacksonVersion
 
     // guava and guice
-    implementation group: 'com.google.guava', name: 'guava', version: '24.1-jre'
+    implementation group: 'com.google.guava', name: 'guava', version: '26.0-jre'
     implementation group: 'com.google.inject', name: 'guice', version: guiceVersion
     implementation group: 'com.google.inject.extensions', name: 'guice-assistedinject', version: guiceVersion
 
@@ -63,7 +72,7 @@ dependencies {
     implementation group: 'org.hibernate', name: 'hibernate-core', version: hibernateVersion
     runtimeOnly group: 'org.hibernate', name: 'hibernate-c3p0', version: hibernateVersion
     implementation group: 'com.h2database', name: 'h2', version: '1.4.197'
-    implementation group: 'org.flywaydb', name: 'flyway-core', version: '5.1.1'
+    implementation group: 'org.flywaydb', name: 'flyway-core', version: '5.2.0'
 
     // webserver and JAX-RS
     implementation group: 'org.eclipse.jetty', name: 'jetty-server', version: jettyVersion
@@ -74,17 +83,17 @@ dependencies {
     runtimeOnly group: 'org.jboss.resteasy', name: 'resteasy-jackson2-provider', version: restEasyVersion
 
     // utilities
-    implementation group: 'io.resourcepool', name: 'ssdp-client', version: '2.1.0'
-    implementation group: 'org.apache.httpcomponents', name: 'fluent-hc', version: '4.5.5'
-    implementation group: 'io.github.lukehutch', name: 'fast-classpath-scanner', version: '2.21'
+    implementation group: 'io.resourcepool', name: 'ssdp-client', version: '2.2.0'
+    implementation group: 'org.apache.httpcomponents', name: 'fluent-hc', version: '4.5.6'
+    implementation group: 'io.github.classgraph', name: 'classgraph', version: '4.2.8'
     implementation group: 'com.mitchellbosecke', name: 'pebble', version: '2.4.0'
-    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'
+    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.2'
 
     // test
     testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
     testCompileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    testCompile group: 'org.mockito', name: 'mockito-core', version: '2.18.3'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.3.1'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '2.23.0'
 }
 
 test {

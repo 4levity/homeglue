@@ -8,7 +8,10 @@ package net.forlevity.homeglue.api;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import net.forlevity.homeglue.device.DeviceState;
 
 import java.time.Instant;

@@ -13,14 +13,14 @@ import net.forlevity.homeglue.entity.Relay;
 import net.forlevity.homeglue.testing.FakePersistence;
 import net.forlevity.homeglue.testing.HomeglueTests;
 import net.forlevity.homeglue.util.ServiceDependencies;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 
 public class DeviceStateProcessorServiceTest extends HomeglueTests {

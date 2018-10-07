@@ -9,21 +9,21 @@ package net.forlevity.homeglue.ifttt;
 import net.forlevity.homeglue.http.SimpleHttpClient;
 import net.forlevity.homeglue.testing.HomeglueTests;
 import org.apache.http.entity.ContentType;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class IftttMakerWebhookClientTest extends HomeglueTests {
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked","rawtypes"})
     public void testIftttClient() throws IOException {
         String iftttKey = "111222333444";
         String response = "Congratulations! You've fired a fake event to nowhere";
@@ -46,7 +46,7 @@ public class IftttMakerWebhookClientTest extends HomeglueTests {
             assertTrue(url1.startsWith("https://maker.ifttt.com/trigger/"));
             assertTrue(url1.contains(iftttKey));
         });
-        headers.getAllValues().forEach(Assert::assertNull);
+        headers.getAllValues().forEach(Assertions::assertNull);
         contentType.getAllValues().forEach(type -> assertEquals(ContentType.APPLICATION_JSON, type));
 
         // individual events correctly generated

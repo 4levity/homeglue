@@ -8,20 +8,16 @@ package net.forlevity.homeglue.testing;
 
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.util.Json;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 @Log4j2
 public abstract class HomeglueTests {
 
     protected Json json = new Json(true);
 
-    @Rule
-    public TestName name = new TestName();
-
-    @Before
-    public void setup() {
-        log.info("***** STARTING TEST {} *****", name.getMethodName());
+    @BeforeEach
+    public void setup(TestInfo testInfo) {
+        log.info("***** STARTING TEST {} *****", testInfo.getDisplayName());
     }
 }

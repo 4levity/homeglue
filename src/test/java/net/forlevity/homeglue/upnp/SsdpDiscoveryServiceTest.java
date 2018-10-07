@@ -11,7 +11,7 @@ import net.forlevity.homeglue.sim.SimulatedUpnpDevice;
 import net.forlevity.homeglue.sim.UpnpServiceInfo;
 import net.forlevity.homeglue.testing.LinkedUniqueQueue;
 import net.forlevity.homeglue.testing.SimulatedNetworkTests;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -20,8 +20,8 @@ import java.util.Collections;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static net.forlevity.homeglue.upnp.SsdpSearcher.ROOT_DEVICE_SERVICE_TYPE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class SsdpDiscoveryServiceTest extends SimulatedNetworkTests {
 

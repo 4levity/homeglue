@@ -130,6 +130,7 @@ public class SsdpDiscoveryService extends AbstractIdleService {
      * @param serviceType the service type or null
      * @throws InterruptedException if interrupted
      */
+    @SuppressWarnings("try") // auto-closeable resource handle is never referenced in body of corresponding try
     private void search(String serviceType) throws InterruptedException {
         try (SafeCloseable handle = ssdpSearcher.startDiscovery(serviceType, this::dispatch)) {
             Thread.sleep(ssdpScanLengthMillis); // wait for scan results to come in

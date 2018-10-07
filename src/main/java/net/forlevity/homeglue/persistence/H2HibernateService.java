@@ -11,9 +11,10 @@ import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
-import io.github.lukehutch.fastclasspathscanner.scanner.ClassInfo;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfo;
+import io.github.classgraph.ClassInfoList;
+import io.github.classgraph.ScanResult;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.util.ResourceHelper;
 import org.flywaydb.core.Flyway;
@@ -31,8 +32,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -100,9 +99,13 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
         MetadataSources metadata = new MetadataSources(registry);
 
         // search for and map Entity classes
-        ScanResult scanResult = new FastClasspathScanner(settings.getProperty("entity.search.package")).scan();
-        List<String> entityClasses = scanResult.getNamesOfClassesWithAnnotation(Entity.class);
-        entityClasses.forEach(metadata::addAnnotatedClassName);
+        ScanResult scanResult = new ClassGraph()
+                .enableClassInfo()
+                .enableAnnotationInfo()
+                .whitelistPackages(settings.getProperty("entity.search.package"))
+                .scan();
+        ClassInfoList entityClasses = scanResult.getClassesWithAnnotation(Entity.class.getName());
+        entityClasses.forEach(classInfo -> metadata.addAnnotatedClass(classInfo.loadClass()));
 
         // create session factory
         sessionFactory = metadata.buildMetadata().buildSessionFactory();
@@ -116,8 +119,7 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
         }
 
         // startup log
-        Map<String, ClassInfo> classInfoMap = scanResult.getClassNameToClassInfo();
-        String classNames = entityClasses.stream().map(name -> classInfoMap.get(name).getClassRef().getSimpleName())
+        String classNames = entityClasses.stream().map(ClassInfo::getSimpleName)
                 .collect(Collectors.joining(", "));
         log.info("Persistence mapped classes [{}] using {}", classNames, getJdbcUrl());
     }
@@ -276,9 +278,10 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
     }
 
     private void migrate() {
-        Flyway flyway = new Flyway();
-        flyway.setLocations("classpath:db/migrations");
-        flyway.setDataSource(getConnectionUrl(), getUsername(), getPassword());
+        Flyway flyway = Flyway.configure()
+                .locations("classpath:db/migrations")
+                .dataSource(getConnectionUrl(), getUsername(), getPassword())
+                .load();
         flyway.migrate();
     }
 }

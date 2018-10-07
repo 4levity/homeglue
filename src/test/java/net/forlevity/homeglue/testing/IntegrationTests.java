@@ -13,8 +13,8 @@ import net.forlevity.homeglue.HomeglueApplication;
 import net.forlevity.homeglue.persistence.PersistenceService;
 import net.forlevity.homeglue.util.Json;
 import net.forlevity.homeglue.util.ResourceHelper;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.util.Properties;
 
@@ -24,7 +24,7 @@ public class IntegrationTests extends HomeglueTests {
     protected PersistenceService persistence;
     protected HomeglueApplication application;
 
-    @Before
+    @BeforeEach
     public void prepareApplication() {
         makeTestInjector();
         application = injector.getInstance(HomeglueApplication.class);
@@ -37,7 +37,7 @@ public class IntegrationTests extends HomeglueTests {
         injector = Guice.createInjector(new ApplicationGuice(configuration));
     }
 
-    @After
+    @AfterEach
     public void stopApplication() {
         if (!application.isStopped()) {
             application.stop();

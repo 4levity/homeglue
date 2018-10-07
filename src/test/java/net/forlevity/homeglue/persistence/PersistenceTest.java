@@ -12,13 +12,13 @@ import net.forlevity.homeglue.device.DeviceState;
 import net.forlevity.homeglue.entity.Device;
 import net.forlevity.homeglue.testing.IntegrationTests;
 import org.hibernate.Session;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.function.Function;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PersistenceTest extends IntegrationTests {
 

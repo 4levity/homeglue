@@ -18,9 +18,9 @@ import net.forlevity.homeglue.testing.IntegrationTests;
 import net.forlevity.homeglue.upnp.SsdpDiscoveryService;
 import net.forlevity.homeglue.upnp.SsdpSearcher;
 import net.forlevity.homeglue.web.WebserverService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ApplicationTest extends IntegrationTests {
 
@@ -50,13 +50,13 @@ public class ApplicationTest extends IntegrationTests {
         assertFalse(injector.getInstance(SsdpDiscoveryService.class).isRunning());
     }
 
-    private void newService(Class<? extends Service> serviceClass) {
-        assertEquals(Service.State.NEW, injector.getInstance(serviceClass).state());
-    }
-
     @Test
     public void repeatStartStopTest() {
         startStopApplication(); // starting/stopping twice checks that test framework cleans up
+    }
+
+    private void newService(Class<? extends Service> serviceClass) {
+        assertEquals(Service.State.NEW, injector.getInstance(serviceClass).state());
     }
 
     private void runningService(Class<? extends Service> serviceClass) {

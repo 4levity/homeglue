@@ -34,7 +34,7 @@ public class FakePersistence extends AbstractIdleService implements PersistenceS
     @Setter
     private Function<Serializable, Object> resolver = clazz -> null;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked","rawtypes"})
     public FakePersistence() {
         session = mock(Session.class);
         when(session.load((Class<?>)any(), any()))
