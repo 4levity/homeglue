@@ -13,7 +13,7 @@ import org.hibernate.Session;
 import java.util.function.Function;
 
 /**
- * PersistenceService service to execute work units in a managed Hibernate session.
+ * PersistenceService executes work units in a managed Hibernate session with automatic rollback.
  */
 @ImplementedBy(H2HibernateService.class)
 public interface PersistenceService extends Service {

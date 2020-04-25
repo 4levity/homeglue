@@ -11,10 +11,6 @@ import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import io.github.classgraph.ClassGraph;
-import io.github.classgraph.ClassInfo;
-import io.github.classgraph.ClassInfoList;
-import io.github.classgraph.ScanResult;
 import lombok.extern.log4j.Log4j2;
 import net.forlevity.homeglue.util.ResourceHelper;
 import org.flywaydb.core.Flyway;
@@ -23,11 +19,7 @@ import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.registry.StandardServiceRegistry;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
-import javax.persistence.Entity;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -37,7 +29,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * PersistenceService implementation using H2 embedded.
@@ -49,13 +40,17 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
     private final Integer h2WebserverPort;
     private final Properties settings;
     private final ReadWriteLock safeShutdown = new ReentrantReadWriteLock();
+    private final SessionFactoryFactory sessionFactoryFactory;
 
     private SessionFactory sessionFactory = null;
     private Server h2WebServer = null;
+    private boolean started = false;
     private boolean stopped = false;
+    private Connection keepalive;
 
     @Inject
-    H2HibernateService(@Named("persistence.settings.resource") String persistenceSettingsResource) {
+    H2HibernateService(@Named("persistence.settings.resource") String persistenceSettingsResource,
+                       SessionFactoryFactory sessionFactoryFactory) {
         settings = ResourceHelper.resourceAsProperties(persistenceSettingsResource);
         boolean h2WebserverEnable = Boolean.valueOf(settings.getProperty("h2.webserver.enable"));
         if (h2WebserverEnable) {
@@ -63,6 +58,7 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
         } else {
             h2WebserverPort = null;
         }
+        this.sessionFactoryFactory = sessionFactoryFactory;
     }
 
     @Override
@@ -77,51 +73,46 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
 
     @VisibleForTesting
     void start() throws SQLException {
-        if (sessionFactory != null) {
-            throw new IllegalStateException("service is already running");
+
+        if (started) {
+            throw new IllegalStateException("service was already started");
         }
+        started = true;
+
+        startKeepalive();
+
+        if (Boolean.valueOf(settings.getProperty("flyway.auto"))) {
+            updateSchema(); // perform database schema updates if necessary
+        }
+
+        sessionFactory = sessionFactoryFactory.create(settings);
+
         if (h2WebserverPort != null) {
             h2WebServer = Server.createWebServer("-webPort", h2WebserverPort.toString());
             h2WebServer.start();
             log.info("H2 db web interface at http://localhost:{}/ (local access only)", h2WebserverPort);
         }
 
-        Connection keepalive = null; // temporary connection keeps db from resetting between Flyway and Hibernate init
+        log.info("connected to {}", this::getJdbcUrl);
+
+        stopKeepalive();
+    }
+
+    private void startKeepalive() throws SQLException {
+        keepalive = null; // temporary connection keeps db from resetting between Flyway and Hibernate init
         if (getConnectionUrl().startsWith("jdbc:h2:mem")) {
             keepalive = getConnection();
         }
+    }
 
-        // perform any necessary database migration
-        migrate();
-
-        // set up Hibernate
-        StandardServiceRegistry registry = new StandardServiceRegistryBuilder().applySettings(settings).build();
-        MetadataSources metadata = new MetadataSources(registry);
-
-        // search for and map Entity classes
-        ScanResult scanResult = new ClassGraph()
-                .enableClassInfo()
-                .enableAnnotationInfo()
-                .whitelistPackages(settings.getProperty("entity.search.package"))
-                .scan();
-        ClassInfoList entityClasses = scanResult.getClassesWithAnnotation(Entity.class.getName());
-        entityClasses.forEach(classInfo -> metadata.addAnnotatedClass(classInfo.loadClass()));
-
-        // create session factory
-        sessionFactory = metadata.buildMetadata().buildSessionFactory();
-
+    private void stopKeepalive() {
         if (keepalive != null) {
             try {
                 keepalive.close();
             } catch (SQLException e) {
-                log.error("error closing temporary keepalive connection");
+                log.error("error closing keepalive connection");
             }
         }
-
-        // startup log
-        String classNames = entityClasses.stream().map(ClassInfo::getSimpleName)
-                .collect(Collectors.joining(", "));
-        log.info("Persistence mapped classes [{}] using {}", classNames, getJdbcUrl());
     }
 
     @VisibleForTesting
@@ -227,12 +218,17 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
     }
 
     private String getJdbcUrl() {
-        // may be different than configured connection URL, e.g. connection params not included
-        return exec(session -> {
-            String[] url = new String[1];
-            session.doWork(connection -> url[0] = connection.getMetaData().getURL());
-            return url[0];
-        });
+        String jdbcUrl = getConnectionUrl();
+        if (jdbcUrl.startsWith("jdbc:")) {
+            // if real db, get actual connection URL used by Hibernate
+            // may be different than configured connection URL, e.g. connection params not included
+            jdbcUrl = exec(session -> {
+                String[] url = new String[1];
+                session.doWork(connection -> url[0] = connection.getMetaData().getURL());
+                return url[0];
+            });
+        }
+        return jdbcUrl;
     }
 
     private String getUsername() {
@@ -277,7 +273,7 @@ public class H2HibernateService extends AbstractIdleService implements Persisten
         return connection;
     }
 
-    private void migrate() {
+    private void updateSchema() {
         Flyway flyway = Flyway.configure()
                 .locations("classpath:db/migrations")
                 .dataSource(getConnectionUrl(), getUsername(), getPassword())

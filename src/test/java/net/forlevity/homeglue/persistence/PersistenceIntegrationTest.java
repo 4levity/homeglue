@@ -10,23 +10,39 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ServiceManager;
 import net.forlevity.homeglue.device.DeviceState;
 import net.forlevity.homeglue.entity.Device;
+import net.forlevity.homeglue.testing.HomeglueTests;
 import net.forlevity.homeglue.testing.IntegrationTests;
+import net.forlevity.homeglue.testing.ThisTestException;
 import org.hibernate.Session;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.function.Function;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class PersistenceTest extends IntegrationTests {
+public class PersistenceIntegrationTest extends IntegrationTests {
+
+    ServiceManager serviceManager;
+
+    @BeforeEach
+    public void startPersistence() {
+        // fresh persistence service instance is created every run
+        serviceManager = new ServiceManager(Collections.singleton(persistence));
+        serviceManager.startAsync().awaitHealthy();
+        assertTrue(persistence.isRunning());
+    }
+
+    @AfterEach
+    public void stopPersistence() {
+        serviceManager.stopAsync().awaitStopped();
+        assertFalse(persistence.isRunning());
+    }
 
     @Test
     public void testPersistenceStartsCleanAndWorks() {
-        ServiceManager serviceManager = new ServiceManager(Collections.singleton(persistence));
-        serviceManager.startAsync().awaitHealthy();
-        assertTrue(persistence.isRunning());
         String detectionId = "mydevice";
         Function<Session, Boolean> deviceLoader = session -> null != session.bySimpleNaturalId(Device.class).load(detectionId);
 
@@ -36,8 +52,11 @@ public class PersistenceTest extends IntegrationTests {
             return null;
         });
         assertTrue(persistence.exec(deviceLoader)); // device exists
+    }
 
-        serviceManager.stopAsync().awaitStopped();
+    @Test
+    public void throwsThrough() {
+        assertThrows(ThisTestException.class, () -> persistence.exec(HomeglueTests::throwThisTestException));
     }
 
     @Test

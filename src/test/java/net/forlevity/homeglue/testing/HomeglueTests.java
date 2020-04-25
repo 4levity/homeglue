@@ -20,4 +20,9 @@ public abstract class HomeglueTests {
     public void setup(TestInfo testInfo) {
         log.info("***** STARTING TEST {} *****", testInfo.getDisplayName());
     }
+
+    // for lambdas:
+    protected static Object throwThisTestException(Object object) {
+        throw new ThisTestException();
+    }
 }
